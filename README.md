@@ -1,6 +1,8 @@
 # ShagarShop
 
-A marketplace web application built with **Next.js 15**, **React 19**, and **Tailwind CSS 4**.
+Standalone marketplace web application built with **Next.js 15**, **React 19**, and **Tailwind CSS 4**.
+
+**Repository:** https://github.com/DanielMelesse/ShagarShop
 
 ## Features
 
