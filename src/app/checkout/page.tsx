@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/context/CartContext";
@@ -9,17 +9,31 @@ import { formatPrice, getShippingCost } from "@/lib/products";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user, isReady: authReady } = useAuth();
+  const { user, isAuthenticated, isReady: authReady } = useAuth();
   const { items, subtotal, clearCart, isReady: cartReady } = useCart();
   const [placed, setPlaced] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  if (!cartReady) {
+  useEffect(() => {
+    if (authReady && !isAuthenticated) {
+      router.replace("/login?callbackUrl=/checkout");
+    }
+  }, [authReady, isAuthenticated, router]);
+
+  if (!cartReady || !authReady) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         <div className="h-8 w-40 animate-pulse rounded-lg bg-zinc-200" />
         <div className="mt-8 h-64 animate-pulse rounded-2xl bg-zinc-100" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated && !placed) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-20 text-center">
+        <p className="text-zinc-500">Redirecting to log in…</p>
       </div>
     );
   }
@@ -105,14 +119,6 @@ export default function CheckoutPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <h1 className="text-2xl font-bold text-zinc-900">Checkout</h1>
-      {cartReady && authReady && !user && (
-        <p className="mt-2 text-sm text-zinc-500">
-          <Link href="/login" className="text-brand-600 hover:underline">
-            Log in
-          </Link>{" "}
-          to save this order to your account.
-        </p>
-      )}
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-8">
         <fieldset className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6">

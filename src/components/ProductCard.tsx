@@ -3,15 +3,33 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { getDealMeta } from "@/lib/deals";
 import { formatPrice } from "@/lib/products";
 import type { Product } from "@/lib/types";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+  product,
+  deal = false,
+}: {
+  product: Product;
+  deal?: boolean;
+}) {
   const { addItem } = useCart();
+  const dealMeta = deal ? getDealMeta(product) : null;
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:border-brand-200 hover:shadow-md">
       <Link href={`/product/${product.id}`} className="relative aspect-square overflow-hidden bg-zinc-100">
+        {dealMeta && (
+          <span className="absolute left-2 top-2 z-10 rounded-md bg-red-600 px-2 py-1 text-xs font-bold text-white shadow">
+            -{dealMeta.savingsPercent}%
+          </span>
+        )}
+        {deal && product.stock <= 25 && (
+          <span className="absolute right-2 top-2 z-10 rounded-md bg-orange-600 px-2 py-1 text-xs font-bold text-white shadow">
+            Low stock
+          </span>
+        )}
         <Image
           src={product.image}
           alt={product.name}
@@ -31,17 +49,31 @@ export function ProductCard({ product }: { product: Product }) {
           <span>{product.rating}</span>
           <span>({product.reviewCount.toLocaleString()})</span>
         </div>
-        <div className="mt-auto flex items-center justify-between gap-2 pt-3">
-          <span className="text-lg font-bold text-zinc-900">
-            {formatPrice(product.price)}
-          </span>
-          <button
-            type="button"
-            onClick={() => addItem(product)}
-            className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-brand-700"
-          >
-            Add
-          </button>
+        <div className="mt-auto pt-3">
+          <div className="flex flex-wrap items-baseline gap-2">
+            <span className="text-lg font-bold text-brand-700">
+              {formatPrice(product.price)}
+            </span>
+            {dealMeta && (
+              <span className="text-sm text-zinc-400 line-through">
+                {formatPrice(dealMeta.listPrice)}
+              </span>
+            )}
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-2">
+            {deal && dealMeta && (
+              <span className="text-xs font-medium text-red-600">
+                Save {dealMeta.savingsPercent}%
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => addItem(product)}
+              className="ml-auto rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-brand-700"
+            >
+              Add
+            </button>
+          </div>
         </div>
       </div>
     </article>

@@ -1,21 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { safeCallbackUrl } from "@/lib/auth-redirect";
 
-const AFTER_AUTH_PATH = "/shop?featured=1";
-
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const afterAuth = safeCallbackUrl(searchParams.get("callbackUrl"));
   const { signup, user, isReady } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isReady && user) router.replace(AFTER_AUTH_PATH);
-  }, [isReady, user, router]);
+    if (isReady && user) router.replace(afterAuth);
+  }, [isReady, user, router, afterAuth]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -23,14 +24,15 @@ export default function SignupPage() {
     setLoading(true);
     const form = new FormData(e.currentTarget);
     const name = String(form.get("name") ?? "");
-    const email = String(form.get("email") ?? "");
+    const phone = String(form.get("phone") ?? "");
     const password = String(form.get("password") ?? "");
-    const ok = await signup(name, email, password);
+    const email = String(form.get("email") ?? "");
+    const result = await signup(name, phone, password, email);
     setLoading(false);
-    if (ok) {
-      router.push(AFTER_AUTH_PATH);
+    if (result.ok) {
+      router.push(afterAuth);
     } else {
-      setError("Could not create account. Email may already be in use.");
+      setError(result.error ?? "Could not create account.");
     }
   }
 
@@ -44,7 +46,7 @@ export default function SignupPage() {
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div>
           <label htmlFor="name" className="text-sm font-medium text-zinc-700">
-            Full name
+            Full name <span className="text-red-600">*</span>
           </label>
           <input
             id="name"
@@ -56,21 +58,22 @@ export default function SignupPage() {
           />
         </div>
         <div>
-          <label htmlFor="email" className="text-sm font-medium text-zinc-700">
-            Email
+          <label htmlFor="phone" className="text-sm font-medium text-zinc-700">
+            Phone number <span className="text-red-600">*</span>
           </label>
           <input
-            id="email"
-            name="email"
-            type="email"
+            id="phone"
+            name="phone"
+            type="tel"
             required
-            autoComplete="email"
+            autoComplete="tel"
+            placeholder="09XX XXX XXXX"
             className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
           />
         </div>
         <div>
           <label htmlFor="password" className="text-sm font-medium text-zinc-700">
-            Password
+            Password <span className="text-red-600">*</span>
           </label>
           <input
             id="password"
@@ -79,6 +82,18 @@ export default function SignupPage() {
             required
             minLength={6}
             autoComplete="new-password"
+            className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+          />
+        </div>
+        <div>
+          <label htmlFor="email" className="text-sm font-medium text-zinc-700">
+            Email <span className="font-normal text-zinc-400">(optional)</span>
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
             className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
           />
         </div>
@@ -94,10 +109,31 @@ export default function SignupPage() {
 
       <p className="mt-6 text-center text-sm text-zinc-500">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-brand-600 hover:underline">
+        <Link
+          href={
+            afterAuth !== "/shop?featured=1"
+              ? `/login?callbackUrl=${encodeURIComponent(afterAuth)}`
+              : "/login"
+          }
+          className="font-medium text-brand-600 hover:underline"
+        >
           Log in
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
+          <div className="h-8 w-40 animate-pulse rounded-lg bg-zinc-200" />
+        </div>
+      }
+    >
+      <SignupForm />
+    </Suspense>
   );
 }

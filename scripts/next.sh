@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Run Next.js with a working runtime. Avoids SIGABRT when /usr/local/bin/node
-# is an old broken Homebrew Node that cannot load icu4c.
+# Run Next.js with a working runtime. Avoids SIGABRT from Homebrew Node 9.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=runtime-path.sh
+source "$ROOT/scripts/runtime-path.sh"
+
 NEXT_BIN="$ROOT/node_modules/next/dist/bin/next"
 CMD="${1:-dev}"
 shift || true
@@ -16,9 +18,6 @@ fi
 if command -v bun >/dev/null 2>&1; then
   exec bun --bun "$NEXT_BIN" "$CMD" "$@"
 fi
-
-# Fallback: prefer modern Node installs over /usr/local/bin/node
-export PATH="/opt/homebrew/bin:/usr/local/opt/node@22/bin:/usr/local/opt/node@20/bin:${HOME}/.nvm/versions/node/$(ls -1 "${HOME}/.nvm/versions/node" 2>/dev/null | tail -1)/bin:/Volumes/Cursor Installer 1/Cursor.app/Contents/Resources/app/resources/helpers:${PATH}"
 
 if ! command -v node >/dev/null 2>&1; then
   echo "error: No working Node.js found. Install Bun (https://bun.sh) or Node 20+." >&2

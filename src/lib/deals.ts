@@ -1,0 +1,27 @@
+import type { Product } from "@/lib/types";
+
+/** Stable "was" price for demo deals (no list price in DB). */
+export function getListPrice(price: number, productId: string): number {
+  const seed = productId.split("").reduce((sum, c) => sum + c.charCodeAt(0), 0);
+  const discountPct = 15 + (seed % 21);
+  return Math.round((price / (1 - discountPct / 100)) * 100) / 100;
+}
+
+export function getSavingsPercent(price: number, listPrice: number): number {
+  return Math.round((1 - price / listPrice) * 100);
+}
+
+export function getDealMeta(product: Product) {
+  const listPrice = getListPrice(product.price, product.id);
+  const savingsPercent = getSavingsPercent(product.price, listPrice);
+  return { listPrice, savingsPercent };
+}
+
+export function sortDeals(products: Product[]): Product[] {
+  return [...products].sort((a, b) => {
+    const saveA = getSavingsPercent(a.price, getListPrice(a.price, a.id));
+    const saveB = getSavingsPercent(b.price, getListPrice(b.price, b.id));
+    if (saveB !== saveA) return saveB - saveA;
+    return b.rating - a.rating;
+  });
+}

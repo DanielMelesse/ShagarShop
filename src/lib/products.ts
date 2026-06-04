@@ -1,6 +1,7 @@
 import type { Category } from "./types";
 
 export const categories: { id: Category; label: string }[] = [
+  { id: "home", label: "Home" },
   { id: "electronics", label: "Electronics" },
   { id: "fashion", label: "Fashion" },
   { id: "sports", label: "Sports" },
@@ -11,10 +12,11 @@ export type SearchDepartment = "all" | Category;
 
 export const searchDepartments: { value: SearchDepartment; label: string }[] = [
   { value: "all", label: "All" },
+  { value: "home", label: "Home" },
+  { value: "electronics", label: "Electronics" },
+  { value: "fashion", label: "Fashion" },
   { value: "sports", label: "Sports" },
   { value: "books", label: "Books" },
-  { value: "fashion", label: "Fashion" },
-  { value: "electronics", label: "Electronics" },
 ];
 
 export function buildShopSearchUrl(options: {

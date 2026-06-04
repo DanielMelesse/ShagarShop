@@ -1,35 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { safeCallbackUrl } from "@/lib/auth-redirect";
 
-const AFTER_AUTH_PATH = "/shop?featured=1";
-
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const afterAuth = safeCallbackUrl(searchParams.get("callbackUrl"));
   const { login, user, isReady } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isReady && user) router.replace(AFTER_AUTH_PATH);
-  }, [isReady, user, router]);
+    if (isReady && user) router.replace(afterAuth);
+  }, [isReady, user, router, afterAuth]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setLoading(true);
     const form = new FormData(e.currentTarget);
-    const email = String(form.get("email") ?? "");
+    const phone = String(form.get("phone") ?? "");
     const password = String(form.get("password") ?? "");
-    const ok = await login(email, password);
+    const ok = await login(phone, password);
     setLoading(false);
     if (ok) {
-      router.push(AFTER_AUTH_PATH);
+      router.push(afterAuth);
     } else {
-      setError("Invalid email or password.");
+      setError("Invalid phone number or password.");
     }
   }
 
@@ -37,20 +38,21 @@ export default function LoginPage() {
     <div className="mx-auto flex max-w-md flex-col px-4 py-16 sm:px-6">
       <h1 className="text-2xl font-bold text-zinc-900">Log in</h1>
       <p className="mt-2 text-sm text-zinc-500">
-        Sign in with your ShagarShop account.
+        Sign in with your phone number and password.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div>
-          <label htmlFor="email" className="text-sm font-medium text-zinc-700">
-            Email
+          <label htmlFor="phone" className="text-sm font-medium text-zinc-700">
+            Phone number
           </label>
           <input
-            id="email"
-            name="email"
-            type="email"
+            id="phone"
+            name="phone"
+            type="tel"
             required
-            autoComplete="email"
+            autoComplete="tel"
+            placeholder="09XX XXX XXXX"
             className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
           />
         </div>
@@ -79,10 +81,31 @@ export default function LoginPage() {
 
       <p className="mt-6 text-center text-sm text-zinc-500">
         No account?{" "}
-        <Link href="/signup" className="font-medium text-brand-600 hover:underline">
+        <Link
+          href={
+            afterAuth !== "/shop?featured=1"
+              ? `/signup?callbackUrl=${encodeURIComponent(afterAuth)}`
+              : "/signup"
+          }
+          className="font-medium text-brand-600 hover:underline"
+        >
           Sign up
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
+          <div className="h-8 w-32 animate-pulse rounded-lg bg-zinc-200" />
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

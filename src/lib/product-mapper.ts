@@ -1,13 +1,8 @@
 import type { Product as DbProduct } from "@prisma/client";
+import { categories } from "@/lib/products";
 import type { Category, Product } from "@/lib/types";
 
-const CATEGORY_IDS: Category[] = [
-  "electronics",
-  "fashion",
-  "home",
-  "sports",
-  "books",
-];
+const CATEGORY_IDS: Category[] = categories.map((c) => c.id);
 
 export function isCategory(value: string): value is Category {
   return CATEGORY_IDS.includes(value as Category);

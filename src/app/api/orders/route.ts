@@ -27,6 +27,10 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const items = body.items as OrderItemInput[];
     const shippingName = String(body.shippingName ?? "").trim();
@@ -77,7 +81,7 @@ export async function POST(request: Request) {
     const order = await prisma.$transaction(async (tx) => {
       const created = await tx.order.create({
         data: {
-          userId: session?.user?.id ?? null,
+          userId: session.user.id,
           subtotal,
           shipping,
           total,

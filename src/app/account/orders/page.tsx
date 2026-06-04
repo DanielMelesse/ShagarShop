@@ -64,7 +64,10 @@ export default function OrdersPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <h1 className="text-2xl font-bold text-zinc-900">Your orders</h1>
-      <p className="mt-1 text-sm text-zinc-500">Signed in as {user?.email}</p>
+      <p className="mt-1 text-sm text-zinc-500">
+        Signed in as {user?.phone}
+        {user?.email ? ` · ${user.email}` : ""}
+      </p>
 
       {orders.length === 0 ? (
         <div className="mt-12 text-center">

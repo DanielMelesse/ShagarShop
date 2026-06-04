@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/hooks/useAuth";
+import { useMounted } from "@/hooks/useMounted";
 import {
   FREE_SHIPPING_THRESHOLD,
   formatPrice,
@@ -10,13 +12,16 @@ import {
 } from "@/lib/products";
 
 export default function CartPage() {
+  const mounted = useMounted();
+  const { isAuthenticated, isReady: authReady } = useAuth();
   const { items, itemCount, subtotal, updateQuantity, removeItem, isReady } =
     useCart();
 
   const shipping = getShippingCost(subtotal);
   const total = subtotal + shipping;
+  const showOrderSummary = mounted && authReady && isAuthenticated;
 
-  if (!isReady) {
+  if (!isReady || !authReady) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         <div className="h-8 w-48 animate-pulse rounded-lg bg-zinc-200" />
@@ -115,33 +120,56 @@ export default function CartPage() {
         </ul>
 
         <aside className="h-fit rounded-2xl border border-zinc-200 bg-white p-6">
-          <h2 className="font-semibold text-zinc-900">Order summary</h2>
-          <dl className="mt-4 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-zinc-500">Subtotal</dt>
-              <dd>{formatPrice(subtotal)}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-zinc-500">Shipping</dt>
-              <dd>{shipping === 0 ? "Free" : formatPrice(shipping)}</dd>
-            </div>
-            {subtotal > 0 && subtotal < FREE_SHIPPING_THRESHOLD && (
-              <p className="text-xs text-brand-700">
-                Add {formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} more for
-                free shipping
+          {showOrderSummary ? (
+            <>
+              <h2 className="font-semibold text-zinc-900">Order summary</h2>
+              <dl className="mt-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-zinc-500">Subtotal</dt>
+                  <dd>{formatPrice(subtotal)}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-zinc-500">Shipping</dt>
+                  <dd>{shipping === 0 ? "Free" : formatPrice(shipping)}</dd>
+                </div>
+                {subtotal > 0 && subtotal < FREE_SHIPPING_THRESHOLD && (
+                  <p className="text-xs text-brand-700">
+                    Add {formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} more for
+                    free shipping
+                  </p>
+                )}
+                <div className="flex justify-between border-t border-zinc-200 pt-3 text-base font-bold">
+                  <dt>Total</dt>
+                  <dd>{formatPrice(total)}</dd>
+                </div>
+              </dl>
+              <Link
+                href="/checkout"
+                className="mt-6 block w-full rounded-xl bg-brand-600 py-3 text-center text-sm font-semibold text-white hover:bg-brand-700"
+              >
+                Proceed to checkout
+              </Link>
+            </>
+          ) : (
+            <>
+              <h2 className="font-semibold text-zinc-900">Checkout</h2>
+              <p className="mt-2 text-sm text-zinc-500">
+                Sign in to review totals and complete checkout.
               </p>
-            )}
-            <div className="flex justify-between border-t border-zinc-200 pt-3 text-base font-bold">
-              <dt>Total</dt>
-              <dd>{formatPrice(total)}</dd>
-            </div>
-          </dl>
-          <Link
-            href="/checkout"
-            className="mt-6 block w-full rounded-xl bg-brand-600 py-3 text-center text-sm font-semibold text-white hover:bg-brand-700"
-          >
-            Proceed to checkout
-          </Link>
+              <Link
+                href="/login?callbackUrl=/cart"
+                className="mt-6 block w-full rounded-xl bg-brand-600 py-3 text-center text-sm font-semibold text-white hover:bg-brand-700"
+              >
+                Log in to checkout
+              </Link>
+              <Link
+                href="/signup?callbackUrl=/cart"
+                className="mt-3 block w-full rounded-xl border border-zinc-300 py-3 text-center text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
+              >
+                Create account
+              </Link>
+            </>
+          )}
         </aside>
       </div>
     </div>

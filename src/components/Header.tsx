@@ -52,12 +52,15 @@ export function Header() {
               </button>
             </>
           ) : (
-            <Link
-              href="/login"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100"
-            >
-              Log in
-            </Link>
+            <span className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-600">
+              <Link href="/login" className="transition hover:text-brand-600">
+                Login
+              </Link>
+              <span className="text-zinc-400"> / </span>
+              <Link href="/signup" className="transition hover:text-brand-600">
+                Signup
+              </Link>
+            </span>
           )}
 
           <Link

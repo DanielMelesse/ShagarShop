@@ -4,31 +4,58 @@ import { signIn, signOut, useSession } from "next-auth/react";
 
 export function useAuth() {
   const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated";
 
   return {
-    user: session?.user ?? null,
+    user: isAuthenticated ? (session?.user ?? null) : null,
+    isAuthenticated,
     isReady: status !== "loading",
-    login: async (email: string, password: string) => {
+    login: async (phone: string, password: string) => {
       const result = await signIn("credentials", {
-        email,
+        phone,
         password,
         redirect: false,
       });
       return result?.ok ?? false;
     },
-    signup: async (name: string, email: string, password: string) => {
+    signup: async (
+      name: string,
+      phone: string,
+      password: string,
+      email?: string,
+    ): Promise<{ ok: boolean; error?: string }> => {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({
+          name,
+          phone,
+          password,
+          email: email?.trim() || undefined,
+        }),
       });
-      if (!res.ok) return false;
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        return {
+          ok: false,
+          error:
+            typeof data.error === "string"
+              ? data.error
+              : "Could not create account.",
+        };
+      }
       const result = await signIn("credentials", {
-        email,
+        phone,
         password,
         redirect: false,
       });
-      return result?.ok ?? false;
+      if (!result?.ok) {
+        return {
+          ok: false,
+          error: "Account created but sign-in failed. Try logging in.",
+        };
+      }
+      return { ok: true };
     },
     logout: () => signOut({ callbackUrl: "/" }),
   };

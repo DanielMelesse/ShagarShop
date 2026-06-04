@@ -26,7 +26,9 @@ export async function filterProducts(options: {
       ...(options.category ? { category: options.category } : {}),
       ...(options.featured ? { featured: true } : {}),
     },
-    orderBy: { name: "asc" },
+    orderBy: options.featured
+      ? [{ rating: "desc" }, { reviewCount: "desc" }]
+      : { name: "asc" },
   });
   let products = rows.map(toProduct);
   if (options.query) {

@@ -68,16 +68,19 @@ export default async function HomePage() {
               </p>
             </div>
             <Link
-              href="/shop"
+              href="/shop?featured=1"
               className="text-sm font-medium text-brand-600 hover:text-brand-700"
             >
-              View all →
+              View all deals →
             </Link>
           </div>
           {featured.length === 0 ? (
             <p className="mt-8 text-zinc-500">
               No products yet. Run{" "}
-              <code className="rounded bg-zinc-100 px-1">bun run db:setup</code>.
+              <code className="rounded bg-zinc-100 px-1">
+                bun install && bun run db:setup
+              </code>
+              .
             </p>
           ) : (
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
