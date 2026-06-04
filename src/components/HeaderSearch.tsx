@@ -18,12 +18,9 @@ import {
   formatPrice,
   searchCategories,
   searchDepartments,
-  searchProducts,
   type SearchDepartment,
 } from "@/lib/products";
 import type { Product } from "@/lib/types";
-
-const MAX_PRODUCTS = 6;
 
 type DropdownItem =
   | { type: "product"; product: Product }
@@ -40,11 +37,25 @@ export function HeaderSearch() {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedQuery(query), 200);
     return () => window.clearTimeout(timer);
   }, [query]);
+
+  useEffect(() => {
+    const q = debouncedQuery.trim();
+    if (!q) {
+      setSearchResults([]);
+      return;
+    }
+    const params = new URLSearchParams({ q, department });
+    fetch(`/api/products/search?${params}`)
+      .then((res) => res.json())
+      .then((data) => setSearchResults(data.products ?? []))
+      .catch(() => setSearchResults([]));
+  }, [debouncedQuery, department]);
 
   const trimmed = query.trim();
   const hasQuery = trimmed.length > 0;
@@ -52,15 +63,14 @@ export function HeaderSearch() {
   const items = useMemo((): DropdownItem[] => {
     if (!debouncedQuery.trim()) return [];
     const matchedCategories = searchCategories(debouncedQuery, department);
-    const productResults = searchProducts(debouncedQuery, MAX_PRODUCTS, department);
     return [
       ...matchedCategories.map(
         (c) => ({ type: "category", id: c.id, label: c.label }) as const,
       ),
-      ...productResults.map((p) => ({ type: "product", product: p }) as const),
+      ...searchResults.map((p) => ({ type: "product", product: p }) as const),
       { type: "see-all", query: debouncedQuery.trim() },
     ];
-  }, [debouncedQuery, department]);
+  }, [debouncedQuery, department, searchResults]);
 
   const products = items.filter((i): i is { type: "product"; product: Product } => i.type === "product");
   const matchedCategories = items.filter(

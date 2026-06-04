@@ -1,13 +1,13 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AuthProvider } from "@/context/AuthContext";
+import { SessionProvider } from "next-auth/react";
 import { CartProvider } from "@/context/CartContext";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <AuthProvider>
+    <SessionProvider>
       <CartProvider>{children}</CartProvider>
-    </AuthProvider>
+    </SessionProvider>
   );
 }

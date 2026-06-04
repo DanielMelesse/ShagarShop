@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/context/CartContext";
 import { useMounted } from "@/hooks/useMounted";
 import { HeaderSearch } from "@/components/HeaderSearch";
 
 export function Header() {
   const mounted = useMounted();
-  const { user, logout, isReady: authReady } = useAuth();
+  const { user, isReady: authReady, logout } = useAuth();
   const { itemCount, isReady: cartReady } = useCart();
 
   const showUser = mounted && authReady && user;
@@ -34,12 +34,18 @@ export function Header() {
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           {showUser ? (
             <>
-              <span className="hidden text-sm text-zinc-600 sm:inline">
+              <Link
+                href="/account/orders"
+                className="hidden text-sm text-zinc-600 hover:text-brand-600 sm:inline"
+              >
+                Orders
+              </Link>
+              <span className="hidden text-sm text-zinc-600 md:inline">
                 Hi, {user.name.split(" ")[0]}
               </span>
               <button
                 type="button"
-                onClick={logout}
+                onClick={() => logout()}
                 className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100"
               >
                 Log out

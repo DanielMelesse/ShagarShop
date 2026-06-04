@@ -2,19 +2,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "./AddToCartButton";
-import { formatPrice, getProduct, products } from "@/lib/products";
+import { formatPrice } from "@/lib/products";
+import { getProductById } from "@/lib/products-server";
+
+export const dynamic = "force-dynamic";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
 }
 
-export function generateStaticParams() {
-  return products.map((p) => ({ id: p.id }));
-}
-
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params;
-  const product = getProduct(id);
+  const product = await getProductById(id);
   if (!product) notFound();
 
   return (

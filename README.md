@@ -1,54 +1,52 @@
 # ShagarShop
 
-Standalone marketplace web application built with **Next.js 15**, **React 19**, and **Tailwind CSS 4**.
+Standalone marketplace web application built with **Next.js 15**, **Prisma**, **NextAuth**, and **Tailwind CSS 4**.
 
 **Repository:** https://github.com/DanielMelesse/ShagarShop
 
 ## Features
 
-- **Landing page** — hero, categories, featured products
-- **Shop** — browse, filter by category, search
-- **Product details** — images, ratings, add to cart
-- **Cart** — persist in localStorage, quantity updates, shipping estimate
-- **Checkout** — demo order flow
-- **Auth** — login & signup (demo, stored in localStorage)
+- **Database** — SQLite (dev) with Prisma; products, users, orders
+- **Auth** — NextAuth credentials (signup with bcrypt)
+- **Shop** — browse, filter, search from database
+- **Cart** — localStorage (client-side)
+- **Checkout** — saves orders to database; updates stock
+- **Order history** — `/account/orders` when logged in
+- **Birr** pricing, category bar, service pages
 
-## Getting started
+## Setup
 
 ```bash
-bun install   # or: npm install
-bun run dev   # or: npm run dev
+bun install
+cp .env.example .env   # edit NEXTAUTH_SECRET if needed
+bun run db:setup       # create DB + seed products
+bun run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### `SIGABRT` / dev script crashes
+### First-time test
 
-If `npm run dev` fails with **signal SIGABRT**, your shell is likely using a broken
-`/usr/local/bin/node` (old Homebrew Node). This project’s scripts use `scripts/next.sh`,
-which runs Next via **Bun** when available, or a newer Node on your PATH.
+1. Sign up at `/signup` (password min 6 characters)
+2. Add products to cart → checkout
+3. View orders via header **Orders** link
 
-Install Bun if needed:
+## Environment
 
-```bash
-curl -fsSL https://bun.sh/install | bash
-```
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | `file:./dev.db` for SQLite |
+| `NEXTAUTH_SECRET` | Random secret (`openssl rand -base64 32`) |
+| `NEXTAUTH_URL` | `http://localhost:3000` |
 
-Optional: remove or fix the old Node so `which node` points to v18+.
+## Scripts
 
-## Project structure
+| Command | Description |
+|---------|-------------|
+| `bun run dev` | Dev server |
+| `bun run db:setup` | Push schema + seed |
+| `bun run build` | Production build |
 
-```
-src/
-  app/          # Pages (App Router)
-  components/   # Header, Footer, ProductCard
-  context/      # Cart & auth state
-  lib/          # Products data & types
-```
+## Production
 
-## Next steps
-
-- PostgreSQL + Prisma for real data
-- NextAuth or Clerk for production auth
-- Stripe for payments
-- Seller dashboard & multi-vendor listings
+Switch Prisma to PostgreSQL in `prisma/schema.prisma` and set `DATABASE_URL` to your Postgres URL. Cart remains in localStorage until you add server-side cart later.

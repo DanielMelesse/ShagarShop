@@ -4,20 +4,31 @@
   "private": true,
   "scripts": {
     "dev": "bash scripts/next.sh dev",
-    "build": "bash scripts/next.sh build",
+    "build": "prisma generate && bash scripts/next.sh build",
     "start": "bash scripts/next.sh start",
-    "lint": "bash scripts/next.sh lint"
+    "lint": "bash scripts/next.sh lint",
+    "db:push": "prisma db push",
+    "db:seed": "bun prisma/seed.ts",
+    "db:setup": "prisma db push && bun prisma/seed.ts",
+    "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "bun prisma/seed.ts"
   },
   "engines": {
     "node": ">=18.18.0"
   },
   "packageManager": "bun@1.3.14",
   "dependencies": {
+    "@prisma/client": "^6.9.0",
+    "bcryptjs": "^3.0.2",
     "next": "^15.3.3",
+    "next-auth": "^4.24.11",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.15.21",
     "@types/react": "^19.1.4",
     "@types/react-dom": "^19.1.5",
@@ -25,6 +36,7 @@
     "eslint-config-next": "^15.3.3",
     "@eslint/eslintrc": "^3.3.1",
     "postcss": "^8.5.3",
+    "prisma": "^6.9.0",
     "tailwindcss": "^4.1.7",
     "@tailwindcss/postcss": "^4.1.7",
     "typescript": "^5.8.3"

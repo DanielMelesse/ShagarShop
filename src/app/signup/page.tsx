@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 const AFTER_AUTH_PATH = "/shop?featured=1";
 
@@ -30,7 +30,7 @@ export default function SignupPage() {
     if (ok) {
       router.push(AFTER_AUTH_PATH);
     } else {
-      setError("Please fill in all fields with a valid email.");
+      setError("Could not create account. Email may already be in use.");
     }
   }
 

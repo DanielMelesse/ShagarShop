@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 const AFTER_AUTH_PATH = "/shop?featured=1";
 
@@ -29,7 +29,7 @@ export default function LoginPage() {
     if (ok) {
       router.push(AFTER_AUTH_PATH);
     } else {
-      setError("Enter a valid email address.");
+      setError("Invalid email or password.");
     }
   }
 
@@ -37,7 +37,7 @@ export default function LoginPage() {
     <div className="mx-auto flex max-w-md flex-col px-4 py-16 sm:px-6">
       <h1 className="text-2xl font-bold text-zinc-900">Log in</h1>
       <p className="mt-2 text-sm text-zinc-500">
-        Demo auth — any email with @ and any password works.
+        Sign in with your ShagarShop account.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">

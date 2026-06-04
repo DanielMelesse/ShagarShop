@@ -1,6 +1,10 @@
 import { ProductCard } from "@/components/ProductCard";
-import { categories, products } from "@/lib/products";
+import { categories } from "@/lib/products";
+import { isCategory } from "@/lib/product-mapper";
+import { filterProducts } from "@/lib/products-server";
 import type { Category } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
 
 interface ShopPageProps {
   searchParams: Promise<{ category?: string; featured?: string; q?: string }>;
@@ -8,24 +12,19 @@ interface ShopPageProps {
 
 export default async function ShopPage({ searchParams }: ShopPageProps) {
   const params = await searchParams;
-  const category = params.category as Category | undefined;
+  const categoryParam = params.category;
+  const category =
+    categoryParam && isCategory(categoryParam)
+      ? (categoryParam as Category)
+      : undefined;
   const featuredOnly = params.featured === "1";
-  const query = params.q?.toLowerCase().trim();
+  const query = params.q?.trim();
 
-  let filtered = [...products];
-  if (category && categories.some((c) => c.id === category)) {
-    filtered = filtered.filter((p) => p.category === category);
-  }
-  if (featuredOnly) {
-    filtered = filtered.filter((p) => p.featured);
-  }
-  if (query) {
-    filtered = filtered.filter(
-      (p) =>
-        p.name.toLowerCase().includes(query) ||
-        p.description.toLowerCase().includes(query),
-    );
-  }
+  const filtered = await filterProducts({
+    category,
+    featured: featuredOnly || undefined,
+    query: query || undefined,
+  });
 
   const activeCategory = categories.find((c) => c.id === category);
 

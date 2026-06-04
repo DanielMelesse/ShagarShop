@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/context/CartContext";
 import { formatPrice, getShippingCost } from "@/lib/products";
 
@@ -12,6 +12,8 @@ export default function CheckoutPage() {
   const { user, isReady: authReady } = useAuth();
   const { items, subtotal, clearCart, isReady: cartReady } = useCart();
   const [placed, setPlaced] = useState(false);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   if (!cartReady) {
     return (
@@ -41,15 +43,25 @@ export default function CheckoutPage() {
         </p>
         <h1 className="mt-4 text-2xl font-bold text-zinc-900">Order placed!</h1>
         <p className="mt-2 text-zinc-500">
-          Thank you{user ? `, ${user.name}` : ""}. This is a demo — no real charge
-          was made.
+          Thank you{user ? `, ${user.name}` : ""}. Payment is still demo — no real
+          charge was made.
         </p>
-        <Link
-          href="/shop"
-          className="mt-8 inline-block rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white"
-        >
-          Continue shopping
-        </Link>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          {user && (
+            <Link
+              href="/account/orders"
+              className="rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white"
+            >
+              View orders
+            </Link>
+          )}
+          <Link
+            href="/shop"
+            className="rounded-xl border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-800"
+          >
+            Continue shopping
+          </Link>
+        </div>
       </div>
     );
   }
@@ -57,8 +69,34 @@ export default function CheckoutPage() {
   const shipping = getShippingCost(subtotal);
   const total = subtotal + shipping;
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError("");
+    setSubmitting(true);
+
+    const form = new FormData(e.currentTarget);
+    const res = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: items.map((i) => ({
+          productId: i.product.id,
+          quantity: i.quantity,
+        })),
+        shippingName: String(form.get("name") ?? ""),
+        address: String(form.get("address") ?? ""),
+        city: String(form.get("city") ?? ""),
+        zip: String(form.get("zip") ?? ""),
+      }),
+    });
+    const data = await res.json();
+    setSubmitting(false);
+
+    if (!res.ok) {
+      setError(data.error ?? "Could not place order.");
+      return;
+    }
+
     clearCart();
     setPlaced(true);
     router.refresh();
@@ -72,7 +110,7 @@ export default function CheckoutPage() {
           <Link href="/login" className="text-brand-600 hover:underline">
             Log in
           </Link>{" "}
-          for a faster experience (optional for demo).
+          to save this order to your account.
         </p>
       )}
 
@@ -139,6 +177,8 @@ export default function CheckoutPage() {
           </div>
         </fieldset>
 
+        {error && <p className="text-sm text-red-600">{error}</p>}
+
         <div className="rounded-2xl bg-zinc-900 p-6 text-white">
           <p className="text-sm text-zinc-400">
             {items.length} item{items.length !== 1 ? "s" : ""}
@@ -146,9 +186,10 @@ export default function CheckoutPage() {
           <p className="mt-2 text-2xl font-bold">{formatPrice(total)}</p>
           <button
             type="submit"
-            className="mt-4 w-full rounded-xl bg-brand-600 py-3 text-sm font-semibold hover:bg-brand-500"
+            disabled={submitting}
+            className="mt-4 w-full rounded-xl bg-brand-600 py-3 text-sm font-semibold hover:bg-brand-500 disabled:opacity-60"
           >
-            Place order
+            {submitting ? "Placing order..." : "Place order"}
           </button>
         </div>
       </form>
