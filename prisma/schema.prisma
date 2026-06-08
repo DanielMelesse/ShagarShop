@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -29,6 +29,9 @@ model Product {
   stock       Int         @default(0)
   featured    Boolean     @default(false)
   orderItems  OrderItem[]
+
+  @@index([featured])
+  @@index([category])
 }
 
 model Order {
@@ -45,6 +48,9 @@ model Order {
   zip          String
   createdAt    DateTime    @default(now())
   items        OrderItem[]
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model OrderItem {

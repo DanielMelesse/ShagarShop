@@ -78,7 +78,7 @@ export default async function HomePage() {
             <p className="mt-8 text-zinc-500">
               No products yet. Run{" "}
               <code className="rounded bg-zinc-100 px-1">
-                bun install && bun run db:setup
+                bun run db:up && bun run db:setup
               </code>
               .
             </p>
