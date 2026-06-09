@@ -38,6 +38,7 @@ const products = [
       "Breathable European linen with a relaxed fit — perfect for warm days and easy layering.",
     price: 68.0,
     category: "fashion",
+    size: "L",
     image:
       "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=80",
     rating: 4.6,
@@ -52,6 +53,7 @@ const products = [
       "Lightweight mesh upper with responsive foam cushioning for daily miles and race day.",
     price: 119.99,
     category: "sports",
+    size: "42",
     image:
       "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80",
     rating: 4.8,
@@ -94,6 +96,7 @@ const products = [
       "Extra-thick eco rubber with alignment guides and a carrying strap included.",
     price: 54.99,
     category: "sports",
+    size: "One Size",
     image:
       "https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=800&q=80",
     rating: 4.6,

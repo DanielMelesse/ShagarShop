@@ -35,6 +35,12 @@ export function Header() {
           {showUser ? (
             <>
               <Link
+                href="/sell"
+                className="hidden text-sm text-zinc-600 hover:text-brand-600 sm:inline"
+              >
+                Sell
+              </Link>
+              <Link
                 href="/account/orders"
                 className="hidden text-sm text-zinc-600 hover:text-brand-600 sm:inline"
               >

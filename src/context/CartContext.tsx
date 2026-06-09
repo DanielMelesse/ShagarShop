@@ -11,21 +11,38 @@ import {
 } from "react";
 import type { CartItem, Product } from "@/lib/types";
 
+interface AddItemOptions {
+  quantity?: number;
+  selectedSize?: string;
+}
+
 interface CartContextValue {
   items: CartItem[];
   itemCount: number;
   subtotal: number;
   /** False until localStorage has been read on the client. */
   isReady: boolean;
-  addItem: (product: Product, quantity?: number) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addItem: (product: Product, options?: AddItemOptions) => void;
+  removeItem: (productId: string, selectedSize?: string) => void;
+  updateQuantity: (
+    productId: string,
+    quantity: number,
+    selectedSize?: string,
+  ) => void;
   clearCart: () => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
 
 const STORAGE_KEY = "shagar-cart";
+
+function sameLine(
+  item: CartItem,
+  productId: string,
+  selectedSize?: string,
+): boolean {
+  return item.product.id === productId && item.selectedSize === selectedSize;
+}
 
 function loadCart(): CartItem[] {
   if (typeof window === "undefined") return [];
@@ -52,35 +69,52 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items, isReady]);
 
-  const addItem = useCallback((product: Product, quantity = 1) => {
+  const addItem = useCallback((product: Product, options?: AddItemOptions) => {
+    const quantity = options?.quantity ?? 1;
+    const selectedSize = options?.selectedSize;
     setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
+      const existing = prev.find((i) => sameLine(i, product.id, selectedSize));
       if (existing) {
         return prev.map((i) =>
-          i.product.id === product.id
+          sameLine(i, product.id, selectedSize)
             ? { ...i, quantity: Math.min(i.quantity + quantity, product.stock) }
             : i,
         );
       }
-      return [...prev, { product, quantity: Math.min(quantity, product.stock) }];
+      return [
+        ...prev,
+        {
+          product,
+          quantity: Math.min(quantity, product.stock),
+          selectedSize,
+        },
+      ];
     });
   }, []);
 
-  const removeItem = useCallback((productId: string) => {
-    setItems((prev) => prev.filter((i) => i.product.id !== productId));
-  }, []);
-
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
+  const removeItem = useCallback((productId: string, selectedSize?: string) => {
     setItems((prev) =>
-      prev
-        .map((i) => {
-          if (i.product.id !== productId) return i;
-          if (quantity <= 0) return null;
-          return { ...i, quantity: Math.min(quantity, i.product.stock) };
-        })
-        .filter((i): i is CartItem => i !== null),
+      prev.filter((i) => !sameLine(i, productId, selectedSize)),
     );
   }, []);
+
+  const updateQuantity = useCallback(
+    (productId: string, quantity: number, selectedSize?: string) => {
+      setItems((prev) =>
+        prev
+          .map((i) => {
+            if (!sameLine(i, productId, selectedSize)) return i;
+            if (quantity <= 0) return null;
+            return {
+              ...i,
+              quantity: Math.min(quantity, i.product.stock),
+            };
+          })
+          .filter((i): i is CartItem => i !== null),
+      );
+    },
+    [],
+  );
 
   const clearCart = useCallback(() => setItems([]), []);
 

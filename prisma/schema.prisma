@@ -8,13 +8,14 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  phone        String   @unique
-  email        String?  @unique
+  id           String    @id @default(cuid())
+  phone        String    @unique
+  email        String?   @unique
   passwordHash String
   name         String
-  createdAt    DateTime @default(now())
+  createdAt    DateTime  @default(now())
   orders       Order[]
+  products     Product[]
 }
 
 model Product {
@@ -28,10 +29,14 @@ model Product {
   reviewCount Int         @default(0)
   stock       Int         @default(0)
   featured    Boolean     @default(false)
+  size        String?
+  sellerId    String?
+  seller      User?       @relation(fields: [sellerId], references: [id])
   orderItems  OrderItem[]
 
   @@index([featured])
   @@index([category])
+  @@index([sellerId])
 }
 
 model Order {

@@ -23,9 +23,7 @@ bun install --ignore-scripts
 cp .env.example .env   # optional — predev creates .env on first run
 ```
 
-### 2. Start PostgreSQL
-
-**Docker (recommended):**
+### 2. Start PostgreSQL (Docker)
 
 ```bash
 bun run db:up
@@ -33,9 +31,7 @@ bun run db:up
 
 This starts Postgres on `localhost:5432` with user/password/db: `shagar` / `shagar` / `shagarshop` (see `docker-compose.yml`).
 
-**Or** use your own Postgres instance and set `DATABASE_URL` in `.env`.
-
-**No Docker?** Use a free hosted Postgres (e.g. [Neon](https://neon.tech)) — create a database, paste the connection string into `.env` as `DATABASE_URL`, then skip `db:up` and run `bun run db:setup` only.
+Docker Desktop must be installed and running. The script will try to auto-start Docker on Mac.
 
 ### 3. Migrate and seed
 
@@ -54,10 +50,8 @@ Open [http://localhost:3000](http://localhost:3000) (or the port shown in the te
 **One-liner** (after Docker is installed):
 
 ```bash
-bun run setup && bun run db:up && bun run db:setup && bun run dev
+bun run setup && bun run db:up && bun run dev
 ```
-
-Or use `bun run setup` after `db:up` if Postgres is already running.
 
 ### First-time test
 
@@ -86,6 +80,7 @@ postgresql://shagar:shagar@localhost:5432/shagarshop?schema=public
 | `bun run dev` | Dev server |
 | `bun run db:up` | Start local Postgres (Docker) |
 | `bun run db:down` | Stop local Postgres |
+| `bun run db:ping` | Test DATABASE_URL connection |
 | `bun run setup` | `bun install` + database setup |
 | `bun run db:setup` | Migrate + seed (creates `.env` if missing) |
 | `bun run db:migrate` | Create/apply migrations in dev (`migrate dev`) |
@@ -116,15 +111,13 @@ bun run db:generate
 bun run dev
 ```
 
-**`db:up` / Docker SIGKILL or "Docker is not running"**
+**`db:up` exited with code 1 / Docker not running**
 
 Docker Desktop must be **installed and running** before `bun run db:up`.
 
-1. Open **Docker Desktop** from Applications
-2. Wait until the whale icon shows **Running**
-3. Run `bun run db:up` again
-
-Alternative: use **Neon/Supabase** — put their `postgresql://...` URL in `.env`, then `bun run db:setup` (no Docker).
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) if needed
+2. Open it from Applications and wait until it shows **Running**
+3. Run `bun run db:up` again (it will try to auto-start Docker on Mac)
 
 **`Can't reach database server`**
 
@@ -132,6 +125,7 @@ Ensure Postgres is running:
 
 ```bash
 bun run db:up
+bun run db:ping
 docker compose ps
 ```
 
@@ -144,7 +138,3 @@ bun install --ignore-scripts
 bun run db:setup
 bun run dev
 ```
-
-**Migrating from old SQLite `dev.db`**
-
-SQLite data is not auto-migrated. Start fresh with `bun run db:setup` after switching to Postgres, or export/import manually.

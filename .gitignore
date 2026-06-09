@@ -35,6 +35,11 @@ yarn-error.log*
 # database
 /prisma/dev.db
 /prisma/dev.db-journal
+/scripts/bin/
+
+# uploaded product images
+/public/uploads/products/*
+!/public/uploads/products/.gitkeep
 
 # typescript
 *.tsbuildinfo

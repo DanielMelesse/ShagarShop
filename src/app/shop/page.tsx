@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { DealSpotlight } from "@/components/DealSpotlight";
+import { DealSpotlightGate } from "@/components/deals/DealSpotlightGate";
+import { DealsPageHero } from "@/components/deals/DealsPageHero";
 import { DealsCategoryFilters } from "@/components/DealsCategoryFilters";
-import { DealsHero } from "@/components/DealsHero";
 import { ProductCard } from "@/components/ProductCard";
 import { sortDeals } from "@/lib/deals";
 import { categories } from "@/lib/products";
@@ -50,7 +50,8 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   if (featuredOnly) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-        <DealsHero
+        <DealsPageHero
+          bestDeal={spotlight ?? null}
           dealCount={filtered.length}
           activeCategoryLabel={activeCategory?.label}
         />
@@ -75,7 +76,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
           </div>
         ) : (
           <>
-            {spotlight && <DealSpotlight product={spotlight} />}
+            {spotlight && <DealSpotlightGate product={spotlight} />}
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>

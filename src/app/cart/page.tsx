@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ProductImage } from "@/components/ProductImage";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -56,16 +56,16 @@ export default function CartPage() {
 
       <div className="mt-8 grid gap-10 lg:grid-cols-3">
         <ul className="space-y-4 lg:col-span-2">
-          {items.map(({ product, quantity }) => (
+          {items.map(({ product, quantity, selectedSize }) => (
             <li
-              key={product.id}
+              key={`${product.id}-${selectedSize ?? ""}`}
               className="flex gap-4 rounded-2xl border border-zinc-200 bg-white p-4"
             >
               <Link
                 href={`/product/${product.id}`}
                 className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-zinc-100"
               >
-                <Image
+                <ProductImage
                   src={product.image}
                   alt={product.name}
                   fill
@@ -83,13 +83,20 @@ export default function CartPage() {
                 <p className="mt-1 text-sm font-semibold text-zinc-900">
                   {formatPrice(product.price)}
                 </p>
+                {selectedSize && (
+                  <p className="mt-1 text-sm text-zinc-500">Size {selectedSize}</p>
+                )}
                 <div className="mt-auto flex items-center gap-3 pt-3">
                   <label className="flex items-center gap-2 text-sm text-zinc-600">
                     Qty
                     <select
                       value={quantity}
                       onChange={(e) =>
-                        updateQuantity(product.id, Number(e.target.value))
+                        updateQuantity(
+                          product.id,
+                          Number(e.target.value),
+                          selectedSize,
+                        )
                       }
                       className="rounded border border-zinc-300 px-2 py-1"
                     >
@@ -105,7 +112,7 @@ export default function CartPage() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => removeItem(product.id)}
+                    onClick={() => removeItem(product.id, selectedSize)}
                     className="text-sm text-red-600 hover:underline"
                   >
                     Remove

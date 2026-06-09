@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ProductImage } from "@/components/ProductImage";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "./AddToCartButton";
@@ -28,7 +28,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       <div className="grid gap-10 lg:grid-cols-2">
         <div className="relative aspect-square overflow-hidden rounded-2xl bg-zinc-100">
-          <Image
+          <ProductImage
             src={product.image}
             alt={product.name}
             fill

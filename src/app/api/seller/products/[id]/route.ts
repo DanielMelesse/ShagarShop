@@ -1,0 +1,81 @@
+import { getServerSession } from "next-auth";
+import { NextResponse } from "next/server";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { toProduct } from "@/lib/product-mapper";
+import { isCategory } from "@/lib/product-mapper";
+import { parseSellerProductUpdate } from "@/lib/seller";
+
+interface RouteContext {
+  params: Promise<{ id: string }>;
+}
+
+async function getOwnedProduct(userId: string, productId: string) {
+  return prisma.product.findFirst({
+    where: { id: productId, sellerId: userId },
+  });
+}
+
+export async function PATCH(request: Request, context: RouteContext) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+    const existing = await getOwnedProduct(session.user.id, id);
+    if (!existing) {
+      return NextResponse.json({ error: "Product not found." }, { status: 404 });
+    }
+
+    const body = await request.json();
+    const parsed = parseSellerProductUpdate(body, {
+      category: isCategory(existing.category) ? existing.category : "electronics",
+      size: existing.size,
+    });
+    if (!parsed.ok) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+
+    const product = await prisma.product.update({
+      where: { id },
+      data: parsed.data,
+    });
+
+    return NextResponse.json({ product: toProduct(product) });
+  } catch {
+    return NextResponse.json({ error: "Could not update product." }, { status: 500 });
+  }
+}
+
+export async function DELETE(_request: Request, context: RouteContext) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+    const existing = await getOwnedProduct(session.user.id, id);
+    if (!existing) {
+      return NextResponse.json({ error: "Product not found." }, { status: 404 });
+    }
+
+    const orderCount = await prisma.orderItem.count({ where: { productId: id } });
+    if (orderCount > 0) {
+      return NextResponse.json(
+        {
+          error:
+            "This product has been ordered and cannot be deleted. Set stock to 0 instead.",
+        },
+        { status: 409 },
+      );
+    }
+
+    await prisma.product.delete({ where: { id } });
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: "Could not delete product." }, { status: 500 });
+  }
+}

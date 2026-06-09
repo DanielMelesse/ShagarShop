@@ -20,5 +20,6 @@ export function toProduct(row: DbProduct): Product {
     reviewCount: row.reviewCount,
     stock: row.stock,
     featured: row.featured,
+    size: row.size,
   };
 }

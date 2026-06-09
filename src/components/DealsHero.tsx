@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { FREE_SHIPPING_THRESHOLD, formatPrice } from "@/lib/products";
 

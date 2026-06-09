@@ -1,4 +1,4 @@
-import type { Category } from "./types";
+import type { Category, Product } from "./types";
 
 export const categories: { id: Category; label: string }[] = [
   { id: "home", label: "Home" },
@@ -18,6 +18,48 @@ export const searchDepartments: { value: SearchDepartment; label: string }[] = [
   { value: "sports", label: "Sports" },
   { value: "books", label: "Books" },
 ];
+
+export const CLOTHING_SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
+export const SHOE_SIZES = [
+  "36",
+  "37",
+  "38",
+  "39",
+  "40",
+  "41",
+  "42",
+  "43",
+  "44",
+  "45",
+  "46",
+] as const;
+export const SPORTS_SIZES = [...SHOE_SIZES, "One Size"] as const;
+export const SIZE_ALL = "All";
+
+export function categoryNeedsSize(category: Category): boolean {
+  return category === "fashion" || category === "sports";
+}
+
+export function getSizeOptions(category: Category): readonly string[] {
+  if (category === "sports") return [SIZE_ALL, ...SPORTS_SIZES];
+  if (category === "fashion") return [SIZE_ALL, ...CLOTHING_SIZES];
+  return [];
+}
+
+/** Sizes a shopper can pick on the product page. */
+export function getCustomerSizeOptions(product: Product): readonly string[] {
+  if (!categoryNeedsSize(product.category)) return [];
+
+  const options = getSizeOptions(product.category).filter((s) => s !== SIZE_ALL);
+  if (product.size && product.size !== SIZE_ALL) {
+    return [product.size];
+  }
+  return options;
+}
+
+export function productNeedsSizeSelection(product: Product): boolean {
+  return getCustomerSizeOptions(product).length > 0;
+}
 
 export function buildShopSearchUrl(options: {
   q?: string;

@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ProductImage } from "@/components/ProductImage";
 import Link from "next/link";
 import { formatPrice } from "@/lib/products";
 import { getDealMeta } from "@/lib/deals";
@@ -12,7 +12,7 @@ export function DealSpotlight({ product }: { product: Product }) {
     <section className="mt-8 overflow-hidden rounded-2xl border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-white shadow-sm">
       <div className="grid gap-6 lg:grid-cols-2 lg:items-center">
         <div className="relative aspect-[4/3] bg-zinc-100 lg:aspect-auto lg:min-h-[280px]">
-          <Image
+          <ProductImage
             src={product.image}
             alt={product.name}
             fill

@@ -16,9 +16,11 @@ export interface Product {
   reviewCount: number;
   stock: number;
   featured?: boolean;
+  size?: string | null;
 }
 
 export interface CartItem {
   product: Product;
   quantity: number;
+  selectedSize?: string;
 }

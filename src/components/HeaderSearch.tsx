@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ProductImage } from "@/components/ProductImage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -278,7 +278,7 @@ export function HeaderSearch() {
                     }`}
                   >
                     <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-zinc-100">
-                      <Image
+                      <ProductImage
                         src={item.product.image}
                         alt=""
                         fill
