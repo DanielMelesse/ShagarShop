@@ -1,7 +1,6 @@
 "use client";
 
 import { ProductImage } from "@/components/ProductImage";
-import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { categories, categoryNeedsSize, formatPrice, getSizeOptions } from "@/lib/products";
 import type { Category, Product } from "@/lib/types";
@@ -485,12 +484,6 @@ export function SellerDashboard({ user }: { user: SellerUser }) {
             {user.name} · {user.phone}
           </p>
         </div>
-        <Link
-          href="/shop"
-          className="text-sm font-medium text-brand-600 hover:text-brand-700"
-        >
-          View shop →
-        </Link>
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -586,12 +579,6 @@ export function SellerDashboard({ user }: { user: SellerUser }) {
                       </p>
                     </div>
                     <div className="flex shrink-0 flex-wrap gap-2">
-                      <Link
-                        href={`/product/${product.id}`}
-                        className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
-                      >
-                        View
-                      </Link>
                       <button
                         type="button"
                         onClick={() => {

@@ -1,91 +1,173 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/context/CartContext";
 import { useMounted } from "@/hooks/useMounted";
 import { HeaderSearch } from "@/components/HeaderSearch";
+import { headerSellButtonClass } from "@/lib/header-ui";
+import { isSellerRole } from "@/lib/user-role";
+
+const navLinkClass =
+  "text-sm font-medium text-zinc-600 transition hover:text-brand-600";
+
+function HeaderActions({
+  showUser,
+  showCartBadge,
+  itemCount,
+  onLogout,
+}: {
+  showUser: boolean;
+  showCartBadge: boolean;
+  itemCount: number;
+  onLogout: () => void;
+}) {
+  return (
+    <div className="flex shrink-0 flex-nowrap items-center gap-1 sm:gap-2">
+      {showUser ? (
+        <>
+          <Link
+            href="/account/orders"
+            className="hidden whitespace-nowrap text-sm text-zinc-600 hover:text-brand-600 xl:inline"
+          >
+            Orders
+          </Link>
+          <button
+            type="button"
+            onClick={onLogout}
+            className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 sm:px-3"
+          >
+            Log out
+          </button>
+        </>
+      ) : (
+        <Link
+          href="/login"
+          className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
+        >
+          Login
+        </Link>
+      )}
+
+      <Link
+        href="/cart"
+        aria-label={
+          showCartBadge
+            ? `Cart, ${itemCount} item${itemCount !== 1 ? "s" : ""}`
+            : "Cart"
+        }
+        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white transition hover:bg-brand-700"
+      >
+        <CartIcon />
+        {showCartBadge && (
+          <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-zinc-900 px-1 text-xs font-bold text-white">
+            {itemCount > 99 ? "99+" : itemCount}
+          </span>
+        )}
+      </Link>
+    </div>
+  );
+}
 
 export function Header() {
+  const pathname = usePathname();
   const mounted = useMounted();
   const { user, isReady: authReady, logout } = useAuth();
   const { itemCount, isReady: cartReady } = useCart();
 
   const showUser = mounted && authReady && user;
-  const showCartBadge = mounted && cartReady && itemCount > 0;
+  const sellerAccount = showUser && isSellerRole(user.role);
+  const sellerNav =
+    sellerAccount || (mounted && authReady && !showUser && pathname === "/sell");
+  const showCartBadge = mounted && cartReady && itemCount > 0 && !sellerNav;
+  const homeHref = sellerNav ? "/sell" : "/";
+
+  if (sellerNav) {
+    return (
+      <header className="sticky top-0 z-50 border-b border-zinc-200/80 bg-white/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
+          <Link
+            href={homeHref}
+            className="flex shrink-0 items-center gap-2 font-bold tracking-tight"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">
+              S
+            </span>
+            <span className="hidden text-lg text-zinc-900 sm:inline">
+              Shagar<span className="text-brand-600">Shop</span>
+            </span>
+          </Link>
+
+          <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-2 sm:gap-3">
+            <Link href="/sell" className={headerSellButtonClass}>
+              Sell
+            </Link>
+            {pathname === "/sell" && (
+              <Link href="/shop" className={`${navLinkClass} hidden whitespace-nowrap md:inline`}>
+                Back to shop
+              </Link>
+            )}
+            {sellerAccount ? (
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 sm:px-3"
+              >
+                Log out
+              </button>
+            ) : (
+              <Link
+                href="/login?callbackUrl=/sell"
+                className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
+              >
+                Login
+              </Link>
+            )}
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-200/80 bg-white/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6 lg:flex-nowrap lg:gap-4">
+      <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
         <Link
-          href="/"
+          href={homeHref}
           className="flex shrink-0 items-center gap-2 font-bold tracking-tight"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">
             S
           </span>
-          <span className="text-lg text-zinc-900">
+          <span className="hidden text-base text-zinc-900 sm:inline sm:text-lg">
             Shagar<span className="text-brand-600">Shop</span>
           </span>
         </Link>
 
-        <HeaderSearch />
-
-        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
-          {showUser ? (
-            <>
+        <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-2 sm:gap-3">
+          <HeaderSearch />
+          <nav aria-label="Main" className="flex shrink-0 items-center">
+            {pathname === "/sell" && (
               <Link
-                href="/sell"
-                className="hidden text-sm text-zinc-600 hover:text-brand-600 sm:inline"
+                href="/shop"
+                className={`${navLinkClass} mr-2 hidden whitespace-nowrap md:inline`}
               >
-                Sell
+                Shop
               </Link>
-              <Link
-                href="/account/orders"
-                className="hidden text-sm text-zinc-600 hover:text-brand-600 sm:inline"
-              >
-                Orders
-              </Link>
-              <span className="hidden text-sm text-zinc-600 md:inline">
-                Hi, {user.name.split(" ")[0]}
-              </span>
-              <button
-                type="button"
-                onClick={() => logout()}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100"
-              >
-                Log out
-              </button>
-            </>
-          ) : (
-            <span className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-600">
-              <Link href="/login" className="transition hover:text-brand-600">
-                Login
-              </Link>
-              <span className="text-zinc-400"> / </span>
-              <Link href="/signup" className="transition hover:text-brand-600">
-                Signup
-              </Link>
-            </span>
-          )}
-
-          <Link
-            href="/cart"
-            aria-label={
-              showCartBadge
-                ? `Cart, ${itemCount} item${itemCount !== 1 ? "s" : ""}`
-                : "Cart"
-            }
-            className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-white transition hover:bg-brand-700"
-          >
-            <CartIcon />
-            {showCartBadge && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-zinc-900 px-1 text-xs font-bold text-white">
-                {itemCount > 99 ? "99+" : itemCount}
-              </span>
             )}
-          </Link>
+            <Link href="/sell" className={headerSellButtonClass}>
+              Sell
+            </Link>
+          </nav>
         </div>
+
+        <HeaderActions
+          showUser={!!showUser}
+          showCartBadge={showCartBadge}
+          itemCount={itemCount}
+          onLogout={() => logout()}
+        />
       </div>
     </header>
   );

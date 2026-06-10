@@ -7,12 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  BUYER
+  SELLER
+}
+
 model User {
   id           String    @id @default(cuid())
   phone        String    @unique
   email        String?   @unique
   passwordHash String
   name         String
+  role         UserRole  @default(BUYER)
   createdAt    DateTime  @default(now())
   orders       Order[]
   products     Product[]

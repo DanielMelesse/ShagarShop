@@ -46,7 +46,7 @@ export function SellLanding() {
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
-              href="/signup?callbackUrl=/sell"
+              href="/signup?role=seller&callbackUrl=/sell"
               className="rounded-xl bg-white px-8 py-4 text-base font-semibold text-brand-700 shadow-lg transition hover:bg-brand-50"
             >
               Start selling
@@ -116,7 +116,7 @@ export function SellLanding() {
           Create a free account and open your seller dashboard instantly.
         </p>
         <Link
-          href="/signup?callbackUrl=/sell"
+          href="/signup?role=seller&callbackUrl=/sell"
           className="mt-8 inline-block rounded-xl bg-brand-600 px-8 py-4 text-base font-semibold text-white transition hover:bg-brand-700"
         >
           Create seller account

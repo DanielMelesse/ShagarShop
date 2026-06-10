@@ -46,7 +46,7 @@ export function resolveUploadMime(
 
 export function isUploadBlob(
   value: FormDataEntryValue | null,
-): value is Blob & { name?: string } {
+): value is File {
   return (
     value !== null &&
     typeof value === "object" &&

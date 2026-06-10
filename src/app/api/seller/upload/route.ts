@@ -1,8 +1,7 @@
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
+import { requireSellerSession } from "@/lib/require-seller";
 import {
   ALLOWED_PRODUCT_IMAGE_TYPES,
   MAX_PRODUCT_IMAGE_BYTES,
@@ -15,10 +14,11 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSellerSession();
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
+    const { session } = auth;
 
     const formData = await request.formData();
     const entry = formData.get("file");

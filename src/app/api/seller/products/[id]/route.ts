@@ -1,9 +1,8 @@
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { toProduct } from "@/lib/product-mapper";
 import { isCategory } from "@/lib/product-mapper";
+import { requireSellerSession } from "@/lib/require-seller";
 import { parseSellerProductUpdate } from "@/lib/seller";
 
 interface RouteContext {
@@ -18,10 +17,11 @@ async function getOwnedProduct(userId: string, productId: string) {
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSellerSession();
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
+    const { session } = auth;
 
     const { id } = await context.params;
     const existing = await getOwnedProduct(session.user.id, id);
@@ -51,10 +51,11 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(_request: Request, context: RouteContext) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSellerSession();
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
+    const { session } = auth;
 
     const { id } = await context.params;
     const existing = await getOwnedProduct(session.user.id, id);

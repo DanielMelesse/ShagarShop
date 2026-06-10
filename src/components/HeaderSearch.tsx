@@ -20,6 +20,7 @@ import {
   searchDepartments,
   type SearchDepartment,
 } from "@/lib/products";
+import { headerSearchButtonClass } from "@/lib/header-ui";
 import type { Product } from "@/lib/types";
 
 type DropdownItem =
@@ -159,13 +160,10 @@ export function HeaderSearch() {
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="relative min-w-0 flex-1 sm:max-w-md lg:max-w-2xl"
-    >
+    <div ref={containerRef} className="relative min-w-0 flex-1 basis-0">
       <form
         onSubmit={handleSubmit}
-        className="flex overflow-hidden rounded-lg border border-zinc-300 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20"
+        className="flex min-w-0 flex-nowrap rounded-lg border border-zinc-300 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20"
         role="search"
       >
         <label htmlFor="search-department" className="sr-only">
@@ -176,7 +174,7 @@ export function HeaderSearch() {
           name="department"
           value={department}
           onChange={(e) => setDepartment(e.target.value as SearchDepartment)}
-          className="shrink-0 cursor-pointer border-0 border-r border-zinc-200 bg-zinc-50 py-2.5 pl-3 pr-8 text-sm font-medium text-zinc-800 outline-none focus:bg-zinc-100"
+          className="hidden w-[5.5rem] shrink-0 cursor-pointer border-0 border-r border-zinc-200 bg-zinc-50 py-2.5 pl-2 pr-6 text-sm font-medium text-zinc-800 outline-none focus:bg-zinc-100 md:block md:w-auto md:pl-3 md:pr-8"
         >
           {searchDepartments.map((d) => (
             <option key={d.value} value={d.value}>
@@ -198,7 +196,7 @@ export function HeaderSearch() {
           }}
           onFocus={() => hasQuery && setOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search ShagarShop"
+          placeholder="Search"
           autoComplete="off"
           role="combobox"
           aria-expanded={showDropdown}
@@ -206,13 +204,11 @@ export function HeaderSearch() {
           aria-activedescendant={
             activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
           }
-          className="w-full min-w-0 flex-1 border-0 bg-transparent px-3 py-2.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
+          className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 sm:px-3"
         />
-        <button
-          type="submit"
-          className="shrink-0 bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700"
-        >
-          Search
+        <button type="submit" className={headerSearchButtonClass} aria-label="Search">
+          <SearchIcon className="sm:hidden" />
+          <span className="hidden sm:inline">Search</span>
         </button>
       </form>
 
@@ -336,5 +332,24 @@ export function HeaderSearch() {
         </div>
       )}
     </div>
+  );
+}
+
+function SearchIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className ?? "h-4 w-4"}
+      aria-hidden
+    >
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
   );
 }

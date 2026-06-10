@@ -1,15 +1,15 @@
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { toProduct } from "@/lib/product-mapper";
+import { requireSellerSession } from "@/lib/require-seller";
 import { makeProductId, parseSellerProductInput } from "@/lib/seller";
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await requireSellerSession();
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
+  const { session } = auth;
 
   const rows = await prisma.product.findMany({
     where: { sellerId: session.user.id },
@@ -21,10 +21,11 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSellerSession();
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
+    const { session } = auth;
 
     const body = await request.json();
     const parsed = parseSellerProductInput(body);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { isValidPhone, normalizePhone } from "@/lib/phone";
+import { parseSignupRole } from "@/lib/user-role";
 
 export async function POST(request: Request) {
   try {
@@ -11,6 +12,7 @@ export async function POST(request: Request) {
     const password = String(body.password ?? "");
     const emailRaw = String(body.email ?? "").trim();
     const email = emailRaw ? emailRaw.toLowerCase() : null;
+    const role = parseSignupRole(body.role);
 
     if (!name || name.length < 2) {
       return NextResponse.json({ error: "Full name is required." }, { status: 400 });
@@ -54,6 +56,7 @@ export async function POST(request: Request) {
         name,
         phone,
         email,
+        role,
         passwordHash: await bcrypt.hash(password, 10),
       },
     });

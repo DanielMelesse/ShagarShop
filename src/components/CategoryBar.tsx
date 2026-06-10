@@ -6,7 +6,9 @@ import { Suspense } from "react";
 import { categories } from "@/lib/products";
 import { infoNavLinks } from "@/lib/nav";
 import type { Category } from "@/lib/types";
+import { useAuth } from "@/hooks/useAuth";
 import { useMounted } from "@/hooks/useMounted";
+import { isSellerRole } from "@/lib/user-role";
 
 function linkClass(active: boolean) {
   return `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition ${
@@ -21,30 +23,36 @@ function CategoryLinks({
   category,
   featured,
   showActive,
+  sellerMode,
 }: {
   pathname: string;
   category: Category | null;
   featured: boolean;
   showActive: boolean;
+  sellerMode: boolean;
 }) {
   return (
     <nav aria-label="Categories" className="border-b border-zinc-200 bg-white">
       <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 py-2.5 sm:px-6">
-        <Link
-          href="/shop?featured=1"
-          className={linkClass(showActive && featured)}
-        >
-          Today&apos;s Deals
-        </Link>
-        {categories.map((cat) => (
-          <Link
-            key={cat.id}
-            href={`/shop?category=${cat.id}`}
-            className={linkClass(showActive && !featured && category === cat.id)}
-          >
-            {cat.label}
-          </Link>
-        ))}
+        {!sellerMode && (
+          <>
+            <Link
+              href="/shop?featured=1"
+              className={linkClass(showActive && featured)}
+            >
+              Today&apos;s Deals
+            </Link>
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/shop?category=${cat.id}`}
+                className={linkClass(showActive && !featured && category === cat.id)}
+              >
+                {cat.label}
+              </Link>
+            ))}
+          </>
+        )}
         {infoNavLinks.map((link) => (
           <Link
             key={link.href}
@@ -61,8 +69,15 @@ function CategoryLinks({
 
 function CategoryBarInner() {
   const mounted = useMounted();
+  const { user, isReady: authReady } = useAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const sellerMode =
+    (mounted && authReady && isSellerRole(user?.role)) || pathname === "/sell";
+
+  if (sellerMode) {
+    return null;
+  }
 
   const rawCategory = searchParams.get("category");
   const onShop = pathname === "/shop";
@@ -78,6 +93,7 @@ function CategoryBarInner() {
       category={category}
       featured={featured}
       showActive={mounted}
+      sellerMode={sellerMode}
     />
   );
 }
@@ -89,6 +105,7 @@ function CategoryBarFallback() {
       category={null}
       featured={false}
       showActive={false}
+      sellerMode={false}
     />
   );
 }

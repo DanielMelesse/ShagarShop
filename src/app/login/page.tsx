@@ -4,19 +4,21 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { safeCallbackUrl } from "@/lib/auth-redirect";
+import { resolveAfterAuth } from "@/lib/auth-redirect";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const afterAuth = safeCallbackUrl(searchParams.get("callbackUrl"));
+  const afterAuth = resolveAfterAuth(searchParams.get("callbackUrl"), null);
   const { login, user, isReady } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isReady && user) router.replace(afterAuth);
-  }, [isReady, user, router, afterAuth]);
+    if (isReady && user) {
+      router.replace(resolveAfterAuth(searchParams.get("callbackUrl"), user.role));
+    }
+  }, [isReady, user, router, searchParams]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();

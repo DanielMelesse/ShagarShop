@@ -4,19 +4,26 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { safeCallbackUrl } from "@/lib/auth-redirect";
+import { resolveAfterAuth } from "@/lib/auth-redirect";
+import { parseSignupRole } from "@/lib/user-role";
 
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const afterAuth = safeCallbackUrl(searchParams.get("callbackUrl"));
+  const signupRole = parseSignupRole(searchParams.get("role"));
+  const afterAuth = resolveAfterAuth(
+    searchParams.get("callbackUrl"),
+    signupRole,
+  );
   const { signup, user, isReady } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isReady && user) router.replace(afterAuth);
-  }, [isReady, user, router, afterAuth]);
+    if (isReady && user) {
+      router.replace(resolveAfterAuth(searchParams.get("callbackUrl"), user.role));
+    }
+  }, [isReady, user, router, searchParams]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -27,7 +34,7 @@ function SignupForm() {
     const phone = String(form.get("phone") ?? "");
     const password = String(form.get("password") ?? "");
     const email = String(form.get("email") ?? "");
-    const result = await signup(name, phone, password, email);
+    const result = await signup(name, phone, password, email, signupRole);
     setLoading(false);
     if (result.ok) {
       router.push(afterAuth);
@@ -40,7 +47,9 @@ function SignupForm() {
     <div className="mx-auto flex max-w-md flex-col px-4 py-16 sm:px-6">
       <h1 className="text-2xl font-bold text-zinc-900">Create account</h1>
       <p className="mt-2 text-sm text-zinc-500">
-        Join ShagarShop to track orders and checkout faster.
+        {signupRole === "SELLER"
+          ? "Create a seller account to list products and manage your shop."
+          : "Join ShagarShop to track orders and checkout faster."}
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">

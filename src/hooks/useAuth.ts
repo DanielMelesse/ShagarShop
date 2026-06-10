@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn, signOut, useSession } from "next-auth/react";
+import type { UserRole } from "@/lib/user-role";
 
 export function useAuth() {
   const { data: session, status } = useSession();
@@ -23,6 +24,7 @@ export function useAuth() {
       phone: string,
       password: string,
       email?: string,
+      role: UserRole = "BUYER",
     ): Promise<{ ok: boolean; error?: string }> => {
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -32,6 +34,7 @@ export function useAuth() {
           phone,
           password,
           email: email?.trim() || undefined,
+          role: role === "SELLER" ? "seller" : "buyer",
         }),
       });
       const data = await res.json().catch(() => ({}));
