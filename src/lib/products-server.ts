@@ -49,12 +49,17 @@ export async function filterProducts(options: {
 
 export async function filterProductsByDepartment(slug: string): Promise<Product[]> {
   const department = getDepartmentBySlug(slug);
-  if (!department?.productCategory) {
+  if (!department) {
     return [];
   }
 
   const rows = await prisma.product.findMany({
-    where: { category: department.productCategory },
+    where: {
+      OR: [
+        { category: slug },
+        ...(department.productCategory ? [{ category: department.productCategory }] : []),
+      ],
+    },
     orderBy: { name: "asc" },
   });
 
@@ -100,14 +105,32 @@ export async function searchProductsDb(
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
-  let categoryFilter: Category | undefined;
   if (department !== "all") {
-    categoryFilter = getDepartmentBySlug(department)?.productCategory;
-    if (!categoryFilter) return [];
+    const dept = getDepartmentBySlug(department);
+    const rows = await prisma.product.findMany({
+      where: dept
+        ? {
+            OR: [
+              { category: department },
+              ...(dept.productCategory ? [{ category: dept.productCategory }] : []),
+            ],
+          }
+        : { category: department },
+      orderBy: { name: "asc" },
+    });
+
+    return rows
+      .map(toProduct)
+      .filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q),
+      )
+      .slice(0, limit);
   }
 
   const rows = await prisma.product.findMany({
-    where: categoryFilter ? { category: categoryFilter } : {},
     orderBy: { name: "asc" },
   });
 

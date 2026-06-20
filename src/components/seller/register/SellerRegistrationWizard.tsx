@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsSeller } from "@/hooks/useIsSeller";
 import { categories } from "@/lib/products";
 import type { Category } from "@/lib/types";
+import { SELLER_HOME } from "@/lib/seller-routes";
 import { SellerRegisterStepIndicator } from "@/components/seller/register/SellerRegisterStepIndicator";
 
 const inputClass =
@@ -59,7 +60,7 @@ export function SellerRegistrationWizard() {
         if (res.ok) {
           const data = await res.json();
           if (data.complete) {
-            router.replace("/sell");
+            router.replace(SELLER_HOME);
             return;
           }
           if (data.profile?.shopName) setShopName(data.profile.shopName);
@@ -390,7 +391,7 @@ export function SellerRegistrationWizard() {
             )}
           </p>
           <Link
-            href="/sell"
+            href={SELLER_HOME}
             className="mt-8 inline-block rounded-xl bg-brand-600 px-8 py-3 text-sm font-semibold text-white transition hover:bg-brand-700"
           >
             Go to seller dashboard

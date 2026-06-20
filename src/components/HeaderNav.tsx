@@ -7,8 +7,7 @@ import {
   ALL_DEPARTMENTS_HREF,
   ALL_DEPARTMENTS_LABEL,
 } from "@/lib/departments";
-import { useAuth } from "@/hooks/useAuth";
-import { useIsSeller } from "@/hooks/useIsSeller";
+import { isSellerAppPath } from "@/lib/seller-routes";
 import { useMounted } from "@/hooks/useMounted";
 
 const navLinkClass =
@@ -21,13 +20,11 @@ function HeaderNavInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const mounted = useMounted();
-  const { isReady: authReady } = useAuth();
-  const { isSeller } = useIsSeller();
 
-  const sellerMode =
-    (mounted && authReady && isSeller) || pathname.startsWith("/sell");
+  const onSellerSurface =
+    pathname.startsWith("/sell") || isSellerAppPath(pathname);
 
-  if (sellerMode) {
+  if (onSellerSurface) {
     return null;
   }
 

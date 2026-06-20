@@ -64,6 +64,32 @@ export function getDepartmentSearchOptions() {
   ];
 }
 
+export function getSellerDepartmentOptions() {
+  return departments
+    .filter((d) => d.slug !== "deals")
+    .map((d) => ({ value: d.slug, label: d.label }));
+}
+
+export function isSellerDepartmentSlug(value: string): boolean {
+  return departments.some((d) => d.slug === value && d.slug !== "deals");
+}
+
+export function getDepartmentProductCategory(slug: string): Category | undefined {
+  return getDepartmentBySlug(slug)?.productCategory;
+}
+
+export function departmentNeedsSize(slug: string): boolean {
+  const category = getDepartmentProductCategory(slug);
+  return category === "fashion" || category === "sports";
+}
+
+/** Map legacy product category ids to a default department slug for editing. */
+export function legacyCategoryToDepartmentSlug(category: string): string {
+  if (isSellerDepartmentSlug(category)) return category;
+  const match = departments.find((d) => d.productCategory === category);
+  return match?.slug ?? "home-kitchen";
+}
+
 /** Where the search-bar department picker should navigate. */
 export function getSearchDepartmentHref(value: string): string {
   if (value === "all") return ALL_DEPARTMENTS_HREF;

@@ -32,6 +32,112 @@ type DropdownItem =
   | { type: "category"; id: string; label: string }
   | { type: "see-all"; query: string };
 
+function SearchDepartmentSelect({
+  department,
+  onSelect,
+}: {
+  department: SearchDepartment;
+  onSelect: (value: SearchDepartment) => void;
+}) {
+  const menuId = useId();
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const selected =
+    searchDepartments.find((d) => d.value === department) ?? searchDepartments[0];
+  const fullLabel = selected.label;
+  const shortLabel =
+    department === "all"
+      ? "All"
+      : fullLabel.includes("&")
+        ? fullLabel.split("&")[0].trim()
+        : fullLabel.split(" ")[0];
+
+  useEffect(() => {
+    if (!open) return;
+
+    function onKeyDown(e: globalThis.KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+
+    function onPointerDown(e: PointerEvent) {
+      if (!containerRef.current?.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={containerRef} className="relative shrink-0 border-r border-zinc-200">
+      <button
+        id="search-department"
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-controls={menuId}
+        onClick={() => setOpen((value) => !value)}
+        className="flex h-10 min-w-[3.25rem] max-w-[4.5rem] items-center gap-0.5 bg-zinc-50 px-1.5 text-sm font-medium text-zinc-800 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/30 sm:min-w-[5.5rem] sm:max-w-[7.5rem] sm:gap-1 sm:px-2 md:max-w-[9.5rem] lg:max-w-[11rem]"
+      >
+        <span className="min-w-0 flex-1 truncate sm:hidden">{shortLabel}</span>
+        <span className="hidden min-w-0 flex-1 truncate sm:inline">{fullLabel}</span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          className={`h-3.5 w-3.5 shrink-0 text-zinc-500 transition sm:h-4 sm:w-4 ${open ? "rotate-180" : ""}`}
+          aria-hidden
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+
+      {open && (
+        <ul
+          id={menuId}
+          role="listbox"
+          aria-labelledby="search-department"
+          className="absolute left-0 top-full z-[60] mt-1 max-h-[min(70vh,20rem)] w-56 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-xl sm:w-64"
+        >
+          {searchDepartments.map((option) => {
+            const isSelected = option.value === department;
+            return (
+              <li key={option.value} role="presentation">
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => {
+                    onSelect(option.value as SearchDepartment);
+                    setOpen(false);
+                  }}
+                  className={`block w-full px-3 py-2 text-left text-sm transition ${
+                    isSelected
+                      ? "bg-brand-50 font-medium text-brand-800"
+                      : "text-zinc-700 hover:bg-zinc-50"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function HeaderSearch() {
   const router = useRouter();
   const pathname = usePathname();
@@ -175,34 +281,26 @@ export function HeaderSearch() {
       : "text-zinc-700 hover:bg-zinc-50";
   }
 
+  function handleDepartmentSelect(value: SearchDepartment) {
+    setDepartment(value);
+    setOpen(false);
+    router.push(getSearchDepartmentHref(value));
+  }
+
   return (
     <div ref={containerRef} className="relative min-w-0 flex-1 basis-0">
       <form
         onSubmit={handleSubmit}
-        className="flex min-w-0 flex-nowrap rounded-lg border border-zinc-300 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20"
+        className="flex min-w-0 flex-nowrap overflow-visible rounded-lg border border-zinc-300 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20"
         role="search"
       >
         <label htmlFor="search-department" className="sr-only">
           Search in department
         </label>
-        <select
-          id="search-department"
-          name="department"
-          value={department}
-          onChange={(e) => {
-            const value = e.target.value as SearchDepartment;
-            setDepartment(value);
-            setOpen(false);
-            router.push(getSearchDepartmentHref(value));
-          }}
-          className="hidden w-[5.5rem] shrink-0 cursor-pointer border-0 border-r border-zinc-200 bg-zinc-50 py-2.5 pl-2 pr-6 text-sm font-medium text-zinc-800 outline-none focus:bg-zinc-100 md:block md:w-auto md:pl-3 md:pr-8"
-        >
-          {searchDepartments.map((d) => (
-            <option key={d.value} value={d.value}>
-              {d.label}
-            </option>
-          ))}
-        </select>
+        <SearchDepartmentSelect
+          department={department}
+          onSelect={handleDepartmentSelect}
+        />
         <label htmlFor="header-search" className="sr-only">
           Search products
         </label>

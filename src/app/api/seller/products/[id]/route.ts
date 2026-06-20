@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { toProduct } from "@/lib/product-mapper";
-import { isCategory } from "@/lib/product-mapper";
 import { requireSellerSession } from "@/lib/require-seller";
 import { parseSellerProductUpdate } from "@/lib/seller";
 
@@ -13,6 +12,26 @@ async function getOwnedProduct(userId: string, productId: string) {
   return prisma.product.findFirst({
     where: { id: productId, sellerId: userId },
   });
+}
+
+export async function GET(request: Request, context: RouteContext) {
+  try {
+    const auth = await requireSellerSession(request);
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+    const { session } = auth;
+
+    const { id } = await context.params;
+    const existing = await getOwnedProduct(session.user.id, id);
+    if (!existing) {
+      return NextResponse.json({ error: "Product not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({ product: toProduct(existing) });
+  } catch {
+    return NextResponse.json({ error: "Could not load product." }, { status: 500 });
+  }
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
@@ -31,7 +50,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     const body = await request.json();
     const parsed = parseSellerProductUpdate(body, {
-      category: isCategory(existing.category) ? existing.category : "electronics",
+      category: existing.category,
       size: existing.size,
     });
     if (!parsed.ok) {

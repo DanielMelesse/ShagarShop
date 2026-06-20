@@ -1,4 +1,5 @@
 import type { Product as DbProduct } from "@prisma/client";
+import { normalizeProductImages } from "@/lib/product-image";
 import { categories } from "@/lib/products";
 import type { Category, Product } from "@/lib/types";
 
@@ -9,13 +10,16 @@ export function isCategory(value: string): value is Category {
 }
 
 export function toProduct(row: DbProduct): Product {
+  const images = normalizeProductImages(row.image, row.images);
+
   return {
     id: row.id,
     name: row.name,
     description: row.description,
     price: row.price,
-    category: isCategory(row.category) ? row.category : "electronics",
-    image: row.image,
+    category: row.category,
+    image: images[0] ?? row.image,
+    images,
     rating: row.rating,
     reviewCount: row.reviewCount,
     stock: row.stock,

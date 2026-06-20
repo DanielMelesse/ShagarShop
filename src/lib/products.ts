@@ -2,6 +2,7 @@ import type { Category, Product } from "./types";
 import {
   departments,
   getDepartmentBySlug,
+  getDepartmentProductCategory,
   getDepartmentSearchOptions,
   type DepartmentSlug,
 } from "./departments";
@@ -45,11 +46,18 @@ export function getSizeOptions(category: Category): readonly string[] {
   return [];
 }
 
+function resolveSizeCategory(categoryValue: string): Category | null {
+  const legacy = categories.find((c) => c.id === categoryValue);
+  if (legacy) return legacy.id;
+  return getDepartmentProductCategory(categoryValue) ?? null;
+}
+
 /** Sizes a shopper can pick on the product page. */
 export function getCustomerSizeOptions(product: Product): readonly string[] {
-  if (!categoryNeedsSize(product.category)) return [];
+  const category = resolveSizeCategory(product.category);
+  if (!category || !categoryNeedsSize(category)) return [];
 
-  const options = getSizeOptions(product.category).filter((s) => s !== SIZE_ALL);
+  const options = getSizeOptions(category).filter((s) => s !== SIZE_ALL);
   if (product.size && product.size !== SIZE_ALL) {
     return [product.size];
   }

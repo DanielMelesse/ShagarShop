@@ -44,6 +44,7 @@ export async function POST(request: Request) {
         category: data.category,
         stock: data.stock,
         image: data.image,
+        images: data.images,
         featured: data.featured ?? false,
         size: data.size,
       },

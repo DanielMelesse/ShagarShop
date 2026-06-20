@@ -29,5 +29,5 @@ export function isShopOnlyPath(pathname: string): boolean {
 }
 
 export function defaultHomeForRole(role: string | null | undefined): string {
-  return isSellerRole(role) ? "/sell" : "/shop?featured=1";
+  return isSellerRole(role) ? "/seller" : "/shop?featured=1";
 }

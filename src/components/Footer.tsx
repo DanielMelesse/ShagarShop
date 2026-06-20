@@ -6,9 +6,9 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <p className="font-bold text-zinc-900">
+            <Link href="/" className="font-bold text-zinc-900 transition hover:text-brand-600">
               Shagar<span className="text-brand-600">Shop</span>
-            </p>
+            </Link>
             <p className="mt-2 text-sm text-zinc-500">
               Your marketplace for quality products from trusted sellers.
             </p>

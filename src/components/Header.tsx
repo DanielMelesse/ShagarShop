@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { useMounted } from "@/hooks/useMounted";
 import { HeaderSearch } from "@/components/HeaderSearch";
 import { headerSellButtonClass } from "@/lib/header-ui";
+import { isSellerAppPath, SELLER_HOME } from "@/lib/seller-routes";
 
 const navLinkClass =
   "text-sm font-medium text-zinc-600 transition hover:text-brand-600";
@@ -79,19 +80,21 @@ export function Header() {
 
   const showUser = mounted && authReady && user;
   const sellerAccount = showUser && (isSeller || checkingSeller);
+  const onSellerSurface =
+    pathname.startsWith("/sell") || isSellerAppPath(pathname);
   const sellerNav =
-    sellerAccount ||
-    (mounted && authReady && !showUser && pathname.startsWith("/sell"));
+    onSellerSurface &&
+    (sellerAccount || (mounted && authReady && !showUser));
   const showCartBadge = mounted && cartReady && itemCount > 0 && !sellerNav;
-  const homeHref = sellerNav ? "/sell" : "/";
 
   if (sellerNav) {
     return (
       <header className="border-b border-zinc-200/80 bg-white/90">
         <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
           <Link
-            href={homeHref}
-            className="flex shrink-0 items-center gap-2 font-bold tracking-tight"
+            href="/"
+            aria-label="ShagarShop home"
+            className="flex shrink-0 items-center gap-2 font-bold tracking-tight transition hover:opacity-80"
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">
               S
@@ -102,11 +105,11 @@ export function Header() {
           </Link>
 
           <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-2 sm:gap-3">
-            <Link href="/sell" className={headerSellButtonClass}>
+            <Link href={SELLER_HOME} className={headerSellButtonClass}>
               Sell
             </Link>
-            {pathname === "/sell" && (
-              <Link href="/shop" className={`${navLinkClass} hidden whitespace-nowrap md:inline`}>
+            {(pathname.startsWith("/sell") || isSellerAppPath(pathname)) && (
+              <Link href="/shop/departments" className={`${navLinkClass} whitespace-nowrap`}>
                 Back to shop
               </Link>
             )}
@@ -120,7 +123,7 @@ export function Header() {
               </button>
             ) : !checkingSeller ? (
               <Link
-                href="/login?callbackUrl=/sell"
+                href="/login?callbackUrl=/seller"
                 className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
               >
                 Login
@@ -136,8 +139,9 @@ export function Header() {
     <header className="border-b border-zinc-200/80 bg-white/90">
       <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
         <Link
-          href={homeHref}
-          className="flex shrink-0 items-center gap-2 font-bold tracking-tight"
+          href="/"
+          aria-label="ShagarShop home"
+          className="flex shrink-0 items-center gap-2 font-bold tracking-tight transition hover:opacity-80"
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">
             S

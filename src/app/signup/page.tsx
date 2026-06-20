@@ -31,7 +31,7 @@ function SignupForm() {
     if (signupRole === "SELLER") return;
     if (isReady && user) {
       router.replace(
-        isSeller ? "/sell" : resolveAfterAuth(searchParams.get("callbackUrl"), user.role),
+        isSeller ? "/seller" : resolveAfterAuth(searchParams.get("callbackUrl"), user.role),
       );
     }
   }, [isReady, user, isSeller, router, searchParams, signupRole]);

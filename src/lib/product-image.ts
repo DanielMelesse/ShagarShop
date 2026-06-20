@@ -2,6 +2,7 @@ const UPLOAD_PATH_PREFIX = "/uploads/products/";
 const UPLOAD_PATH_PATTERN = /^\/uploads\/products\/[a-zA-Z0-9._-]+$/;
 
 export const MAX_PRODUCT_IMAGE_BYTES = 5 * 1024 * 1024;
+export const MAX_PRODUCT_IMAGES = 5;
 
 export const ALLOWED_PRODUCT_IMAGE_TYPES = new Map<string, string>([
   ["image/jpeg", ".jpg"],
@@ -72,6 +73,17 @@ export function isValidProductImage(value: string): boolean {
 
 export function productImageErrorMessage(): string {
   return "Add an image file or a valid http/https URL.";
+}
+
+export function productImagesErrorMessage(): string {
+  return `Add 1 to ${MAX_PRODUCT_IMAGES} images using uploads or valid http/https URLs.`;
+}
+
+export function normalizeProductImages(image: string, images?: string[] | null): string[] {
+  const fromArray = (images ?? []).map((value) => value.trim()).filter(Boolean);
+  if (fromArray.length > 0) return fromArray.slice(0, MAX_PRODUCT_IMAGES);
+  const cover = image.trim();
+  return cover ? [cover] : [];
 }
 
 export function getUploadDir(): string {

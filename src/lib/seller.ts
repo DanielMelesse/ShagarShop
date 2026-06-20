@@ -1,18 +1,24 @@
-import { categories, categoryNeedsSize, getSizeOptions } from "@/lib/products";
-import { isCategory } from "@/lib/product-mapper";
+import {
+  getDepartmentProductCategory,
+  getSellerDepartmentOptions,
+  isSellerDepartmentSlug,
+} from "@/lib/departments";
+import { categoryNeedsSize, getSizeOptions } from "@/lib/products";
 import {
   isValidProductImage,
+  MAX_PRODUCT_IMAGES,
   productImageErrorMessage,
+  productImagesErrorMessage,
 } from "@/lib/product-image";
-import type { Category } from "@/lib/types";
 
 export interface SellerProductInput {
   name: string;
   description: string;
   price: number;
-  category: Category;
+  category: string;
   stock: number;
   image: string;
+  images: string[];
   featured?: boolean;
   size?: string | null;
 }
@@ -30,17 +36,47 @@ export function makeProductId(name: string): string {
   return `${base}-${Date.now().toString(36)}`;
 }
 
-function validateImage(image: string): boolean {
-  return isValidProductImage(image);
+function parseProductImages(
+  body: Record<string, unknown>,
+): { ok: true; images: string[] } | { ok: false; error: string } {
+  const rawValues = Array.isArray(body.images)
+    ? body.images
+    : body.image !== undefined
+      ? [body.image]
+      : [];
+
+  const images = rawValues
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+
+  if (images.length === 0) {
+    return { ok: false, error: productImagesErrorMessage() };
+  }
+
+  if (images.length > MAX_PRODUCT_IMAGES) {
+    return {
+      ok: false,
+      error: `You can add up to ${MAX_PRODUCT_IMAGES} images per product.`,
+    };
+  }
+
+  for (const image of images) {
+    if (!isValidProductImage(image)) {
+      return { ok: false, error: productImageErrorMessage() };
+    }
+  }
+
+  return { ok: true, images };
 }
 
-function parseSizeForCategory(
-  category: Category,
+function parseSizeForDepartment(
+  departmentSlug: string,
   raw: unknown,
 ): { ok: true; size: string | null } | { ok: false; error: string } {
   const size = String(raw ?? "").trim();
+  const sizeCategory = getDepartmentProductCategory(departmentSlug);
 
-  if (!categoryNeedsSize(category)) {
+  if (!sizeCategory || !categoryNeedsSize(sizeCategory)) {
     return { ok: true, size: null };
   }
 
@@ -48,7 +84,7 @@ function parseSizeForCategory(
     return { ok: false, error: "Size is required for fashion and sports." };
   }
 
-  const allowed = getSizeOptions(category);
+  const allowed = getSizeOptions(sizeCategory);
   if (!allowed.includes(size)) {
     return { ok: false, error: "Pick a valid size for this category." };
   }
@@ -62,26 +98,29 @@ export function parseSellerProductInput(
   const name = String(body.name ?? "").trim();
   const description = String(body.description ?? "").trim();
   const category = String(body.category ?? "").trim();
-  const image = String(body.image ?? "").trim();
   const price = Number(body.price);
   const stock = Number(body.stock);
   const featured = Boolean(body.featured);
 
   if (!name) return { ok: false, error: "Product name is required." };
   if (!description) return { ok: false, error: "Description is required." };
-  if (!isCategory(category)) return { ok: false, error: "Pick a valid category." };
+  if (!isSellerDepartmentSlug(category)) {
+    return { ok: false, error: "Pick a valid department." };
+  }
   if (!Number.isFinite(price) || price <= 0) {
     return { ok: false, error: "Price must be greater than zero." };
   }
   if (!Number.isInteger(stock) || stock < 0) {
     return { ok: false, error: "Stock must be a whole number of zero or more." };
   }
-  if (!validateImage(image)) {
-    return { ok: false, error: productImageErrorMessage() };
-  }
 
-  const sizeResult = parseSizeForCategory(category, body.size);
+  const imagesResult = parseProductImages(body);
+  if (!imagesResult.ok) return imagesResult;
+
+  const sizeResult = parseSizeForDepartment(category, body.size);
   if (!sizeResult.ok) return sizeResult;
+
+  const { images } = imagesResult;
 
   return {
     ok: true,
@@ -91,7 +130,8 @@ export function parseSellerProductInput(
       price,
       category,
       stock,
-      image,
+      image: images[0],
+      images,
       featured,
       size: sizeResult.size,
     },
@@ -100,7 +140,7 @@ export function parseSellerProductInput(
 
 export function parseSellerProductUpdate(
   body: Record<string, unknown>,
-  existing?: { category: Category; size: string | null },
+  existing?: { category: string; size: string | null },
 ): { ok: true; data: Partial<SellerProductInput> } | { ok: false; error: string } {
   const data: Partial<SellerProductInput> = {};
 
@@ -116,15 +156,16 @@ export function parseSellerProductUpdate(
   }
   if (body.category !== undefined) {
     const category = String(body.category).trim();
-    if (!isCategory(category)) return { ok: false, error: "Pick a valid category." };
+    if (!isSellerDepartmentSlug(category)) {
+      return { ok: false, error: "Pick a valid department." };
+    }
     data.category = category;
   }
-  if (body.image !== undefined) {
-    const image = String(body.image).trim();
-    if (!validateImage(image)) {
-      return { ok: false, error: productImageErrorMessage() };
-    }
-    data.image = image;
+  if (body.images !== undefined || body.image !== undefined) {
+    const imagesResult = parseProductImages(body);
+    if (!imagesResult.ok) return imagesResult;
+    data.images = imagesResult.images;
+    data.image = imagesResult.images[0];
   }
   if (body.price !== undefined) {
     const price = Number(body.price);
@@ -146,10 +187,10 @@ export function parseSellerProductUpdate(
 
   if (body.size !== undefined || body.category !== undefined) {
     const category = data.category ?? existing?.category;
-    if (!category) {
-      return { ok: false, error: "Pick a valid category." };
+    if (!category || !isSellerDepartmentSlug(category)) {
+      return { ok: false, error: "Pick a valid department." };
     }
-    const sizeResult = parseSizeForCategory(category, body.size ?? "");
+    const sizeResult = parseSizeForDepartment(category, body.size ?? "");
     if (!sizeResult.ok) return sizeResult;
     data.size = sizeResult.size;
   }
@@ -161,4 +202,4 @@ export function parseSellerProductUpdate(
   return { ok: true, data };
 }
 
-export const sellerCategoryOptions = categories;
+export const sellerDepartmentOptions = getSellerDepartmentOptions();

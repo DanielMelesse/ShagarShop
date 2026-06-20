@@ -1,4 +1,4 @@
-import { ProductImage } from "@/components/ProductImage";
+import { ProductGallery } from "@/components/ProductGallery";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "./AddToCartButton";
@@ -27,16 +27,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       </nav>
 
       <div className="grid gap-10 lg:grid-cols-2">
-        <div className="relative aspect-square overflow-hidden rounded-2xl bg-zinc-100">
-          <ProductImage
-            src={product.image}
-            alt={product.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            priority
-          />
-        </div>
+        <ProductGallery images={product.images} name={product.name} />
 
         <div>
           <p className="text-sm font-medium uppercase tracking-wide text-brand-600">

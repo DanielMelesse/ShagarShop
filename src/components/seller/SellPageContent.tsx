@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useIsSeller } from "@/hooks/useIsSeller";
 import { useSellerRegistrationComplete } from "@/hooks/useSellerRegistration";
+import { SELLER_HOME } from "@/lib/seller-routes";
 import { SellLanding } from "@/components/seller/SellLanding";
 import { SellShopperPrompt } from "@/components/seller/SellShopperPrompt";
-import { SellerDashboard } from "@/components/seller/SellerDashboard";
 
 function SellPageSkeleton() {
   return (
@@ -31,6 +31,10 @@ export function SellPageContent() {
     if (!isReady || checkingSeller || checking) return;
     if (isSeller && complete === false) {
       router.replace("/sell/register");
+      return;
+    }
+    if (isSeller && complete) {
+      router.replace(SELLER_HOME);
     }
   }, [isReady, checkingSeller, checking, isSeller, complete, router]);
 
@@ -38,8 +42,8 @@ export function SellPageContent() {
     return <SellPageSkeleton />;
   }
 
-  if (isSeller && user && complete) {
-    return <SellerDashboard user={user} />;
+  if (isSeller && complete) {
+    return <SellPageSkeleton />;
   }
 
   if (isSeller && user && complete === false) {
