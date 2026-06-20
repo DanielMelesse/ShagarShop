@@ -38,7 +38,7 @@ function LoginForm() {
 
   return (
     <div className="mx-auto flex max-w-md flex-col px-4 py-16 sm:px-6">
-      <h1 className="text-2xl font-bold text-zinc-900">Log in</h1>
+      <h2 className="text-2xl font-bold text-zinc-900">Log in</h2>
       <p className="mt-2 text-sm text-zinc-500">
         Sign in with your phone number and password.
       </p>

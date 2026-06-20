@@ -1,4 +1,10 @@
 import type { Category, Product } from "./types";
+import {
+  departments,
+  getDepartmentBySlug,
+  getDepartmentSearchOptions,
+  type DepartmentSlug,
+} from "./departments";
 
 export const categories: { id: Category; label: string }[] = [
   { id: "home", label: "Home" },
@@ -8,16 +14,9 @@ export const categories: { id: Category; label: string }[] = [
   { id: "books", label: "Books" },
 ];
 
-export type SearchDepartment = "all" | Category;
+export type SearchDepartment = "all" | DepartmentSlug;
 
-export const searchDepartments: { value: SearchDepartment; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "home", label: "Home" },
-  { value: "electronics", label: "Electronics" },
-  { value: "fashion", label: "Fashion" },
-  { value: "sports", label: "Sports" },
-  { value: "books", label: "Books" },
-];
+export const searchDepartments = getDepartmentSearchOptions();
 
 export const CLOTHING_SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 export const SHOE_SIZES = [
@@ -69,7 +68,7 @@ export function buildShopSearchUrl(options: {
   const term = options.q?.trim();
   if (term) params.set("q", term);
   if (options.department && options.department !== "all") {
-    params.set("category", options.department);
+    params.set("department", options.department);
   }
   const query = params.toString();
   return query ? `/shop?${query}` : "/shop";
@@ -81,11 +80,14 @@ export function searchCategories(
 ) {
   const q = query.toLowerCase().trim();
   if (!q) return [];
-  let list = categories;
+  let list = departments;
   if (department !== "all") {
-    list = list.filter((c) => c.id === department);
+    const match = getDepartmentBySlug(department);
+    list = match ? [match] : [];
   }
-  return list.filter((c) => c.label.toLowerCase().includes(q));
+  return list
+    .filter((d) => d.label.toLowerCase().includes(q))
+    .map((d) => ({ id: d.slug, label: d.label }));
 }
 
 export function formatPrice(amount: number): string {

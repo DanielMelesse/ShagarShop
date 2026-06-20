@@ -12,11 +12,11 @@ export function GuestHomeHero() {
           <p className="text-sm font-medium uppercase tracking-wider text-brand-100">
             Welcome to ShagarShop
           </p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+          <h2 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
             Shop smarter.
             <br />
             <span className="text-brand-100">Delivered faster.</span>
-          </h1>
+          </h2>
           <p className="mt-4 max-w-lg text-lg text-brand-50/90">
             Thousands of products from electronics to fashion — curated deals,
             secure checkout, and free shipping on orders over{" "}

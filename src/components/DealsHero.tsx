@@ -36,7 +36,7 @@ function HeroShell({
   const body = (
     <>
       {badges}
-      <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
+      <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
       <p className="mt-2 max-w-xl text-base text-white/90 sm:text-lg">
         Hand-picked offers with top ratings — save big on bestsellers before
         they&apos;re gone.

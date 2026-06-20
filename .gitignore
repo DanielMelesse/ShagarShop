@@ -41,5 +41,9 @@ yarn-error.log*
 /public/uploads/products/*
 !/public/uploads/products/.gitkeep
 
+# uploaded seller licenses
+/public/uploads/licenses/*
+!/public/uploads/licenses/.gitkeep
+
 # typescript
 *.tsbuildinfo

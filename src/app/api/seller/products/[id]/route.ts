@@ -17,7 +17,7 @@ async function getOwnedProduct(userId: string, productId: string) {
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
-    const auth = await requireSellerSession();
+    const auth = await requireSellerSession(request);
     if ("error" in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -49,9 +49,9 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
+export async function DELETE(request: Request, context: RouteContext) {
   try {
-    const auth = await requireSellerSession();
+    const auth = await requireSellerSession(request);
     if ("error" in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }

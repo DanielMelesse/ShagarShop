@@ -37,16 +37,16 @@ export function SellLanding() {
           <p className="text-sm font-medium uppercase tracking-wider text-brand-100">
             Seller program
           </p>
-          <h1 className="mt-3 max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">
+          <h2 className="mt-3 max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">
             Sell on ShagarShop
-          </h1>
+          </h2>
           <p className="mt-4 max-w-xl text-lg text-brand-50/90">
             Open your shop and reach customers across Ethiopia&apos;s marketplace.
             List products, manage inventory, and grow your business online.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
-              href="/signup?role=seller&callbackUrl=/sell"
+              href="/sell/register"
               className="rounded-xl bg-white px-8 py-4 text-base font-semibold text-brand-700 shadow-lg transition hover:bg-brand-50"
             >
               Start selling
@@ -116,10 +116,10 @@ export function SellLanding() {
           Create a free account and open your seller dashboard instantly.
         </p>
         <Link
-          href="/signup?role=seller&callbackUrl=/sell"
+          href="/sell/register"
           className="mt-8 inline-block rounded-xl bg-brand-600 px-8 py-4 text-base font-semibold text-white transition hover:bg-brand-700"
         >
-          Create seller account
+          Register as seller
         </Link>
       </section>
     </>

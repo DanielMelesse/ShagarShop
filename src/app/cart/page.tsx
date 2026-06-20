@@ -36,7 +36,7 @@ export default function CartPage() {
         <p className="text-5xl" aria-hidden>
           🛒
         </p>
-        <h1 className="mt-4 text-2xl font-bold text-zinc-900">Your cart is empty</h1>
+        <h2 className="mt-4 text-2xl font-bold text-zinc-900">Your cart is empty</h2>
         <p className="mt-2 text-zinc-500">Add items to get started.</p>
         <Link
           href="/shop"
@@ -50,9 +50,9 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <h1 className="text-2xl font-bold text-zinc-900">
+      <h2 className="text-2xl font-bold text-zinc-900">
         Cart ({itemCount} item{itemCount !== 1 ? "s" : ""})
-      </h1>
+      </h2>
 
       <div className="mt-8 grid gap-10 lg:grid-cols-3">
         <ul className="space-y-4 lg:col-span-2">

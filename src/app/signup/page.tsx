@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsSeller } from "@/hooks/useIsSeller";
 import { resolveAfterAuth } from "@/lib/auth-redirect";
 import { parseSignupRole } from "@/lib/user-role";
 
@@ -16,14 +17,32 @@ function SignupForm() {
     signupRole,
   );
   const { signup, user, isReady } = useAuth();
+  const { isSeller } = useIsSeller();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isReady && user) {
-      router.replace(resolveAfterAuth(searchParams.get("callbackUrl"), user.role));
+    if (signupRole === "SELLER") {
+      router.replace("/sell/register");
     }
-  }, [isReady, user, router, searchParams]);
+  }, [signupRole, router]);
+
+  useEffect(() => {
+    if (signupRole === "SELLER") return;
+    if (isReady && user) {
+      router.replace(
+        isSeller ? "/sell" : resolveAfterAuth(searchParams.get("callbackUrl"), user.role),
+      );
+    }
+  }, [isReady, user, isSeller, router, searchParams, signupRole]);
+
+  if (signupRole === "SELLER") {
+    return (
+      <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
+        <div className="h-8 w-48 animate-pulse rounded-lg bg-zinc-200" />
+      </div>
+    );
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -45,11 +64,9 @@ function SignupForm() {
 
   return (
     <div className="mx-auto flex max-w-md flex-col px-4 py-16 sm:px-6">
-      <h1 className="text-2xl font-bold text-zinc-900">Create account</h1>
+      <h2 className="text-2xl font-bold text-zinc-900">Create account</h2>
       <p className="mt-2 text-sm text-zinc-500">
-        {signupRole === "SELLER"
-          ? "Create a seller account to list products and manage your shop."
-          : "Join ShagarShop to track orders and checkout faster."}
+        Join ShagarShop to track orders and checkout faster.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">

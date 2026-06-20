@@ -52,7 +52,7 @@ const inputClass =
 async function uploadProductImage(file: File): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   const body = new FormData();
   body.append("file", file);
-  const res = await fetch("/api/seller/upload", { method: "POST", body });
+  const res = await fetch("/api/seller/upload", { method: "POST", credentials: "same-origin", body });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     return { ok: false, error: data.error ?? "Could not upload image." };
@@ -379,17 +379,35 @@ function ProductForm({
 
 export function SellerDashboard({ user }: { user: SellerUser }) {
   const [products, setProducts] = useState<Product[]>([]);
+  const [shopName, setShopName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const loadProducts = useCallback(async () => {
-    const res = await fetch("/api/seller/products");
-    if (!res.ok) {
+    const [productsRes, statusRes] = await Promise.all([
+      fetch("/api/seller/products", { credentials: "same-origin" }),
+      fetch("/api/seller/register/status", { credentials: "same-origin" }),
+    ]);
+
+    if (statusRes.ok) {
+      const statusData = await statusRes.json().catch(() => ({}));
+      if (statusData.profile?.shopName) {
+        setShopName(statusData.profile.shopName);
+      }
+    }
+
+    if (!productsRes.ok) {
+      const data = await productsRes.json().catch(() => ({}));
+      setMessage(
+        typeof data.error === "string"
+          ? data.error
+          : "Could not load your products. Try logging in again.",
+      );
       setLoading(false);
       return;
     }
-    const data = await res.json();
+    const data = await productsRes.json();
     setProducts(data.products ?? []);
     setLoading(false);
   }, []);
@@ -401,6 +419,7 @@ export function SellerDashboard({ user }: { user: SellerUser }) {
   async function createProduct(form: ProductFormState) {
     const res = await fetch("/api/seller/products", {
       method: "POST",
+      credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: form.name,
@@ -479,7 +498,9 @@ export function SellerDashboard({ user }: { user: SellerUser }) {
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">Seller dashboard</h1>
+          <h2 className="text-2xl font-bold text-zinc-900">
+            {shopName ?? "Seller dashboard"}
+          </h2>
           <p className="mt-1 text-sm text-zinc-500">
             {user.name} · {user.phone}
           </p>

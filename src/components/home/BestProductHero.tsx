@@ -25,9 +25,9 @@ export function BestProductHero({ product, userName }: BestProductHeroProps) {
           <p className="text-sm font-medium uppercase tracking-wider text-brand-100">
             Hi, {firstName}
           </p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+          <h2 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
             Today&apos;s best pick
-          </h1>
+          </h2>
           <p className="mt-4 text-2xl font-semibold text-white">{product.name}</p>
           <p className="mt-3 line-clamp-3 max-w-lg text-base text-brand-50/90">
             {product.description}

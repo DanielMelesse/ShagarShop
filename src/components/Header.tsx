@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsSeller } from "@/hooks/useIsSeller";
 import { useCart } from "@/context/CartContext";
 import { useMounted } from "@/hooks/useMounted";
 import { HeaderSearch } from "@/components/HeaderSearch";
 import { headerSellButtonClass } from "@/lib/header-ui";
-import { isSellerRole } from "@/lib/user-role";
 
 const navLinkClass =
   "text-sm font-medium text-zinc-600 transition hover:text-brand-600";
@@ -74,18 +74,20 @@ export function Header() {
   const pathname = usePathname();
   const mounted = useMounted();
   const { user, isReady: authReady, logout } = useAuth();
+  const { isSeller, checkingSeller } = useIsSeller();
   const { itemCount, isReady: cartReady } = useCart();
 
   const showUser = mounted && authReady && user;
-  const sellerAccount = showUser && isSellerRole(user.role);
+  const sellerAccount = showUser && (isSeller || checkingSeller);
   const sellerNav =
-    sellerAccount || (mounted && authReady && !showUser && pathname === "/sell");
+    sellerAccount ||
+    (mounted && authReady && !showUser && pathname.startsWith("/sell"));
   const showCartBadge = mounted && cartReady && itemCount > 0 && !sellerNav;
   const homeHref = sellerNav ? "/sell" : "/";
 
   if (sellerNav) {
     return (
-      <header className="sticky top-0 z-50 border-b border-zinc-200/80 bg-white/90 backdrop-blur-md">
+      <header className="border-b border-zinc-200/80 bg-white/90">
         <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
           <Link
             href={homeHref}
@@ -108,7 +110,7 @@ export function Header() {
                 Back to shop
               </Link>
             )}
-            {sellerAccount ? (
+            {sellerAccount && !checkingSeller ? (
               <button
                 type="button"
                 onClick={() => logout()}
@@ -116,14 +118,14 @@ export function Header() {
               >
                 Log out
               </button>
-            ) : (
+            ) : !checkingSeller ? (
               <Link
                 href="/login?callbackUrl=/sell"
                 className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
               >
                 Login
               </Link>
-            )}
+            ) : null}
           </div>
         </div>
       </header>
@@ -131,7 +133,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-zinc-200/80 bg-white/90 backdrop-blur-md">
+    <header className="border-b border-zinc-200/80 bg-white/90">
       <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
         <Link
           href={homeHref}
@@ -147,19 +149,6 @@ export function Header() {
 
         <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-2 sm:gap-3">
           <HeaderSearch />
-          <nav aria-label="Main" className="flex shrink-0 items-center">
-            {pathname === "/sell" && (
-              <Link
-                href="/shop"
-                className={`${navLinkClass} mr-2 hidden whitespace-nowrap md:inline`}
-              >
-                Shop
-              </Link>
-            )}
-            <Link href="/sell" className={headerSellButtonClass}>
-              Sell
-            </Link>
-          </nav>
         </div>
 
         <HeaderActions

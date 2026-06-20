@@ -42,7 +42,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <p className="text-sm font-medium uppercase tracking-wide text-brand-600">
             {product.category}
           </p>
-          <h1 className="mt-2 text-3xl font-bold text-zinc-900">{product.name}</h1>
+          <h2 className="mt-2 text-3xl font-bold text-zinc-900">{product.name}</h2>
           <div className="mt-3 flex items-center gap-2 text-sm text-zinc-600">
             <span className="text-amber-500">★ {product.rating}</span>
             <span>·</span>

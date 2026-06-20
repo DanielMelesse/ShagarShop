@@ -47,7 +47,22 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
         token.name = user.name;
         token.role = user.role;
+        return token;
       }
+
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, name: true, phone: true, email: true },
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.name = dbUser.name;
+          token.phone = dbUser.phone;
+          token.email = dbUser.email;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -56,7 +71,10 @@ export const authOptions: NextAuthOptions = {
         session.user.phone = token.phone as string;
         session.user.email = (token.email as string | null) ?? null;
         session.user.name = token.name as string;
-        session.user.role = token.role as typeof session.user.role;
+        session.user.role =
+          token.role === "SELLER" || token.role === "BUYER"
+            ? token.role
+            : "BUYER";
       }
       return session;
     },

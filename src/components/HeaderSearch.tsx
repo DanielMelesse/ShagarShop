@@ -2,7 +2,7 @@
 
 import { ProductImage } from "@/components/ProductImage";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   FormEvent,
   KeyboardEvent,
@@ -13,6 +13,10 @@ import {
   useRef,
   useState,
 } from "react";
+import {
+  ALL_DEPARTMENTS_HREF,
+  getSearchDepartmentHref,
+} from "@/lib/departments";
 import {
   buildShopSearchUrl,
   formatPrice,
@@ -30,6 +34,7 @@ type DropdownItem =
 
 export function HeaderSearch() {
   const router = useRouter();
+  const pathname = usePathname();
   const listboxId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -39,6 +44,17 @@ export function HeaderSearch() {
   const [activeIndex, setActiveIndex] = useState(-1);
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const match = pathname.match(/^\/shop\/department\/([^/]+)/);
+    if (match) {
+      setDepartment(match[1] as SearchDepartment);
+      return;
+    }
+    if (pathname === ALL_DEPARTMENTS_HREF) {
+      setDepartment("all");
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedQuery(query), 200);
@@ -100,7 +116,7 @@ export function HeaderSearch() {
       } else if (item.type === "category") {
         setOpen(false);
         setQuery("");
-        router.push(`/shop?category=${item.id}`);
+        router.push(`/shop/department/${item.id}`);
       } else {
         goToShop(item.query);
       }
@@ -173,7 +189,12 @@ export function HeaderSearch() {
           id="search-department"
           name="department"
           value={department}
-          onChange={(e) => setDepartment(e.target.value as SearchDepartment)}
+          onChange={(e) => {
+            const value = e.target.value as SearchDepartment;
+            setDepartment(value);
+            setOpen(false);
+            router.push(getSearchDepartmentHref(value));
+          }}
           className="hidden w-[5.5rem] shrink-0 cursor-pointer border-0 border-r border-zinc-200 bg-zinc-50 py-2.5 pl-2 pr-6 text-sm font-medium text-zinc-800 outline-none focus:bg-zinc-100 md:block md:w-auto md:pl-3 md:pr-8"
         >
           {searchDepartments.map((d) => (

@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/db";
 import { toProduct } from "@/lib/product-mapper";
+import { getDepartmentBySlug } from "@/lib/departments";
+import { sortDeals } from "@/lib/deals";
 import type { Category, Product } from "@/lib/types";
 import type { SearchDepartment } from "@/lib/products";
+
+const CATALOG_SECTION_LIMIT = 8;
 
 export async function getFeaturedProducts(): Promise<Product[]> {
   const rows = await prisma.product.findMany({
@@ -43,6 +47,51 @@ export async function filterProducts(options: {
   return products;
 }
 
+export async function filterProductsByDepartment(slug: string): Promise<Product[]> {
+  const department = getDepartmentBySlug(slug);
+  if (!department?.productCategory) {
+    return [];
+  }
+
+  const rows = await prisma.product.findMany({
+    where: { category: department.productCategory },
+    orderBy: { name: "asc" },
+  });
+
+  return rows.map(toProduct);
+}
+
+export async function getAllDepartmentsCatalog() {
+  const [featuredRows, hotRows, bestSellerRows] = await Promise.all([
+    prisma.product.findMany({
+      where: { featured: true, stock: { gt: 0 } },
+      orderBy: [{ rating: "desc" }, { reviewCount: "desc" }],
+    }),
+    prisma.product.findMany({
+      where: {
+        stock: { gt: 0 },
+        OR: [{ featured: true }, { stock: { lte: 25 } }, { rating: { gte: 4.5 } }],
+      },
+      orderBy: [{ rating: "desc" }, { reviewCount: "desc" }],
+      take: CATALOG_SECTION_LIMIT * 2,
+    }),
+    prisma.product.findMany({
+      where: { stock: { gt: 0 } },
+      orderBy: [{ reviewCount: "desc" }, { rating: "desc" }],
+      take: CATALOG_SECTION_LIMIT,
+    }),
+  ]);
+
+  const bestDeals = sortDeals(featuredRows.map(toProduct)).slice(
+    0,
+    CATALOG_SECTION_LIMIT,
+  );
+  const hotItems = hotRows.map(toProduct).slice(0, CATALOG_SECTION_LIMIT);
+  const bestSellers = bestSellerRows.map(toProduct);
+
+  return { bestDeals, hotItems, bestSellers };
+}
+
 export async function searchProductsDb(
   query: string,
   limit = 6,
@@ -51,8 +100,14 @@ export async function searchProductsDb(
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
+  let categoryFilter: Category | undefined;
+  if (department !== "all") {
+    categoryFilter = getDepartmentBySlug(department)?.productCategory;
+    if (!categoryFilter) return [];
+  }
+
   const rows = await prisma.product.findMany({
-    where: department !== "all" ? { category: department } : {},
+    where: categoryFilter ? { category: categoryFilter } : {},
     orderBy: { name: "asc" },
   });
 

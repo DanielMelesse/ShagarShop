@@ -4,8 +4,8 @@ import { toProduct } from "@/lib/product-mapper";
 import { requireSellerSession } from "@/lib/require-seller";
 import { makeProductId, parseSellerProductInput } from "@/lib/seller";
 
-export async function GET() {
-  const auth = await requireSellerSession();
+export async function GET(request: Request) {
+  const auth = await requireSellerSession(request);
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -21,7 +21,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireSellerSession();
+    const auth = await requireSellerSession(request);
     if ("error" in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -50,7 +50,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ product: toProduct(product) }, { status: 201 });
-  } catch {
+  } catch (error) {
+    console.error("[seller/products POST]", error);
     return NextResponse.json({ error: "Could not create product." }, { status: 500 });
   }
 }

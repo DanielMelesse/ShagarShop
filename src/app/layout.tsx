@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { CategoryBar } from "@/components/CategoryBar";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { HeaderNav } from "@/components/HeaderNav";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
 
@@ -28,8 +28,10 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Providers>
-          <Header />
-          <CategoryBar />
+          <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-md">
+            <Header />
+            <HeaderNav />
+          </div>
           <main className="flex-1">{children}</main>
           <Footer />
         </Providers>

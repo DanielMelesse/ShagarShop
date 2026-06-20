@@ -55,7 +55,7 @@ export default function CheckoutPage() {
         <p className="text-5xl" aria-hidden>
           ✓
         </p>
-        <h1 className="mt-4 text-2xl font-bold text-zinc-900">Order placed!</h1>
+        <h2 className="mt-4 text-2xl font-bold text-zinc-900">Order placed!</h2>
         <p className="mt-2 text-zinc-500">
           Thank you{user ? `, ${user.name}` : ""}. Payment is still demo — no real
           charge was made.
@@ -118,7 +118,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <h1 className="text-2xl font-bold text-zinc-900">Checkout</h1>
+      <h2 className="text-2xl font-bold text-zinc-900">Checkout</h2>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-8">
         <fieldset className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6">

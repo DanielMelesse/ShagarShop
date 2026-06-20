@@ -13,15 +13,31 @@ enum UserRole {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  phone        String    @unique
-  email        String?   @unique
-  passwordHash String
-  name         String
-  role         UserRole  @default(BUYER)
-  createdAt    DateTime  @default(now())
-  orders       Order[]
-  products     Product[]
+  id            String         @id @default(cuid())
+  phone         String         @unique
+  email         String?        @unique
+  passwordHash  String
+  name          String
+  role          UserRole       @default(BUYER)
+  createdAt     DateTime       @default(now())
+  orders        Order[]
+  products      Product[]
+  sellerProfile SellerProfile?
+}
+
+model SellerProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopName    String
+  location    String
+  licenseUrl  String
+  category    String
+  completedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
 }
 
 model Product {
