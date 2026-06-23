@@ -1,5 +1,7 @@
 import type { Category } from "@/lib/types";
 
+import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
+
 export interface Department {
   slug: string;
   label: string;
@@ -17,7 +19,7 @@ export const departments: Department[] = [
   { slug: "books", label: "Books", productCategory: "books" },
   { slug: "boys-fashion", label: "Boys Fashion", productCategory: "fashion" },
   { slug: "computers", label: "Computers", productCategory: "electronics" },
-  { slug: "deals", label: "Deals", href: "/shop?featured=1" },
+  { slug: "deals", label: "Deals", href: TODAYS_DEALS_HREF },
   { slug: "digital-music", label: "Digital Music", productCategory: "electronics" },
   { slug: "electronics", label: "Electronics", productCategory: "electronics" },
   { slug: "girls-fashion", label: "Girls Fashion", productCategory: "fashion" },

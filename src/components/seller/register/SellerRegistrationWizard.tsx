@@ -8,6 +8,7 @@ import { useIsSeller } from "@/hooks/useIsSeller";
 import { categories } from "@/lib/products";
 import type { Category } from "@/lib/types";
 import { SELLER_HOME } from "@/lib/seller-routes";
+import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 import { SellerRegisterStepIndicator } from "@/components/seller/register/SellerRegisterStepIndicator";
 
 const inputClass =
@@ -194,7 +195,7 @@ export function SellerRegistrationWizard() {
           You&apos;re logged in as a shopper. Log out first, then register as a seller.
         </p>
         <Link
-          href="/shop"
+          href={TODAYS_DEALS_HREF}
           className="mt-8 inline-block rounded-xl border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
         >
           Back to shop

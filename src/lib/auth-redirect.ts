@@ -4,8 +4,9 @@ import {
   isShopOnlyPath,
   type UserRole,
 } from "@/lib/user-role";
+import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
-const DEFAULT_AFTER_AUTH = "/shop?featured=1";
+const DEFAULT_AFTER_AUTH = TODAYS_DEALS_HREF;
 
 /** Only allow same-origin relative paths after login/signup. */
 export function safeCallbackUrl(raw: string | null | undefined): string {

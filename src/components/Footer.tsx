@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ALL_PRODUCTS_HREF, TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export function Footer() {
   return (
@@ -6,7 +7,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Link href="/" className="font-bold text-zinc-900 transition hover:text-brand-600">
+            <Link href={TODAYS_DEALS_HREF} className="font-bold text-zinc-900 transition hover:text-brand-600">
               Shagar<span className="text-brand-600">Shop</span>
             </Link>
             <p className="mt-2 text-sm text-zinc-500">
@@ -17,8 +18,13 @@ export function Footer() {
             <p className="text-sm font-semibold text-zinc-900">Shop</p>
             <ul className="mt-3 space-y-2 text-sm text-zinc-500">
               <li>
-                <Link href="/shop" className="hover:text-brand-600">
+                <Link href={ALL_PRODUCTS_HREF} className="hover:text-brand-600">
                   All products
+                </Link>
+              </li>
+              <li>
+                <Link href={TODAYS_DEALS_HREF} className="hover:text-brand-600">
+                  Today&apos;s Deals
                 </Link>
               </li>
               <li>

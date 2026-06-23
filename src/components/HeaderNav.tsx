@@ -8,6 +8,7 @@ import {
   ALL_DEPARTMENTS_LABEL,
 } from "@/lib/departments";
 import { isSellerAppPath } from "@/lib/seller-routes";
+import { isTodaysDealsPath, TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 import { useMounted } from "@/hooks/useMounted";
 
 const navLinkClass =
@@ -32,7 +33,7 @@ function HeaderNavInner() {
   const allDepartmentsActive =
     mounted &&
     (pathname === ALL_DEPARTMENTS_HREF || pathname.startsWith("/shop/department/"));
-  const dealsActive = mounted && pathname === "/shop" && featured;
+  const dealsActive = mounted && isTodaysDealsPath(pathname, featured);
 
   return (
     <nav
@@ -49,7 +50,7 @@ function HeaderNavInner() {
 
         <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto sm:gap-2">
           <Link
-            href="/shop?featured=1"
+            href={TODAYS_DEALS_HREF}
             className={dealsActive ? navLinkActiveClass : navLinkClass}
           >
             Today&apos;s Deals

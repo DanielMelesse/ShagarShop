@@ -1,3 +1,5 @@
+import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
+
 export const USER_ROLES = ["BUYER", "SELLER"] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 
@@ -29,5 +31,5 @@ export function isShopOnlyPath(pathname: string): boolean {
 }
 
 export function defaultHomeForRole(role: string | null | undefined): string {
-  return isSellerRole(role) ? "/seller" : "/shop?featured=1";
+  return isSellerRole(role) ? "/seller" : TODAYS_DEALS_HREF;
 }

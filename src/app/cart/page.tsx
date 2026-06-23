@@ -10,6 +10,7 @@ import {
   formatPrice,
   getShippingCost,
 } from "@/lib/products";
+import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export default function CartPage() {
   const mounted = useMounted();
@@ -39,7 +40,7 @@ export default function CartPage() {
         <h2 className="mt-4 text-2xl font-bold text-zinc-900">Your cart is empty</h2>
         <p className="mt-2 text-zinc-500">Add items to get started.</p>
         <Link
-          href="/shop"
+          href={TODAYS_DEALS_HREF}
           className="mt-8 inline-block rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-700"
         >
           Continue shopping

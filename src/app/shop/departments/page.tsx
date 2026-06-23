@@ -3,6 +3,7 @@ import { DepartmentGrid } from "@/components/shop/DepartmentGrid";
 import { ProductSection } from "@/components/shop/ProductSection";
 import { ALL_DEPARTMENTS_HREF, ALL_DEPARTMENTS_LABEL } from "@/lib/departments";
 import { getAllDepartmentsCatalog } from "@/lib/products-server";
+import { ALL_PRODUCTS_HREF, TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,7 @@ export default async function AllDepartmentsPage() {
             title="Best deals"
             subtitle="Featured offers with the biggest savings right now."
             products={bestDeals}
-            viewAllHref="/shop?featured=1"
+            viewAllHref={TODAYS_DEALS_HREF}
             viewAllLabel="Today's Deals"
             deal
           />
@@ -61,7 +62,7 @@ export default async function AllDepartmentsPage() {
             title="Best sellers"
             subtitle="Most-loved products by review count across all departments."
             products={bestSellers}
-            viewAllHref="/shop"
+            viewAllHref={ALL_PRODUCTS_HREF}
             viewAllLabel="Shop all"
           />
         </>
@@ -71,7 +72,7 @@ export default async function AllDepartmentsPage() {
 
       <div className="mt-10 text-center">
         <Link
-          href="/shop?featured=1"
+          href={TODAYS_DEALS_HREF}
           className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-5 py-2.5 text-sm font-semibold text-amber-900 transition hover:bg-amber-200"
         >
           🔥 Today&apos;s Deals — limited-time savings

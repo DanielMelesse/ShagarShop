@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export function SellShopperPrompt({ userName }: { userName: string }) {
   return (
@@ -16,7 +17,7 @@ export function SellShopperPrompt({ userName }: { userName: string }) {
           Register as seller
         </Link>
         <Link
-          href="/shop"
+          href={TODAYS_DEALS_HREF}
           className="rounded-xl border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
         >
           Back to shop

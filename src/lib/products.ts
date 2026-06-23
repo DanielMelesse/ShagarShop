@@ -6,6 +6,7 @@ import {
   getDepartmentSearchOptions,
   type DepartmentSlug,
 } from "./departments";
+import { TODAYS_DEALS_HREF } from "./shop-routes";
 
 export const categories: { id: Category; label: string }[] = [
   { id: "home", label: "Home" },
@@ -79,7 +80,7 @@ export function buildShopSearchUrl(options: {
     params.set("department", options.department);
   }
   const query = params.toString();
-  return query ? `/shop?${query}` : "/shop";
+  return query ? `/shop?${query}` : TODAYS_DEALS_HREF;
 }
 
 export function searchCategories(

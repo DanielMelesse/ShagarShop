@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsSeller } from "@/hooks/useIsSeller";
-import { resolveAfterAuth } from "@/lib/auth-redirect";
+import { resolveAfterAuth, DEFAULT_AFTER_AUTH } from "@/lib/auth-redirect";
 import { parseSignupRole } from "@/lib/user-role";
 
 function SignupForm() {
@@ -137,7 +137,7 @@ function SignupForm() {
         Already have an account?{" "}
         <Link
           href={
-            afterAuth !== "/shop?featured=1"
+            afterAuth !== DEFAULT_AFTER_AUTH
               ? `/login?callbackUrl=${encodeURIComponent(afterAuth)}`
               : "/login"
           }

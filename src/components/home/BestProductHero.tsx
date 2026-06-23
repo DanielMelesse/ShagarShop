@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 import { ProductImage } from "@/components/ProductImage";
 import { AddToCartButton } from "@/app/product/[id]/AddToCartButton";
 import { formatPrice, productNeedsSizeSelection } from "@/lib/products";
@@ -63,7 +64,7 @@ export function BestProductHero({ product, userName }: BestProductHeroProps) {
               View details
             </Link>
             <Link
-              href="/shop?featured=1"
+              href={TODAYS_DEALS_HREF}
               className="text-sm font-medium text-brand-100 underline-offset-2 hover:underline"
             >
               More deals →

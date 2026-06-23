@@ -1,9 +1,10 @@
-import { ProductGallery } from "@/components/ProductGallery";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ProductGallery } from "@/components/ProductGallery";
 import { AddToCartButton } from "./AddToCartButton";
 import { formatPrice } from "@/lib/products";
 import { getProductById } from "@/lib/products-server";
+import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <nav className="mb-6 text-sm text-zinc-500">
-        <Link href="/shop" className="hover:text-brand-600">
+        <Link href={TODAYS_DEALS_HREF} className="hover:text-brand-600">
           Shop
         </Link>
         <span className="mx-2">/</span>

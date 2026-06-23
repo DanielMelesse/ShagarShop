@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { resolveAfterAuth } from "@/lib/auth-redirect";
+import { resolveAfterAuth, DEFAULT_AFTER_AUTH } from "@/lib/auth-redirect";
 
 function LoginForm() {
   const router = useRouter();
@@ -85,7 +85,7 @@ function LoginForm() {
         No account?{" "}
         <Link
           href={
-            afterAuth !== "/shop?featured=1"
+            afterAuth !== DEFAULT_AFTER_AUTH
               ? `/signup?callbackUrl=${encodeURIComponent(afterAuth)}`
               : "/signup"
           }

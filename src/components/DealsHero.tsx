@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ALL_PRODUCTS_HREF } from "@/lib/shop-routes";
 import { FREE_SHIPPING_THRESHOLD, formatPrice } from "@/lib/products";
 
 /** Change this to try another deals hero look: brand | midnight | violet | sunset */
@@ -58,7 +59,7 @@ function HeroShell({
   const actions = (primaryBtn: string, secondaryBtn: string) => (
     <div className="mt-6 flex flex-wrap gap-3">
       <Link
-        href="/shop"
+        href={ALL_PRODUCTS_HREF}
         className={`rounded-xl bg-white px-5 py-2.5 text-sm font-semibold shadow-md transition ${primaryBtn}`}
       >
         Browse all products

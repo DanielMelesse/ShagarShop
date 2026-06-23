@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { formatPrice } from "@/lib/products";
+import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 interface OrderItem {
   id: string;
@@ -73,7 +74,7 @@ export default function OrdersPage() {
         <div className="mt-12 text-center">
           <p className="text-zinc-500">You have no orders yet.</p>
           <Link
-            href="/shop"
+            href={TODAYS_DEALS_HREF}
             className="mt-4 inline-block rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white"
           >
             Start shopping

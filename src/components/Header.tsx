@@ -9,6 +9,7 @@ import { useMounted } from "@/hooks/useMounted";
 import { HeaderSearch } from "@/components/HeaderSearch";
 import { headerSellButtonClass } from "@/lib/header-ui";
 import { isSellerAppPath, SELLER_HOME } from "@/lib/seller-routes";
+import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 const navLinkClass =
   "text-sm font-medium text-zinc-600 transition hover:text-brand-600";
@@ -92,7 +93,7 @@ export function Header() {
       <header className="border-b border-zinc-200/80 bg-white/90">
         <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
           <Link
-            href="/"
+            href={TODAYS_DEALS_HREF}
             aria-label="ShagarShop home"
             className="flex shrink-0 items-center gap-2 font-bold tracking-tight transition hover:opacity-80"
           >
@@ -139,7 +140,7 @@ export function Header() {
     <header className="border-b border-zinc-200/80 bg-white/90">
       <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
         <Link
-          href="/"
+          href={TODAYS_DEALS_HREF}
           aria-label="ShagarShop home"
           className="flex shrink-0 items-center gap-2 font-bold tracking-tight transition hover:opacity-80"
         >

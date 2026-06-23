@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/context/CartContext";
 import { formatPrice, getShippingCost } from "@/lib/products";
+import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
+import { EthiopiaShippingAddress } from "@/components/checkout/EthiopiaShippingAddress";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -42,7 +44,7 @@ export default function CheckoutPage() {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
         <p className="text-zinc-500">Your cart is empty.</p>
-        <Link href="/shop" className="mt-4 inline-block text-brand-600 hover:underline">
+        <Link href={TODAYS_DEALS_HREF} className="mt-4 inline-block text-brand-600 hover:underline">
           Go to shop
         </Link>
       </div>
@@ -70,7 +72,7 @@ export default function CheckoutPage() {
             </Link>
           )}
           <Link
-            href="/shop"
+            href={TODAYS_DEALS_HREF}
             className="rounded-xl border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-800"
           >
             Continue shopping
@@ -121,38 +123,7 @@ export default function CheckoutPage() {
       <h2 className="text-2xl font-bold text-zinc-900">Checkout</h2>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-8">
-        <fieldset className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6">
-          <legend className="px-1 text-sm font-semibold text-zinc-900">
-            Shipping address
-          </legend>
-          <input
-            required
-            name="name"
-            placeholder="Full name"
-            defaultValue={user?.name ?? ""}
-            className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm"
-          />
-          <input
-            required
-            name="address"
-            placeholder="Street address"
-            className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm"
-          />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <input
-              required
-              name="city"
-              placeholder="City"
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm"
-            />
-            <input
-              required
-              name="zip"
-              placeholder="ZIP code"
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm"
-            />
-          </div>
-        </fieldset>
+        <EthiopiaShippingAddress defaultName={user?.name ?? ""} />
 
         <fieldset className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6">
           <legend className="px-1 text-sm font-semibold text-zinc-900">

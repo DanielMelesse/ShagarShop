@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { DealSpotlightGate } from "@/components/deals/DealSpotlightGate";
 import { DealsPageHero } from "@/components/deals/DealsPageHero";
 import { ProductCard } from "@/components/ProductCard";
@@ -7,26 +8,33 @@ import { getDepartmentBySlug } from "@/lib/departments";
 import { categories } from "@/lib/products";
 import { isCategory } from "@/lib/product-mapper";
 import { filterProducts } from "@/lib/products-server";
+import { ALL_PRODUCTS_HREF, TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 import type { Category } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 interface ShopPageProps {
-  searchParams: Promise<{ category?: string; department?: string; featured?: string; q?: string }>;
+  searchParams: Promise<{ category?: string; department?: string; featured?: string; all?: string; q?: string }>;
 }
 
 export default async function ShopPage({ searchParams }: ShopPageProps) {
   const params = await searchParams;
   const categoryParam = params.category;
   const departmentParam = params.department;
+  const query = params.q?.trim();
+  const featuredOnly = params.featured === "1";
+  const showAllCatalog = params.all === "1";
+
+  if (!featuredOnly && !showAllCatalog && !categoryParam && !departmentParam && !query) {
+    redirect(TODAYS_DEALS_HREF);
+  }
+
   const category =
     categoryParam && isCategory(categoryParam)
       ? (categoryParam as Category)
       : departmentParam
         ? getDepartmentBySlug(departmentParam)?.productCategory
         : undefined;
-  const featuredOnly = params.featured === "1";
-  const query = params.q?.trim();
 
   const filtered = featuredOnly
     ? sortDeals(
@@ -62,7 +70,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
               Try another category or check back tomorrow.
             </p>
             <Link
-              href="/shop?featured=1"
+              href={TODAYS_DEALS_HREF}
               className="mt-6 inline-block rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-700"
             >
               View all deals
@@ -97,7 +105,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
             Explore our full catalog — new arrivals across every category.
           </p>
           <Link
-            href="/shop"
+            href={ALL_PRODUCTS_HREF}
             className="mt-5 inline-block rounded-xl bg-brand-600 px-8 py-3 text-sm font-semibold hover:bg-brand-500"
           >
             Shop everything

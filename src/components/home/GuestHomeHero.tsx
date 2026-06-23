@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FREE_SHIPPING_THRESHOLD, formatPrice } from "@/lib/products";
+import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export function GuestHomeHero() {
   return (
@@ -24,7 +25,7 @@ export function GuestHomeHero() {
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
-              href="/shop"
+              href={TODAYS_DEALS_HREF}
               className="rounded-xl bg-white px-8 py-4 text-base font-semibold text-brand-700 shadow-lg transition hover:bg-brand-50 sm:px-10 sm:py-5 sm:text-lg"
             >
               Browse all products
