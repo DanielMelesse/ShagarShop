@@ -69,6 +69,7 @@ model Order {
   status       String      @default("placed")
   subtotal     Float
   shipping     Float
+  tax          Float       @default(0)
   total        Float
   shippingName String
   address      String
@@ -82,12 +83,15 @@ model Order {
 }
 
 model OrderItem {
-  id              String  @id @default(cuid())
-  orderId         String
-  order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId       String
-  product         Product @relation(fields: [productId], references: [id])
-  quantity        Int
-  priceAtPurchase Float
-  productName     String
+  id                String  @id @default(cuid())
+  orderId           String
+  order             Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId         String
+  product           Product @relation(fields: [productId], references: [id])
+  quantity          Int
+  priceAtPurchase   Float
+  productName       String
+  fulfillmentStatus String  @default("pending")
+
+  @@index([fulfillmentStatus])
 }

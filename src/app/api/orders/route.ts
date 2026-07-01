@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getShippingCost } from "@/lib/products";
+import { calculateOrderTotals } from "@/lib/products";
 
 interface OrderItemInput {
   productId: string;
@@ -75,8 +75,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const shipping = getShippingCost(subtotal);
-    const total = subtotal + shipping;
+    const { shipping, tax, total } = calculateOrderTotals(subtotal);
 
     const order = await prisma.$transaction(async (tx) => {
       const created = await tx.order.create({
@@ -84,6 +83,7 @@ export async function POST(request: Request) {
           userId: session.user.id,
           subtotal,
           shipping,
+          tax,
           total,
           shippingName,
           address,

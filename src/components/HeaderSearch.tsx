@@ -13,6 +13,8 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
+import { useMounted } from "@/hooks/useMounted";
 import {
   ALL_DEPARTMENTS_HREF,
   getSearchDepartmentHref,
@@ -40,8 +42,11 @@ function SearchDepartmentSelect({
   onSelect: (value: SearchDepartment) => void;
 }) {
   const menuId = useId();
+  const mounted = useMounted();
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLUListElement>(null);
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 224 });
 
   const selected =
     searchDepartments.find((d) => d.value === department) ?? searchDepartments[0];
@@ -53,6 +58,27 @@ function SearchDepartmentSelect({
         ? fullLabel.split("&")[0].trim()
         : fullLabel.split(" ")[0];
 
+  const updatePosition = useCallback(() => {
+    const rect = buttonRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setPosition({
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: Math.max(rect.width, 224),
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open, updatePosition]);
+
   useEffect(() => {
     if (!open) return;
 
@@ -61,88 +87,126 @@ function SearchDepartmentSelect({
     }
 
     function onPointerDown(e: PointerEvent) {
-      if (!containerRef.current?.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      if (buttonRef.current?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
+      setOpen(false);
     }
 
-    document.addEventListener("keydown", onKeyDown);
-    document.addEventListener("pointerdown", onPointerDown);
+    const timer = window.setTimeout(() => {
+      document.addEventListener("keydown", onKeyDown);
+      document.addEventListener("pointerdown", onPointerDown, true);
+    }, 0);
+
     return () => {
+      clearTimeout(timer);
       document.removeEventListener("keydown", onKeyDown);
-      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("pointerdown", onPointerDown, true);
     };
   }, [open]);
 
-  return (
-    <div ref={containerRef} className="relative shrink-0 border-r border-zinc-200">
-      <button
-        id="search-department"
-        type="button"
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        aria-controls={menuId}
-        onClick={() => setOpen((value) => !value)}
-        className="flex h-10 min-w-[3.25rem] max-w-[4.5rem] items-center gap-0.5 bg-zinc-50 px-1.5 text-sm font-medium text-zinc-800 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/30 sm:min-w-[5.5rem] sm:max-w-[7.5rem] sm:gap-1 sm:px-2 md:max-w-[9.5rem] lg:max-w-[11rem]"
-      >
-        <span className="min-w-0 flex-1 truncate sm:hidden">{shortLabel}</span>
-        <span className="hidden min-w-0 flex-1 truncate sm:inline">{fullLabel}</span>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className={`h-3.5 w-3.5 shrink-0 text-zinc-500 transition sm:h-4 sm:w-4 ${open ? "rotate-180" : ""}`}
-          aria-hidden
-        >
-          <path
-            fillRule="evenodd"
-            d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </button>
+  const menu =
+    open && mounted
+      ? createPortal(
+          <ul
+            ref={menuRef}
+            id={menuId}
+            role="listbox"
+            aria-labelledby="search-department"
+            style={{
+              position: "fixed",
+              top: position.top,
+              left: position.left,
+              width: position.width,
+              zIndex: 1000,
+            }}
+            className="max-h-[min(70vh,20rem)] overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-xl"
+          >
+            {searchDepartments.map((option) => {
+              const isSelected = option.value === department;
+              return (
+                <li key={option.value} role="presentation">
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => {
+                      onSelect(option.value as SearchDepartment);
+                      setOpen(false);
+                    }}
+                    className={`block w-full px-3 py-2 text-left text-sm transition ${
+                      isSelected
+                        ? "bg-brand-50 font-medium text-brand-800"
+                        : "text-zinc-700 hover:bg-zinc-50"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>,
+          document.body,
+        )
+      : null;
 
-      {open && (
-        <ul
-          id={menuId}
-          role="listbox"
-          aria-labelledby="search-department"
-          className="absolute left-0 top-full z-[60] mt-1 max-h-[min(70vh,20rem)] w-56 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-xl sm:w-64"
+  return (
+    <>
+      <div className="relative shrink-0 border-r border-zinc-200">
+        <button
+          ref={buttonRef}
+          id="search-department"
+          type="button"
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          aria-controls={open ? menuId : undefined}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen((value) => {
+              const next = !value;
+              if (next) {
+                requestAnimationFrame(updatePosition);
+              }
+              return next;
+            });
+          }}
+          className="flex h-10 min-w-[3.25rem] max-w-[4.5rem] items-center gap-0.5 bg-zinc-50 px-1.5 text-sm font-medium text-zinc-800 transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/30 sm:min-w-[5.5rem] sm:max-w-[7.5rem] sm:gap-1 sm:px-2 md:max-w-[9.5rem] lg:max-w-[11rem]"
         >
-          {searchDepartments.map((option) => {
-            const isSelected = option.value === department;
-            return (
-              <li key={option.value} role="presentation">
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={isSelected}
-                  onClick={() => {
-                    onSelect(option.value as SearchDepartment);
-                    setOpen(false);
-                  }}
-                  className={`block w-full px-3 py-2 text-left text-sm transition ${
-                    isSelected
-                      ? "bg-brand-50 font-medium text-brand-800"
-                      : "text-zinc-700 hover:bg-zinc-50"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+          <span className="min-w-0 flex-1 truncate sm:hidden">{shortLabel}</span>
+          <span className="hidden min-w-0 flex-1 truncate sm:inline">{fullLabel}</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            className={`h-3.5 w-3.5 shrink-0 text-zinc-500 transition sm:h-4 sm:w-4 ${open ? "rotate-180" : ""}`}
+            aria-hidden
+          >
+            <path
+              fillRule="evenodd"
+              d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </button>
+      </div>
+      {menu}
+    </>
   );
 }
 
 export function HeaderSearch() {
   const router = useRouter();
   const pathname = usePathname();
+  const mounted = useMounted();
   const listboxId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const [resultsPosition, setResultsPosition] = useState({ top: 0, left: 0, width: 0 });
 
   const [query, setQuery] = useState("");
   const [department, setDepartment] = useState<SearchDepartment>("all");
@@ -203,6 +267,27 @@ export function HeaderSearch() {
 
   const showDropdown = open && hasQuery;
 
+  const updateResultsPosition = useCallback(() => {
+    const rect = formRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setResultsPosition({
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!showDropdown) return;
+    updateResultsPosition();
+    window.addEventListener("resize", updateResultsPosition);
+    window.addEventListener("scroll", updateResultsPosition, true);
+    return () => {
+      window.removeEventListener("resize", updateResultsPosition);
+      window.removeEventListener("scroll", updateResultsPosition, true);
+    };
+  }, [showDropdown, updateResultsPosition]);
+
   const goToShop = useCallback(
     (q?: string) => {
       const term = (q ?? query).trim();
@@ -231,15 +316,25 @@ export function HeaderSearch() {
   );
 
   useEffect(() => {
-    function onPointerDown(e: MouseEvent) {
-      if (!containerRef.current?.contains(e.target as Node)) {
-        setOpen(false);
-        setActiveIndex(-1);
-      }
+    if (!open) return;
+
+    function onPointerDown(e: PointerEvent) {
+      const target = e.target as Node;
+      if (containerRef.current?.contains(target)) return;
+      if (resultsRef.current?.contains(target)) return;
+      setOpen(false);
+      setActiveIndex(-1);
     }
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, []);
+
+    const timer = window.setTimeout(() => {
+      document.addEventListener("pointerdown", onPointerDown, true);
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("pointerdown", onPointerDown, true);
+    };
+  }, [open]);
 
   useEffect(() => {
     setActiveIndex(-1);
@@ -287,9 +382,142 @@ export function HeaderSearch() {
     router.push(getSearchDepartmentHref(value));
   }
 
+  const searchResultsMenu =
+    showDropdown && mounted
+      ? createPortal(
+          <div
+            ref={resultsRef}
+            id={listboxId}
+            role="listbox"
+            style={{
+              position: "fixed",
+              top: resultsPosition.top,
+              left: resultsPosition.left,
+              width: resultsPosition.width,
+              zIndex: 1000,
+            }}
+            className="max-h-[min(70vh,24rem)] overflow-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-xl"
+          >
+            {onlySeeAll && (
+              <p className="px-4 py-6 text-center text-sm text-zinc-500">
+                No matches for &ldquo;{trimmed}&rdquo;
+              </p>
+            )}
+
+            {matchedCategories.length > 0 && (
+              <div className="border-b border-zinc-100 px-2 py-2">
+                <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                  Categories
+                </p>
+                {items.map((item, idx) => {
+                  if (item.type !== "category") return null;
+                  const active = activeIndex === idx;
+                  return (
+                    <button
+                      key={`cat-${item.id}`}
+                      id={`${listboxId}-option-${idx}`}
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      onMouseEnter={() => setActiveIndex(idx)}
+                      onClick={() => selectItem(item)}
+                      className={`flex w-full items-center rounded-md px-3 py-2 text-left text-sm ${itemClass(active)}`}
+                    >
+                      in {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {products.length > 0 && (
+              <div className="px-2 py-2">
+                {matchedCategories.length > 0 && (
+                  <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                    Products
+                  </p>
+                )}
+                {items.map((item, idx) => {
+                  if (item.type !== "product") return null;
+                  const active = activeIndex === idx;
+                  return (
+                    <button
+                      key={item.product.id}
+                      id={`${listboxId}-option-${idx}`}
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      onMouseEnter={() => setActiveIndex(idx)}
+                      onClick={() => selectItem(item)}
+                      className={`flex w-full items-center gap-3 rounded-md px-2 py-2 text-left ${
+                        active ? "bg-brand-50" : "hover:bg-zinc-50"
+                      }`}
+                    >
+                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-zinc-100">
+                        <ProductImage
+                          src={item.product.image}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          sizes="40px"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-zinc-900">
+                          {item.product.name}
+                        </p>
+                        <p className="text-xs text-zinc-500">
+                          {formatPrice(item.product.price)}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {items.some((i) => i.type === "see-all") && (
+              <>
+                {!onlySeeAll && <div className="border-t border-zinc-100" />}
+                {items.map((item, idx) => {
+                  if (item.type !== "see-all") return null;
+                  const active = activeIndex === idx;
+                  return (
+                    <Link
+                      key="see-all"
+                      id={`${listboxId}-option-${idx}`}
+                      href={buildShopSearchUrl({
+                        q: item.query,
+                        department,
+                      })}
+                      role="option"
+                      aria-selected={active}
+                      onMouseEnter={() => setActiveIndex(idx)}
+                      onClick={() => {
+                        setOpen(false);
+                        setQuery("");
+                      }}
+                      className={`block px-4 py-3 text-sm font-medium ${
+                        active
+                          ? "bg-brand-50 text-brand-700"
+                          : "text-brand-600 hover:bg-zinc-50"
+                      }`}
+                    >
+                      See all results for &ldquo;{item.query}&rdquo;
+                    </Link>
+                  );
+                })}
+              </>
+            )}
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
     <div ref={containerRef} className="relative min-w-0 flex-1 basis-0">
       <form
+        ref={formRef}
         onSubmit={handleSubmit}
         className="flex min-w-0 flex-nowrap overflow-visible rounded-lg border border-zinc-300 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20"
         role="search"
@@ -312,8 +540,14 @@ export function HeaderSearch() {
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
+            requestAnimationFrame(updateResultsPosition);
           }}
-          onFocus={() => hasQuery && setOpen(true)}
+          onFocus={() => {
+            if (hasQuery) {
+              setOpen(true);
+              requestAnimationFrame(updateResultsPosition);
+            }
+          }}
           onKeyDown={handleKeyDown}
           placeholder="Search"
           autoComplete="off"
@@ -331,125 +565,7 @@ export function HeaderSearch() {
         </button>
       </form>
 
-      {showDropdown && (
-        <div
-          id={listboxId}
-          role="listbox"
-          className="absolute top-full z-50 mt-1 max-h-[min(70vh,24rem)] w-full overflow-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-xl"
-        >
-          {onlySeeAll && (
-            <p className="px-4 py-6 text-center text-sm text-zinc-500">
-              No matches for &ldquo;{trimmed}&rdquo;
-            </p>
-          )}
-
-          {matchedCategories.length > 0 && (
-            <div className="border-b border-zinc-100 px-2 py-2">
-              <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                Categories
-              </p>
-              {items.map((item, idx) => {
-                if (item.type !== "category") return null;
-                const active = activeIndex === idx;
-                return (
-                  <button
-                    key={`cat-${item.id}`}
-                    id={`${listboxId}-option-${idx}`}
-                    type="button"
-                    role="option"
-                    aria-selected={active}
-                    onMouseEnter={() => setActiveIndex(idx)}
-                    onClick={() => selectItem(item)}
-                    className={`flex w-full items-center rounded-md px-3 py-2 text-left text-sm ${itemClass(active)}`}
-                  >
-                    in {item.label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {products.length > 0 && (
-            <div className="px-2 py-2">
-              {matchedCategories.length > 0 && (
-                <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                  Products
-                </p>
-              )}
-              {items.map((item, idx) => {
-                if (item.type !== "product") return null;
-                const active = activeIndex === idx;
-                return (
-                  <button
-                    key={item.product.id}
-                    id={`${listboxId}-option-${idx}`}
-                    type="button"
-                    role="option"
-                    aria-selected={active}
-                    onMouseEnter={() => setActiveIndex(idx)}
-                    onClick={() => selectItem(item)}
-                    className={`flex w-full items-center gap-3 rounded-md px-2 py-2 text-left ${
-                      active ? "bg-brand-50" : "hover:bg-zinc-50"
-                    }`}
-                  >
-                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-zinc-100">
-                      <ProductImage
-                        src={item.product.image}
-                        alt=""
-                        fill
-                        className="object-cover"
-                        sizes="40px"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-zinc-900">
-                        {item.product.name}
-                      </p>
-                      <p className="text-xs text-zinc-500">
-                        {formatPrice(item.product.price)}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {items.some((i) => i.type === "see-all") && (
-            <>
-              {!onlySeeAll && <div className="border-t border-zinc-100" />}
-              {items.map((item, idx) => {
-                if (item.type !== "see-all") return null;
-                const active = activeIndex === idx;
-                return (
-                  <Link
-                    key="see-all"
-                    id={`${listboxId}-option-${idx}`}
-                    href={buildShopSearchUrl({
-                      q: item.query,
-                      department,
-                    })}
-                    role="option"
-                    aria-selected={active}
-                    onMouseEnter={() => setActiveIndex(idx)}
-                    onClick={() => {
-                      setOpen(false);
-                      setQuery("");
-                    }}
-                    className={`block px-4 py-3 text-sm font-medium ${
-                      active
-                        ? "bg-brand-50 text-brand-700"
-                        : "text-brand-600 hover:bg-zinc-50"
-                    }`}
-                  >
-                    See all results for &ldquo;{item.query}&rdquo;
-                  </Link>
-                );
-              })}
-            </>
-          )}
-        </div>
-      )}
+      {searchResultsMenu}
     </div>
   );
 }

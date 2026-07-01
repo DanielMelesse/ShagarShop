@@ -45,3 +45,26 @@ export async function hasCompletedSellerRegistration(userId: string): Promise<bo
   const profile = await getSellerProfileForUser(userId);
   return profile !== null;
 }
+
+export function parseSellerProfileUpdate(
+  body: Record<string, unknown>,
+): { ok: true; data: Omit<SellerProfileInput, "licenseUrl"> } | { ok: false; error: string } {
+  const shopName = String(body.shopName ?? "").trim();
+  const location = String(body.location ?? "").trim();
+  const category = String(body.category ?? "").trim();
+
+  if (shopName.length < 2) {
+    return { ok: false, error: "Shop name is required." };
+  }
+  if (location.length < 2) {
+    return { ok: false, error: "Location is required." };
+  }
+  if (!isCategory(category)) {
+    return { ok: false, error: "Pick a valid shop category." };
+  }
+
+  return {
+    ok: true,
+    data: { shopName, location, category: category as Category },
+  };
+}

@@ -29,8 +29,12 @@ export default function RootLayout({
       >
         <Providers>
           <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-md">
-            <Header />
-            <HeaderNav />
+            <div className="relative z-20">
+              <Header />
+            </div>
+            <div className="relative z-10">
+              <HeaderNav />
+            </div>
           </div>
           <main className="flex-1">{children}</main>
           <Footer />

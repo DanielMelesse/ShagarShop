@@ -1,15 +1,12 @@
 "use client";
 
+import { OrderSummary } from "@/components/OrderSummary";
 import { ProductImage } from "@/components/ProductImage";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useMounted } from "@/hooks/useMounted";
-import {
-  FREE_SHIPPING_THRESHOLD,
-  formatPrice,
-  getShippingCost,
-} from "@/lib/products";
+import { formatPrice } from "@/lib/products";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export default function CartPage() {
@@ -18,8 +15,6 @@ export default function CartPage() {
   const { items, itemCount, subtotal, updateQuantity, removeItem, isReady } =
     useCart();
 
-  const shipping = getShippingCost(subtotal);
-  const total = subtotal + shipping;
   const showOrderSummary = mounted && authReady && isAuthenticated;
 
   if (!isReady || !authReady) {
@@ -131,26 +126,7 @@ export default function CartPage() {
           {showOrderSummary ? (
             <>
               <h2 className="font-semibold text-zinc-900">Order summary</h2>
-              <dl className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <dt className="text-zinc-500">Subtotal</dt>
-                  <dd>{formatPrice(subtotal)}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-zinc-500">Shipping</dt>
-                  <dd>{shipping === 0 ? "Free" : formatPrice(shipping)}</dd>
-                </div>
-                {subtotal > 0 && subtotal < FREE_SHIPPING_THRESHOLD && (
-                  <p className="text-xs text-brand-700">
-                    Add {formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} more for
-                    free shipping
-                  </p>
-                )}
-                <div className="flex justify-between border-t border-zinc-200 pt-3 text-base font-bold">
-                  <dt>Total</dt>
-                  <dd>{formatPrice(total)}</dd>
-                </div>
-              </dl>
+              <OrderSummary subtotal={subtotal} className="mt-4" />
               <Link
                 href="/checkout"
                 className="mt-6 block w-full rounded-xl bg-brand-600 py-3 text-center text-sm font-semibold text-white hover:bg-brand-700"

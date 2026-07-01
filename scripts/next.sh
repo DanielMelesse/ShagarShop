@@ -15,8 +15,16 @@ if [[ ! -f "$NEXT_BIN" ]]; then
   exit 1
 fi
 
+if [[ "$CMD" == "dev" ]]; then
+  # Bind localhost explicitly (avoids Bun getifaddrs crash). Use Bun's Node
+  # compatibility layer — native `bun --bun` corrupts webpack vendor-chunks.
+  if command -v bun >/dev/null 2>&1; then
+    exec bun "$NEXT_BIN" dev -H 127.0.0.1 "$@"
+  fi
+fi
+
 if command -v bun >/dev/null 2>&1; then
-  exec bun --bun "$NEXT_BIN" "$CMD" "$@"
+  exec bun "$NEXT_BIN" "$CMD" "$@"
 fi
 
 if ! command -v node >/dev/null 2>&1; then

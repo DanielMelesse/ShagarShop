@@ -8,7 +8,7 @@ import {
   getSellerDepartmentOptions,
   legacyCategoryToDepartmentSlug,
 } from "@/lib/departments";
-import { getSizeOptions } from "@/lib/products";
+import { getSizeOptions, sellerPriceFromListed } from "@/lib/products";
 import { MAX_PRODUCT_IMAGES } from "@/lib/product-image";
 import type { Product } from "@/lib/types";
 
@@ -40,7 +40,7 @@ export function productToFormState(product: Product): ProductFormState {
   return {
     name: product.name,
     description: product.description,
-    price: String(product.price),
+    price: String(sellerPriceFromListed(product.price)),
     category: legacyCategoryToDepartmentSlug(product.category),
     stock: String(product.stock),
     images: product.images.length > 0 ? product.images : product.image ? [product.image] : [],

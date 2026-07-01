@@ -9,6 +9,7 @@ import { useMounted } from "@/hooks/useMounted";
 import { HeaderSearch } from "@/components/HeaderSearch";
 import { headerSellButtonClass } from "@/lib/header-ui";
 import { isSellerAppPath, SELLER_HOME } from "@/lib/seller-routes";
+import { ACCOUNT_HOME } from "@/lib/account-routes";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 const navLinkClass =
@@ -30,10 +31,10 @@ function HeaderActions({
       {showUser ? (
         <>
           <Link
-            href="/account/orders"
+            href={ACCOUNT_HOME}
             className="hidden whitespace-nowrap text-sm text-zinc-600 hover:text-brand-600 xl:inline"
           >
-            Orders
+            Account
           </Link>
           <button
             type="button"
@@ -115,13 +116,21 @@ export function Header() {
               </Link>
             )}
             {sellerAccount && !checkingSeller ? (
-              <button
-                type="button"
-                onClick={() => logout()}
-                className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 sm:px-3"
-              >
-                Log out
-              </button>
+              <>
+                <Link
+                  href={ACCOUNT_HOME}
+                  className="hidden whitespace-nowrap text-sm text-zinc-600 hover:text-brand-600 sm:inline"
+                >
+                  Account
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => logout()}
+                  className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 sm:px-3"
+                >
+                  Log out
+                </button>
+              </>
             ) : !checkingSeller ? (
               <Link
                 href="/login?callbackUrl=/seller"

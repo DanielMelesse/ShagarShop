@@ -2,35 +2,23 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { SellerPageHeader } from "@/components/seller/SellerPageHeader";
 import { getDepartmentBySlug } from "@/lib/departments";
 import { formatPrice } from "@/lib/products";
 import {
   deleteSellerProduct,
   fetchSellerProducts,
-  fetchSellerShopName,
 } from "@/lib/seller-products-client";
-import {
-  SELLER_ADD,
-  sellerEditPath,
-  sellerViewPath,
-} from "@/lib/seller-routes";
+import { SELLER_ADD, sellerEditPath, sellerViewPath } from "@/lib/seller-routes";
 import type { Product } from "@/lib/types";
 
 export function SellerListings() {
-  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
-  const [shopName, setShopName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
   const loadProducts = useCallback(async () => {
-    const [productsResult, name] = await Promise.all([
-      fetchSellerProducts(),
-      fetchSellerShopName(),
-    ]);
-
-    setShopName(name);
+    const productsResult = await fetchSellerProducts();
 
     if (!productsResult.ok) {
       setMessage(productsResult.error);
@@ -65,45 +53,12 @@ export function SellerListings() {
     setMessage("Product deleted.");
   }
 
-  const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
-  const featuredCount = products.filter((p) => p.featured).length;
-
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-zinc-900">
-            {shopName ?? "Seller dashboard"}
-          </h2>
-          {user && (
-            <p className="mt-1 text-sm text-zinc-500">
-              {user.name} · {user.phone}
-            </p>
-          )}
-        </div>
-        <Link
-          href={SELLER_ADD}
-          className="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700"
-        >
-          Add product
-        </Link>
-      </div>
-
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        {[
-          { label: "Listings", value: products.length },
-          { label: "Units in stock", value: totalStock },
-          { label: "Featured", value: featuredCount },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm"
-          >
-            <p className="text-sm text-zinc-500">{stat.label}</p>
-            <p className="mt-1 text-2xl font-bold text-zinc-900">{stat.value}</p>
-          </div>
-        ))}
-      </div>
+      <SellerPageHeader
+        title="Listings"
+        description="Add, edit, and remove products in your shop."
+      />
 
       {message && (
         <p className="mt-6 rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-800">
@@ -112,7 +67,17 @@ export function SellerListings() {
       )}
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-zinc-900">Your listings</h2>
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-lg font-semibold text-zinc-900">
+            Your products ({products.length})
+          </h2>
+          <Link
+            href={SELLER_ADD}
+            className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+          >
+            Add product
+          </Link>
+        </div>
 
         {loading ? (
           <div className="mt-6 h-32 animate-pulse rounded-2xl bg-zinc-200" />

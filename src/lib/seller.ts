@@ -3,7 +3,7 @@ import {
   getSellerDepartmentOptions,
   isSellerDepartmentSlug,
 } from "@/lib/departments";
-import { categoryNeedsSize, getSizeOptions } from "@/lib/products";
+import { calculateListedProductPrice, categoryNeedsSize, getSizeOptions } from "@/lib/products";
 import {
   isValidProductImage,
   MAX_PRODUCT_IMAGES,
@@ -127,7 +127,7 @@ export function parseSellerProductInput(
     data: {
       name,
       description,
-      price,
+      price: calculateListedProductPrice(price),
       category,
       stock,
       image: images[0],
@@ -172,7 +172,7 @@ export function parseSellerProductUpdate(
     if (!Number.isFinite(price) || price <= 0) {
       return { ok: false, error: "Price must be greater than zero." };
     }
-    data.price = price;
+    data.price = calculateListedProductPrice(price);
   }
   if (body.stock !== undefined) {
     const stock = Number(body.stock);

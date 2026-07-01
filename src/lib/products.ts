@@ -109,8 +109,34 @@ export function formatPrice(amount: number): string {
 
 export const FREE_SHIPPING_THRESHOLD = 5000;
 export const SHIPPING_COST = 5.99;
+export const TAX_RATE = 0.15;
+/** Flat shipping included in every seller-listed product price (Birr). */
+export const LISTING_SHIPPING_BIRR = 200;
+
+/** Buyer-facing price from the amount the seller enters (before fees). */
+export function calculateListedProductPrice(sellerPrice: number): number {
+  const withShipping = sellerPrice + LISTING_SHIPPING_BIRR;
+  return Math.round(withShipping * (1 + TAX_RATE) * 100) / 100;
+}
+
+/** Seller-entered price from a stored listed price (for edit forms). */
+export function sellerPriceFromListed(listedPrice: number): number {
+  const withShipping = listedPrice / (1 + TAX_RATE);
+  return Math.max(0, Math.round((withShipping - LISTING_SHIPPING_BIRR) * 100) / 100);
+}
 
 export function getShippingCost(subtotal: number): number {
   if (subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD) return 0;
   return SHIPPING_COST;
+}
+
+export function getTaxAmount(subtotal: number): number {
+  if (subtotal <= 0) return 0;
+  return Math.round(subtotal * TAX_RATE * 100) / 100;
+}
+
+/** Cart/checkout total — product prices already include shipping and VAT. */
+export function calculateOrderTotals(subtotal: number) {
+  const total = Math.round(subtotal * 100) / 100;
+  return { subtotal, shipping: 0, tax: 0, total };
 }

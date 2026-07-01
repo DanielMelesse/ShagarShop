@@ -46,6 +46,7 @@ export function GuestHomeHero() {
             className="object-cover"
             priority
             sizes="50vw"
+            unoptimized
           />
         </div>
       </div>

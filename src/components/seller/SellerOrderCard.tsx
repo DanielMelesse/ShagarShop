@@ -1,0 +1,104 @@
+"use client";
+
+import { ProductImage } from "@/components/ProductImage";
+import { formatPrice } from "@/lib/products";
+import {
+  FULFILLMENT_STATUS_LABELS,
+  FULFILLMENT_STATUS_STYLES,
+  type FulfillmentStatus,
+  type SellerOrderLine,
+} from "@/lib/seller-orders";
+
+interface SellerOrderCardProps {
+  order: SellerOrderLine;
+  onStatusChange?: (orderItemId: string, status: FulfillmentStatus) => void;
+  updatingId?: string | null;
+  compact?: boolean;
+}
+
+function nextActions(status: FulfillmentStatus): { label: string; status: FulfillmentStatus }[] {
+  if (status === "pending") {
+    return [
+      { label: "Mark shipped", status: "shipped" },
+      { label: "Cancel", status: "cancelled" },
+    ];
+  }
+  if (status === "shipped") {
+    return [{ label: "Mark delivered", status: "delivered" }];
+  }
+  return [];
+}
+
+export function SellerOrderCard({
+  order,
+  onStatusChange,
+  updatingId,
+  compact = false,
+}: SellerOrderCardProps) {
+  const actions = onStatusChange ? nextActions(order.fulfillmentStatus) : [];
+  const isUpdating = updatingId === order.id;
+
+  return (
+    <article className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-1 gap-4">
+          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-zinc-100">
+            <ProductImage
+              src={order.productImage}
+              alt={order.productName}
+              fill
+              className="object-cover"
+              sizes="64px"
+            />
+          </div>
+          <div className="min-w-0">
+            <p className="font-semibold text-zinc-900">{order.productName}</p>
+            <p className="mt-1 text-sm text-zinc-500">
+              Qty {order.quantity} · {formatPrice(order.lineTotal)}
+            </p>
+            <p className="mt-1 text-xs text-zinc-400">
+              Order #{order.orderId.slice(-8).toUpperCase()} ·{" "}
+              {new Date(order.orderDate).toLocaleDateString("en-US", {
+                dateStyle: "medium",
+              })}
+            </p>
+          </div>
+        </div>
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${FULFILLMENT_STATUS_STYLES[order.fulfillmentStatus]}`}
+        >
+          {FULFILLMENT_STATUS_LABELS[order.fulfillmentStatus]}
+        </span>
+      </div>
+
+      {!compact && (
+        <div className="mt-4 rounded-xl bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+          <p className="font-medium text-zinc-800">Ship to</p>
+          <p className="mt-1">
+            {order.shippingName} · {order.address}, {order.city} {order.zip}
+          </p>
+        </div>
+      )}
+
+      {actions.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {actions.map((action) => (
+            <button
+              key={action.status}
+              type="button"
+              disabled={isUpdating}
+              onClick={() => onStatusChange?.(order.id, action.status)}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-60 ${
+                action.status === "cancelled"
+                  ? "border border-red-200 text-red-700 hover:bg-red-50"
+                  : "bg-brand-600 text-white hover:bg-brand-700"
+              }`}
+            >
+              {isUpdating ? "Updating…" : action.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </article>
+  );
+}

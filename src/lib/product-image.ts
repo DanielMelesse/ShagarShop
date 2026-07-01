@@ -95,5 +95,9 @@ export function isManagedUploadPath(value: string): boolean {
 }
 
 export function shouldUnoptimizeProductImage(src: string): boolean {
-  return src.startsWith(UPLOAD_PATH_PREFIX);
+  // Local uploads are served from /public as static files.
+  if (src.startsWith(UPLOAD_PATH_PREFIX)) return true;
+  // Bun + Next image optimizer hits LRU cache errors; load remotes directly.
+  if (src.startsWith("http://") || src.startsWith("https://")) return true;
+  return false;
 }

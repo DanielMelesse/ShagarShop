@@ -3,11 +3,12 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import { EthiopiaShippingAddress } from "@/components/checkout/EthiopiaShippingAddress";
+import { OrderSummary } from "@/components/OrderSummary";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/context/CartContext";
-import { formatPrice, getShippingCost } from "@/lib/products";
+import { calculateOrderTotals, formatPrice } from "@/lib/products";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
-import { EthiopiaShippingAddress } from "@/components/checkout/EthiopiaShippingAddress";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function CheckoutPage() {
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           {user && (
             <Link
-              href="/account/orders"
+              href="/account"
               className="rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white"
             >
               View orders
@@ -82,8 +83,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const shipping = getShippingCost(subtotal);
-  const total = subtotal + shipping;
+  const { total } = calculateOrderTotals(subtotal);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -160,13 +160,13 @@ export default function CheckoutPage() {
           <p className="text-sm text-zinc-400">
             {items.length} item{items.length !== 1 ? "s" : ""}
           </p>
-          <p className="mt-2 text-2xl font-bold">{formatPrice(total)}</p>
+          <OrderSummary subtotal={subtotal} variant="dark" className="mt-4" />
           <button
             type="submit"
             disabled={submitting}
-            className="mt-4 w-full rounded-xl bg-brand-600 py-3 text-sm font-semibold hover:bg-brand-500 disabled:opacity-60"
+            className="mt-6 w-full rounded-xl bg-brand-600 py-3 text-sm font-semibold hover:bg-brand-500 disabled:opacity-60"
           >
-            {submitting ? "Placing order..." : "Place order"}
+            {submitting ? "Placing order..." : `Place order · ${formatPrice(total)}`}
           </button>
         </div>
       </form>

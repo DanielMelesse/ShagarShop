@@ -20,7 +20,7 @@ const SHOP_ONLY_PREFIXES = [
   "/cart",
   "/checkout",
   "/product",
-  "/account/orders",
+  "/account",
 ] as const;
 
 export function isShopOnlyPath(pathname: string): boolean {

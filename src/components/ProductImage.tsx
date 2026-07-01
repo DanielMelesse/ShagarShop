@@ -6,12 +6,24 @@ type ProductImageProps = Omit<ImageProps, "src" | "alt"> & {
   alt: string;
 };
 
-export function ProductImage({ src, alt, ...props }: ProductImageProps) {
+export function ProductImage({ src, alt, className, ...props }: ProductImageProps) {
+  const trimmed = src?.trim();
+
+  if (!trimmed) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-zinc-100 text-xs text-zinc-400 ${className ?? ""}`}
+        aria-label={alt || "No image"}
+      />
+    );
+  }
+
   return (
     <Image
-      src={src}
+      src={trimmed}
       alt={alt}
-      unoptimized={shouldUnoptimizeProductImage(src)}
+      className={className}
+      unoptimized={shouldUnoptimizeProductImage(trimmed)}
       {...props}
     />
   );
