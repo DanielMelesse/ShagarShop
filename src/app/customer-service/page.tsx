@@ -2,8 +2,8 @@ import Link from "next/link";
 import { InfoPage } from "@/components/InfoPage";
 
 export const metadata = {
-  title: "Customer Service — ShagarShop",
-  description: "Get help with orders, returns, and your ShagarShop account.",
+  title: "Customer Service — ShegerShop",
+  description: "Get help with orders, returns, and your ShegerShop account.",
 };
 
 export default function CustomerServicePage() {
@@ -18,10 +18,10 @@ export default function CustomerServicePage() {
           <li>
             <span className="font-medium text-zinc-900">Email:</span>{" "}
             <a
-              href="mailto:support@shagarshop.com"
+              href="mailto:support@shegershop.com"
               className="text-brand-600 hover:text-brand-700"
             >
-              support@shagarshop.com
+              support@shegershop.com
             </a>
           </li>
           <li>

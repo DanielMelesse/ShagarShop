@@ -8,7 +8,7 @@ export function Footer() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Link href={TODAYS_DEALS_HREF} className="font-bold text-zinc-900 transition hover:text-brand-600">
-              Shagar<span className="text-brand-600">Shop</span>
+              Sheger<span className="text-brand-600">Shop</span>
             </Link>
             <p className="mt-2 text-sm text-zinc-500">
               Your marketplace for quality products from trusted sellers.
@@ -71,7 +71,7 @@ export function Footer() {
           </div>
         </div>
         <p className="mt-10 text-center text-xs text-zinc-400" suppressHydrationWarning>
-          © {new Date().getFullYear()} ShagarShop. Demo marketplace.
+          © {new Date().getFullYear()} ShegerShop. Demo marketplace.
         </p>
       </div>
     </footer>

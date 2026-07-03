@@ -3,8 +3,8 @@ import { SellerRegistrationWizard } from "@/components/seller/register/SellerReg
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Seller registration — ShagarShop",
-  description: "Register as a seller on ShagarShop in three simple steps.",
+  title: "Seller registration — ShegerShop",
+  description: "Register as a seller on ShegerShop in three simple steps.",
 };
 
 export default function SellerRegisterPage() {

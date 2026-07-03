@@ -7,7 +7,7 @@ import { EthiopiaShippingAddress } from "@/components/checkout/EthiopiaShippingA
 import { OrderSummary } from "@/components/OrderSummary";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/context/CartContext";
-import { calculateOrderTotals, formatPrice } from "@/lib/products";
+import { calculateOrderTotals, formatPrice, shippingLinesFromCart } from "@/lib/products";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export default function CheckoutPage() {
@@ -83,7 +83,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const { total } = calculateOrderTotals(subtotal);
+  const { total } = calculateOrderTotals(subtotal, shippingLinesFromCart(items));
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -160,7 +160,12 @@ export default function CheckoutPage() {
           <p className="text-sm text-zinc-400">
             {items.length} item{items.length !== 1 ? "s" : ""}
           </p>
-          <OrderSummary subtotal={subtotal} variant="dark" className="mt-4" />
+          <OrderSummary
+            subtotal={subtotal}
+            shippingLines={shippingLinesFromCart(items)}
+            variant="dark"
+            className="mt-4"
+          />
           <button
             type="submit"
             disabled={submitting}

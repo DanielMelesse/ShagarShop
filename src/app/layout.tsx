@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ShagarShop — Marketplace",
+  title: "ShegerShop — Marketplace",
   description: "Discover and shop quality products from trusted sellers.",
 };
 

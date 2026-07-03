@@ -53,6 +53,8 @@ model Product {
   stock       Int         @default(0)
   featured    Boolean     @default(false)
   size        String?
+  shippingTier      String   @default("standard")
+  extraShippingBirr Float    @default(0)
   sellerId    String?
   seller      User?       @relation(fields: [sellerId], references: [id])
   orderItems  OrderItem[]

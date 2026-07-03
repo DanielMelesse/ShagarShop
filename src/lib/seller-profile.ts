@@ -1,13 +1,12 @@
 import { prisma } from "@/lib/db";
-import { isCategory } from "@/lib/product-mapper";
+import { isSellerDepartmentSlug } from "@/lib/departments";
 import { isValidLicensePath } from "@/lib/seller-license";
-import type { Category } from "@/lib/types";
 
 export interface SellerProfileInput {
   shopName: string;
   location: string;
   licenseUrl: string;
-  category: Category;
+  category: string;
 }
 
 export function parseSellerProfileInput(
@@ -24,11 +23,11 @@ export function parseSellerProfileInput(
   if (location.length < 2) {
     return { ok: false, error: "Location is required." };
   }
-  if (!isValidLicensePath(licenseUrl)) {
+  if (licenseUrl && !isValidLicensePath(licenseUrl)) {
     return { ok: false, error: "Upload a valid business license." };
   }
-  if (!isCategory(category)) {
-    return { ok: false, error: "Pick a valid shop category." };
+  if (!isSellerDepartmentSlug(category)) {
+    return { ok: false, error: "Pick a valid department." };
   }
 
   return {
@@ -59,12 +58,12 @@ export function parseSellerProfileUpdate(
   if (location.length < 2) {
     return { ok: false, error: "Location is required." };
   }
-  if (!isCategory(category)) {
-    return { ok: false, error: "Pick a valid shop category." };
+  if (!isSellerDepartmentSlug(category)) {
+    return { ok: false, error: "Pick a valid department." };
   }
 
   return {
     ok: true,
-    data: { shopName, location, category: category as Category },
+    data: { shopName, location, category },
   };
 }

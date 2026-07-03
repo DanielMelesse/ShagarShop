@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { calculateOrderTotals } from "@/lib/products";
+import type { ShippingLineInput } from "@/lib/shipping";
 
 interface OrderItemInput {
   productId: string;
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
 
     const productMap = new Map(products.map((p) => [p.id, p]));
     let subtotal = 0;
+    const shippingLines: ShippingLineInput[] = [];
     const lineItems: {
       productId: string;
       quantity: number;
@@ -67,6 +69,11 @@ export async function POST(request: Request) {
         );
       }
       subtotal += product.price * item.quantity;
+      shippingLines.push({
+        quantity: item.quantity,
+        shippingTier: product.shippingTier,
+        extraShippingBirr: product.extraShippingBirr,
+      });
       lineItems.push({
         productId: product.id,
         quantity: item.quantity,
@@ -75,12 +82,13 @@ export async function POST(request: Request) {
       });
     }
 
-    const { shipping, tax, total } = calculateOrderTotals(subtotal);
+    const { shipping, tax, total } = calculateOrderTotals(subtotal, shippingLines);
 
     const order = await prisma.$transaction(async (tx) => {
       const created = await tx.order.create({
         data: {
           userId: session.user.id,
+          status: "placed",
           subtotal,
           shipping,
           tax,

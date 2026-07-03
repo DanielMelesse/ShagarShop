@@ -14,7 +14,7 @@ const steps = [
   {
     title: "Reach buyers",
     description:
-      "Get discovered through search, categories, and Today's Deals across ShagarShop.",
+      "Get discovered through search, categories, and Today's Deals across ShegerShop.",
   },
   {
     title: "Fulfill orders",
@@ -38,7 +38,7 @@ export function SellLanding() {
             Seller program
           </p>
           <h2 className="mt-3 max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">
-            Sell on ShagarShop
+            Sell on ShegerShop
           </h2>
           <p className="mt-4 max-w-xl text-lg text-brand-50/90">
             Open your shop and reach customers across Ethiopia&apos;s marketplace.

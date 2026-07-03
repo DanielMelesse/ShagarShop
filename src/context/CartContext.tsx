@@ -34,7 +34,7 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-const STORAGE_KEY = "shagar-cart";
+const STORAGE_KEY = "sheger-cart";
 
 function sameLine(
   item: CartItem,

@@ -47,6 +47,8 @@ export async function POST(request: Request) {
         images: data.images,
         featured: data.featured ?? false,
         size: data.size,
+        shippingTier: data.shippingTier,
+        extraShippingBirr: data.extraShippingBirr,
       },
     });
 

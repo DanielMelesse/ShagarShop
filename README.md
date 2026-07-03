@@ -1,4 +1,4 @@
-# ShagarShop
+# ShegerShop
 
 Standalone marketplace web application built with **Next.js 15**, **Prisma**, **PostgreSQL**, **NextAuth**, and **Tailwind CSS 4**.
 

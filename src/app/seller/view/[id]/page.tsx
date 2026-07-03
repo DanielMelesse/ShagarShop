@@ -7,7 +7,7 @@ interface SellerViewPageProps {
 }
 
 export async function generateMetadata() {
-  return { title: "View product — ShagarShop Seller" };
+  return { title: "View product — ShegerShop Seller" };
 }
 
 export default async function SellerViewPage({ params }: SellerViewPageProps) {

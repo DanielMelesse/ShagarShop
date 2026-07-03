@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useMounted } from "@/hooks/useMounted";
-import { formatPrice } from "@/lib/products";
+import { formatPrice, shippingLinesFromCart } from "@/lib/products";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export default function CartPage() {
@@ -126,7 +126,11 @@ export default function CartPage() {
           {showOrderSummary ? (
             <>
               <h2 className="font-semibold text-zinc-900">Order summary</h2>
-              <OrderSummary subtotal={subtotal} className="mt-4" />
+              <OrderSummary
+                subtotal={subtotal}
+                shippingLines={shippingLinesFromCart(items)}
+                className="mt-4"
+              />
               <Link
                 href="/checkout"
                 className="mt-6 block w-full rounded-xl bg-brand-600 py-3 text-center text-sm font-semibold text-white hover:bg-brand-700"

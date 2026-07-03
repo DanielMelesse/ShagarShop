@@ -25,5 +25,7 @@ export function toProduct(row: DbProduct): Product {
     stock: row.stock,
     featured: row.featured,
     size: row.size,
+    shippingTier: row.shippingTier,
+    extraShippingBirr: row.extraShippingBirr,
   };
 }

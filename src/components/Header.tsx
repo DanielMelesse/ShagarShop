@@ -32,7 +32,7 @@ function HeaderActions({
         <>
           <Link
             href={ACCOUNT_HOME}
-            className="hidden whitespace-nowrap text-sm text-zinc-600 hover:text-brand-600 xl:inline"
+            className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
           >
             Account
           </Link>
@@ -95,14 +95,14 @@ export function Header() {
         <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
           <Link
             href={TODAYS_DEALS_HREF}
-            aria-label="ShagarShop home"
+            aria-label="ShegerShop home"
             className="flex shrink-0 items-center gap-2 font-bold tracking-tight transition hover:opacity-80"
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">
               S
             </span>
             <span className="hidden text-lg text-zinc-900 sm:inline">
-              Shagar<span className="text-brand-600">Shop</span>
+              Sheger<span className="text-brand-600">Shop</span>
             </span>
           </Link>
 
@@ -119,7 +119,7 @@ export function Header() {
               <>
                 <Link
                   href={ACCOUNT_HOME}
-                  className="hidden whitespace-nowrap text-sm text-zinc-600 hover:text-brand-600 sm:inline"
+                  className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
                 >
                   Account
                 </Link>
@@ -150,14 +150,14 @@ export function Header() {
       <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
         <Link
           href={TODAYS_DEALS_HREF}
-          aria-label="ShagarShop home"
+          aria-label="ShegerShop home"
           className="flex shrink-0 items-center gap-2 font-bold tracking-tight transition hover:opacity-80"
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">
             S
           </span>
           <span className="hidden text-base text-zinc-900 sm:inline sm:text-lg">
-            Shagar<span className="text-brand-600">Shop</span>
+            Sheger<span className="text-brand-600">Shop</span>
           </span>
         </Link>
 

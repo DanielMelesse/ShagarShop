@@ -10,6 +10,7 @@ import {
   productImageErrorMessage,
   productImagesErrorMessage,
 } from "@/lib/product-image";
+import { isShippingTier, type ShippingTier } from "@/lib/shipping";
 
 export interface SellerProductInput {
   name: string;
@@ -21,6 +22,8 @@ export interface SellerProductInput {
   images: string[];
   featured?: boolean;
   size?: string | null;
+  shippingTier: ShippingTier;
+  extraShippingBirr: number;
 }
 
 export function slugifyProductName(name: string): string {
@@ -92,6 +95,26 @@ function parseSizeForDepartment(
   return { ok: true, size };
 }
 
+function parseShippingFields(
+  body: Record<string, unknown>,
+): { ok: true; shippingTier: ShippingTier; extraShippingBirr: number } | { ok: false; error: string } {
+  const shippingTier = String(body.shippingTier ?? "standard").trim();
+  const extraShippingBirr = Number(body.extraShippingBirr ?? 0);
+
+  if (!isShippingTier(shippingTier)) {
+    return { ok: false, error: "Pick a valid shipping size." };
+  }
+  if (!Number.isFinite(extraShippingBirr) || extraShippingBirr < 0) {
+    return { ok: false, error: "Extra shipping must be zero or more." };
+  }
+
+  return {
+    ok: true,
+    shippingTier,
+    extraShippingBirr: Math.round(extraShippingBirr * 100) / 100,
+  };
+}
+
 export function parseSellerProductInput(
   body: Record<string, unknown>,
 ): { ok: true; data: SellerProductInput } | { ok: false; error: string } {
@@ -120,6 +143,9 @@ export function parseSellerProductInput(
   const sizeResult = parseSizeForDepartment(category, body.size);
   if (!sizeResult.ok) return sizeResult;
 
+  const shippingResult = parseShippingFields(body);
+  if (!shippingResult.ok) return shippingResult;
+
   const { images } = imagesResult;
 
   return {
@@ -134,6 +160,8 @@ export function parseSellerProductInput(
       images,
       featured,
       size: sizeResult.size,
+      shippingTier: shippingResult.shippingTier,
+      extraShippingBirr: shippingResult.extraShippingBirr,
     },
   };
 }
@@ -183,6 +211,15 @@ export function parseSellerProductUpdate(
   }
   if (body.featured !== undefined) {
     data.featured = Boolean(body.featured);
+  }
+  if (body.shippingTier !== undefined || body.extraShippingBirr !== undefined) {
+    const shippingResult = parseShippingFields({
+      shippingTier: body.shippingTier ?? "standard",
+      extraShippingBirr: body.extraShippingBirr ?? 0,
+    });
+    if (!shippingResult.ok) return shippingResult;
+    data.shippingTier = shippingResult.shippingTier;
+    data.extraShippingBirr = shippingResult.extraShippingBirr;
   }
 
   if (body.size !== undefined || body.category !== undefined) {

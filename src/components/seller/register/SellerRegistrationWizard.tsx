@@ -5,11 +5,12 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsSeller } from "@/hooks/useIsSeller";
-import { categories } from "@/lib/products";
-import type { Category } from "@/lib/types";
+import { getSellerDepartmentOptions } from "@/lib/departments";
 import { SELLER_HOME } from "@/lib/seller-routes";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 import { SellerRegisterStepIndicator } from "@/components/seller/register/SellerRegisterStepIndicator";
+
+const sellerDepartments = getSellerDepartmentOptions();
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20";
@@ -24,7 +25,7 @@ interface AccountDraft {
 interface ShopDraft {
   shopName: string;
   location: string;
-  category: Category;
+  category: string;
   licenseUrl: string;
   licenseFileName: string;
 }
@@ -116,18 +117,13 @@ export function SellerRegistrationWizard() {
     const shopDraft: ShopDraft = {
       shopName: String(form.get("shopName") ?? "").trim(),
       location: String(form.get("location") ?? "").trim(),
-      category: String(form.get("category") ?? "home") as Category,
+      category: String(form.get("category") ?? "home-kitchen"),
       licenseUrl: String(form.get("licenseUrl") ?? "").trim(),
       licenseFileName: "",
     };
 
     const fileInput = e.currentTarget.elements.namedItem("license") as HTMLInputElement | null;
     const file = fileInput?.files?.[0];
-
-    if (!shopDraft.licenseUrl && !file) {
-      setError("Upload your business license to continue.");
-      return;
-    }
 
     setLoading(true);
 
@@ -210,7 +206,7 @@ export function SellerRegistrationWizard() {
         <p className="text-sm font-medium uppercase tracking-wider text-brand-600">
           Seller registration
         </p>
-        <h2 className="mt-2 text-2xl font-bold text-zinc-900">Join ShagarShop as a seller</h2>
+        <h2 className="mt-2 text-2xl font-bold text-zinc-900">Join ShegerShop as a seller</h2>
         <p className="mt-2 text-sm text-zinc-500">
           Complete all steps to open your shop and start listing products.
         </p>
@@ -304,7 +300,7 @@ export function SellerRegistrationWizard() {
         <form onSubmit={handleShopStep} className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-zinc-900">Step 2 — Shop details</h3>
           <p className="text-sm text-zinc-500">
-            Tell buyers about your business and upload your license.
+            Tell buyers about your business. You can add a license later if you have one.
           </p>
 
           <div>
@@ -338,17 +334,17 @@ export function SellerRegistrationWizard() {
             <label htmlFor="category" className="text-sm font-medium text-zinc-700">
               Primary category <span className="text-red-600">*</span>
             </label>
-            <select id="category" name="category" required className={inputClass}>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.label}
+            <select id="category" name="category" required defaultValue="home-kitchen" className={inputClass}>
+              {sellerDepartments.map((department) => (
+                <option key={department.value} value={department.value}>
+                  {department.label}
                 </option>
               ))}
             </select>
           </div>
           <div>
             <label htmlFor="license" className="text-sm font-medium text-zinc-700">
-              Business license <span className="text-red-600">*</span>
+              Business license <span className="text-zinc-400">(optional)</span>
             </label>
             <input type="hidden" name="licenseUrl" value="" />
             <input
@@ -385,7 +381,7 @@ export function SellerRegistrationWizard() {
             {shopName ? (
               <>
                 <span className="font-semibold text-zinc-900">{shopName}</span> is registered on
-                ShagarShop. You can now list products and reach buyers across Ethiopia.
+                ShegerShop. You can now list products and reach buyers across Ethiopia.
               </>
             ) : (
               <>Your shop is registered. You can now list products and reach buyers.</>

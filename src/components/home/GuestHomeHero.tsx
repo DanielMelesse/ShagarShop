@@ -11,7 +11,7 @@ export function GuestHomeHero() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
         <div>
           <p className="text-sm font-medium uppercase tracking-wider text-brand-100">
-            Welcome to ShagarShop
+            Welcome to ShegerShop
           </p>
           <h2 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
             Shop smarter.

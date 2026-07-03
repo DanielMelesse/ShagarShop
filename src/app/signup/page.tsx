@@ -66,7 +66,7 @@ function SignupForm() {
     <div className="mx-auto flex max-w-md flex-col px-4 py-16 sm:px-6">
       <h2 className="text-2xl font-bold text-zinc-900">Create account</h2>
       <p className="mt-2 text-sm text-zinc-500">
-        Join ShagarShop to track orders and checkout faster.
+        Join ShegerShop to track orders and checkout faster.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">

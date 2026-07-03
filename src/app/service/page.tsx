@@ -2,9 +2,9 @@ import Link from "next/link";
 import { InfoPage } from "@/components/InfoPage";
 
 export const metadata = {
-  title: "Services — ShagarShop",
+  title: "Services — ShegerShop",
   description:
-    "Book spa, gym, hair salon, nail salon, and touring packages on ShagarShop.",
+    "Book spa, gym, hair salon, nail salon, and touring packages on ShegerShop.",
 };
 
 const services = [
@@ -42,7 +42,7 @@ export default function ServicePage() {
       subtitle="Book wellness, beauty, fitness, and travel experiences in one place."
     >
       <p>
-        ShagarShop Services lets you discover and book trusted providers. Choose a
+        ShegerShop Services lets you discover and book trusted providers. Choose a
         category below to browse offers and availability.
       </p>
 
@@ -62,14 +62,14 @@ export default function ServicePage() {
       <p className="text-sm text-zinc-500">
         Want your business listed?{" "}
         <Link href="/sell" className="font-medium text-brand-600 hover:text-brand-700">
-          Sell on ShagarShop
+          Sell on ShegerShop
         </Link>{" "}
         or email{" "}
         <a
-          href="mailto:services@shagarshop.com"
+          href="mailto:services@shegershop.com"
           className="font-medium text-brand-600 hover:text-brand-700"
         >
-          services@shagarshop.com
+          services@shegershop.com
         </a>
         .
       </p>

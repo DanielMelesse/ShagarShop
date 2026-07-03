@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { AccountShell } from "@/components/account/AccountShell";
-import { getSellerDepartmentOptions } from "@/lib/departments";
+import { getSellerDepartmentOptions, legacyCategoryToDepartmentSlug } from "@/lib/departments";
 import { fetchAccount, updateAccountShop } from "@/lib/account-client";
 import { SELLER_HOME } from "@/lib/seller-routes";
 
@@ -42,7 +42,7 @@ export function AccountShopSettings() {
 
     setShopName(result.account.sellerProfile.shopName);
     setLocation(result.account.sellerProfile.location);
-    setCategory(result.account.sellerProfile.category);
+    setCategory(legacyCategoryToDepartmentSlug(result.account.sellerProfile.category));
     setLicenseUrl(result.account.sellerProfile.licenseUrl);
     setLoading(false);
   }, []);
@@ -85,7 +85,7 @@ export function AccountShopSettings() {
             href="/sell"
             className="mt-4 inline-block text-sm font-semibold text-brand-600 hover:text-brand-700"
           >
-            Learn about selling on ShagarShop →
+            Learn about selling on ShegerShop →
           </Link>
         </div>
       </AccountShell>

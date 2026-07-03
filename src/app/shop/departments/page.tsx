@@ -8,7 +8,7 @@ import { ALL_PRODUCTS_HREF, TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: `${ALL_DEPARTMENTS_LABEL} — ShagarShop`,
+  title: `${ALL_DEPARTMENTS_LABEL} — ShegerShop`,
   description: "Browse best deals, hot items, and bestsellers across every department.",
 };
 

@@ -1,3 +1,5 @@
+import type { ShippingLineInput } from "@/lib/shipping";
+import { calculateCartShipping, ORDER_BASE_SHIPPING_BIRR } from "@/lib/shipping";
 import type { Category, Product } from "./types";
 import {
   departments,
@@ -110,19 +112,17 @@ export function formatPrice(amount: number): string {
 export const FREE_SHIPPING_THRESHOLD = 5000;
 export const SHIPPING_COST = 5.99;
 export const TAX_RATE = 0.15;
-/** Flat shipping included in every seller-listed product price (Birr). */
-export const LISTING_SHIPPING_BIRR = 200;
+/** Flat shipping base added once per order at checkout (Birr). */
+export { ORDER_BASE_SHIPPING_BIRR as LISTING_SHIPPING_BIRR };
 
-/** Buyer-facing price from the amount the seller enters (before fees). */
+/** Listed price with 15% VAT from the seller's entered amount. */
 export function calculateListedProductPrice(sellerPrice: number): number {
-  const withShipping = sellerPrice + LISTING_SHIPPING_BIRR;
-  return Math.round(withShipping * (1 + TAX_RATE) * 100) / 100;
+  return Math.round(sellerPrice * (1 + TAX_RATE) * 100) / 100;
 }
 
-/** Seller-entered price from a stored listed price (for edit forms). */
+/** Seller-entered price from a VAT-inclusive listed price (for edit forms). */
 export function sellerPriceFromListed(listedPrice: number): number {
-  const withShipping = listedPrice / (1 + TAX_RATE);
-  return Math.max(0, Math.round((withShipping - LISTING_SHIPPING_BIRR) * 100) / 100);
+  return Math.max(0, Math.round((listedPrice / (1 + TAX_RATE)) * 100) / 100);
 }
 
 export function getShippingCost(subtotal: number): number {
@@ -135,8 +135,26 @@ export function getTaxAmount(subtotal: number): number {
   return Math.round(subtotal * TAX_RATE * 100) / 100;
 }
 
-/** Cart/checkout total — product prices already include shipping and VAT. */
-export function calculateOrderTotals(subtotal: number) {
-  const total = Math.round(subtotal * 100) / 100;
-  return { subtotal, shipping: 0, tax: 0, total };
+/** VAT is in product prices; shipping uses cart line tiers and bulk rules. */
+export function calculateOrderTotals(
+  subtotal: number,
+  shippingLines: ShippingLineInput[] = [],
+) {
+  if (subtotal <= 0) {
+    return { subtotal: 0, shipping: 0, tax: 0, total: 0 };
+  }
+  const shipping = calculateCartShipping(shippingLines);
+  const tax = Math.round((subtotal - subtotal / (1 + TAX_RATE)) * 100) / 100;
+  const total = Math.round((subtotal + shipping) * 100) / 100;
+  return { subtotal, shipping, tax, total };
+}
+
+export function shippingLinesFromCart(
+  items: { quantity: number; product: { shippingTier?: string; extraShippingBirr?: number } }[],
+): ShippingLineInput[] {
+  return items.map((item) => ({
+    quantity: item.quantity,
+    shippingTier: item.product.shippingTier,
+    extraShippingBirr: item.product.extraShippingBirr,
+  }));
 }

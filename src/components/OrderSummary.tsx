@@ -1,17 +1,20 @@
-import { formatPrice } from "@/lib/products";
+import type { ShippingLineInput } from "@/lib/shipping";
+import { calculateOrderTotals, formatPrice } from "@/lib/products";
 
 interface OrderSummaryProps {
   subtotal: number;
+  shippingLines?: ShippingLineInput[];
   variant?: "light" | "dark";
   className?: string;
 }
 
 export function OrderSummary({
   subtotal,
+  shippingLines = [],
   variant = "light",
   className = "",
 }: OrderSummaryProps) {
-  const total = Math.round(subtotal * 100) / 100;
+  const { total } = calculateOrderTotals(subtotal, shippingLines);
   const isDark = variant === "dark";
   const labelClass = isDark ? "text-zinc-400" : "text-zinc-500";
   const valueClass = isDark ? "text-white" : "text-zinc-900";

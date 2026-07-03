@@ -9,6 +9,11 @@ import {
   legacyCategoryToDepartmentSlug,
 } from "@/lib/departments";
 import { getSizeOptions, sellerPriceFromListed } from "@/lib/products";
+import {
+  SHIPPING_TIER_FEES,
+  SHIPPING_TIER_LABELS,
+  SHIPPING_TIERS,
+} from "@/lib/shipping";
 import { MAX_PRODUCT_IMAGES } from "@/lib/product-image";
 import type { Product } from "@/lib/types";
 
@@ -23,6 +28,8 @@ export interface ProductFormState {
   images: string[];
   size: string;
   featured: boolean;
+  shippingTier: string;
+  extraShippingBirr: string;
 }
 
 export const emptyProductForm = (): ProductFormState => ({
@@ -34,6 +41,8 @@ export const emptyProductForm = (): ProductFormState => ({
   images: [],
   size: "",
   featured: false,
+  shippingTier: "standard",
+  extraShippingBirr: "",
 });
 
 export function productToFormState(product: Product): ProductFormState {
@@ -46,6 +55,9 @@ export function productToFormState(product: Product): ProductFormState {
     images: product.images.length > 0 ? product.images : product.image ? [product.image] : [],
     size: product.size ?? "",
     featured: product.featured ?? false,
+    shippingTier: product.shippingTier ?? "standard",
+    extraShippingBirr:
+      product.extraShippingBirr > 0 ? String(product.extraShippingBirr) : "",
   };
 }
 
@@ -329,7 +341,7 @@ export function SellerProductForm({
         </div>
         <div>
           <label htmlFor={`${formId}-category`} className="text-sm font-medium text-zinc-700">
-            Department
+            Primary category
           </label>
           <select
             id={`${formId}-category`}
@@ -350,6 +362,45 @@ export function SellerProductForm({
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label htmlFor={`${formId}-shipping-tier`} className="text-sm font-medium text-zinc-700">
+            Shipping size
+          </label>
+          <select
+            id={`${formId}-shipping-tier`}
+            value={form.shippingTier}
+            onChange={(e) => setForm((f) => ({ ...f, shippingTier: e.target.value }))}
+            className={inputClass}
+          >
+            {SHIPPING_TIERS.map((tier) => (
+              <option key={tier} value={tier}>
+                {SHIPPING_TIER_LABELS[tier]}
+                {SHIPPING_TIER_FEES[tier] > 0
+                  ? ` (+${SHIPPING_TIER_FEES[tier]} Birr per unit)`
+                  : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor={`${formId}-extra-shipping`} className="text-sm font-medium text-zinc-700">
+            Extra shipping per unit (Birr)
+          </label>
+          <input
+            id={`${formId}-extra-shipping`}
+            type="number"
+            min="0"
+            step="1"
+            value={form.extraShippingBirr}
+            onChange={(e) => setForm((f) => ({ ...f, extraShippingBirr: e.target.value }))}
+            placeholder="0"
+            className={inputClass}
+          />
+          <p className="mt-1 text-xs text-zinc-500">
+            Optional add-on for heavy or bulk items. Orders of 3+ or 5+ items also get a bulk
+            shipping surcharge at checkout.
+          </p>
         </div>
         {departmentNeedsSize(form.category) && (
           <div>

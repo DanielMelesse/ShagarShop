@@ -18,6 +18,8 @@ export interface Product {
   stock: number;
   featured?: boolean;
   size?: string | null;
+  shippingTier: string;
+  extraShippingBirr: number;
 }
 
 export interface CartItem {

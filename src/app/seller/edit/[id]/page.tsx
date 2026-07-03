@@ -7,7 +7,7 @@ interface SellerEditPageProps {
 }
 
 export async function generateMetadata() {
-  return { title: "Edit product — ShagarShop Seller" };
+  return { title: "Edit product — ShegerShop Seller" };
 }
 
 export default async function SellerEditPage({ params }: SellerEditPageProps) {

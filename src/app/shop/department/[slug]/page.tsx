@@ -18,10 +18,10 @@ interface DepartmentPageProps {
 export async function generateMetadata({ params }: DepartmentPageProps) {
   const { slug } = await params;
   const department = getDepartmentBySlug(slug);
-  if (!department) return { title: "Department — ShagarShop" };
+  if (!department) return { title: "Department — ShegerShop" };
   return {
-    title: `${department.label} — ShagarShop`,
-    description: `Shop ${department.label} on ShagarShop.`,
+    title: `${department.label} — ShegerShop`,
+    description: `Shop ${department.label} on ShegerShop.`,
   };
 }
 

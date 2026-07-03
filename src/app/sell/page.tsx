@@ -3,8 +3,8 @@ import { SellPageContent } from "@/components/seller/SellPageContent";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Sell on ShagarShop",
-  description: "List your products and reach buyers on ShagarShop.",
+  title: "Sell on ShegerShop",
+  description: "List your products and reach buyers on ShegerShop.",
 };
 
 export default function SellPage() {
