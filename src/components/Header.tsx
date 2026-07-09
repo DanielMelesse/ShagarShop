@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { HeaderSearch } from "@/components/HeaderSearch";
+import { useTranslations } from "@/context/LocaleContext";
+import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsSeller } from "@/hooks/useIsSeller";
-import { useCart } from "@/context/CartContext";
 import { useMounted } from "@/hooks/useMounted";
-import { HeaderSearch } from "@/components/HeaderSearch";
 import { headerSellButtonClass } from "@/lib/header-ui";
 import { isSellerAppPath, SELLER_HOME } from "@/lib/seller-routes";
 import { ACCOUNT_HOME } from "@/lib/account-routes";
@@ -26,22 +28,26 @@ function HeaderActions({
   itemCount: number;
   onLogout: () => void;
 }) {
+  const { t } = useTranslations();
+
   return (
     <div className="flex shrink-0 flex-nowrap items-center gap-1 sm:gap-2">
+      <LanguageSwitcher />
+
       {showUser ? (
         <>
           <Link
             href={ACCOUNT_HOME}
             className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
           >
-            Account
+            {t("nav.account")}
           </Link>
           <button
             type="button"
             onClick={onLogout}
             className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 sm:px-3"
           >
-            Log out
+            {t("nav.logout")}
           </button>
         </>
       ) : (
@@ -49,7 +55,7 @@ function HeaderActions({
           href="/login"
           className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
         >
-          Login
+          {t("nav.login")}
         </Link>
       )}
 
@@ -57,8 +63,8 @@ function HeaderActions({
         href="/cart"
         aria-label={
           showCartBadge
-            ? `Cart, ${itemCount} item${itemCount !== 1 ? "s" : ""}`
-            : "Cart"
+            ? t("nav.cartAria", { count: itemCount })
+            : t("nav.cartAriaEmpty")
         }
         className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white transition hover:bg-brand-700"
       >
@@ -76,6 +82,7 @@ function HeaderActions({
 export function Header() {
   const pathname = usePathname();
   const mounted = useMounted();
+  const { t } = useTranslations();
   const { user, isReady: authReady, logout } = useAuth();
   const { isSeller, checkingSeller } = useIsSeller();
   const { itemCount, isReady: cartReady } = useCart();
@@ -107,12 +114,13 @@ export function Header() {
           </Link>
 
           <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-2 sm:gap-3">
+            <LanguageSwitcher />
             <Link href={SELLER_HOME} className={headerSellButtonClass}>
-              Sell
+              {t("nav.sell")}
             </Link>
             {(pathname.startsWith("/sell") || isSellerAppPath(pathname)) && (
               <Link href="/shop/departments" className={`${navLinkClass} whitespace-nowrap`}>
-                Back to shop
+                {t("nav.backToShop")}
               </Link>
             )}
             {sellerAccount && !checkingSeller ? (
@@ -121,14 +129,14 @@ export function Header() {
                   href={ACCOUNT_HOME}
                   className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
                 >
-                  Account
+                  {t("nav.account")}
                 </Link>
                 <button
                   type="button"
                   onClick={() => logout()}
                   className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 sm:px-3"
                 >
-                  Log out
+                  {t("nav.logout")}
                 </button>
               </>
             ) : !checkingSeller ? (
@@ -136,7 +144,7 @@ export function Header() {
                 href="/login?callbackUrl=/seller"
                 className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
               >
-                Login
+                {t("nav.login")}
               </Link>
             ) : null}
           </div>

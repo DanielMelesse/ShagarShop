@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductGallery } from "@/components/ProductGallery";
 import { AddToCartButton } from "./AddToCartButton";
+import { getProductConditionLabel } from "@/lib/product-condition";
 import { formatPrice } from "@/lib/products";
 import { getProductById } from "@/lib/products-server";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
@@ -35,6 +36,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {product.category}
           </p>
           <h2 className="mt-2 text-3xl font-bold text-zinc-900">{product.name}</h2>
+          <p className="mt-2 inline-flex rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-700">
+            {getProductConditionLabel(product.condition)}
+          </p>
           <div className="mt-3 flex items-center gap-2 text-sm text-zinc-600">
             <span className="text-amber-500">★ {product.rating}</span>
             <span>·</span>

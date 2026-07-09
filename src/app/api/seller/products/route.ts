@@ -49,6 +49,7 @@ export async function POST(request: Request) {
         size: data.size,
         shippingTier: data.shippingTier,
         extraShippingBirr: data.extraShippingBirr,
+        condition: data.condition,
       },
     });
 

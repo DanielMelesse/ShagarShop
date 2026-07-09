@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AccountShell } from "@/components/account/AccountShell";
+import { useTranslations } from "@/context/LocaleContext";
 import {
   deriveOrderFulfillmentStatus,
-  getBuyerFulfillmentHint,
-  getBuyerFulfillmentLabel,
   getFulfillmentStatusStyle,
 } from "@/lib/order-status";
+import { useOrderStatusLabels } from "@/hooks/useOrderStatusLabels";
 import { formatPrice } from "@/lib/products";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
@@ -35,17 +35,25 @@ interface Order {
   items: OrderItem[];
 }
 
-function OrderStatusBadge({ status }: { status: string }) {
+function OrderStatusBadge({
+  status,
+  label,
+}: {
+  status: string;
+  label: string;
+}) {
   return (
     <span
       className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getFulfillmentStatusStyle(status)}`}
     >
-      {getBuyerFulfillmentLabel(status)}
+      {label}
     </span>
   );
 }
 
 export function AccountOrders() {
+  const { t } = useTranslations();
+  const { label: statusLabel, hint: statusHint } = useOrderStatusLabels();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,19 +69,19 @@ export function AccountOrders() {
 
   return (
     <AccountShell
-      title="Your orders"
-      description="Track order status from preparation through delivery."
+      title={t("account.ordersTitle")}
+      description={t("account.ordersDescription")}
     >
       {loading ? (
         <div className="h-48 animate-pulse rounded-2xl bg-zinc-100" />
       ) : orders.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-300 bg-white p-10 text-center">
-          <p className="text-zinc-500">You have no orders yet.</p>
+          <p className="text-zinc-500">{t("account.noOrders")}</p>
           <Link
             href={TODAYS_DEALS_HREF}
             className="mt-4 inline-block rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white"
           >
-            Start shopping
+            {t("account.startShopping")}
           </Link>
         </div>
       ) : (
@@ -89,18 +97,23 @@ export function AccountOrders() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-sm text-zinc-500">
-                      {new Date(order.createdAt).toLocaleDateString("en-US", {
+                      {new Date(order.createdAt).toLocaleDateString(undefined, {
                         dateStyle: "medium",
                       })}
                     </p>
                     <p className="mt-1 font-semibold text-zinc-900">
-                      Order #{order.id.slice(-8).toUpperCase()}
+                      {t("account.orderNumber", {
+                        id: order.id.slice(-8).toUpperCase(),
+                      })}
                     </p>
                     <div className="mt-2">
-                      <OrderStatusBadge status={orderStatus} />
+                      <OrderStatusBadge
+                        status={orderStatus}
+                        label={statusLabel(orderStatus)}
+                      />
                     </div>
                     <p className="mt-2 text-sm text-zinc-500">
-                      {getBuyerFulfillmentHint(orderStatus)}
+                      {statusHint(orderStatus)}
                     </p>
                   </div>
                   <p className="text-lg font-bold text-zinc-900">
@@ -116,7 +129,10 @@ export function AccountOrders() {
                           {item.productName} × {item.quantity}
                         </p>
                         <div className="mt-1.5">
-                          <OrderStatusBadge status={item.fulfillmentStatus} />
+                          <OrderStatusBadge
+                            status={item.fulfillmentStatus}
+                            label={statusLabel(item.fulfillmentStatus)}
+                          />
                         </div>
                       </div>
                       <span className="shrink-0 font-medium text-zinc-900">
@@ -128,14 +144,15 @@ export function AccountOrders() {
 
                 <dl className="mt-4 border-t border-zinc-100 pt-4 text-sm">
                   <div className="flex justify-between font-semibold text-zinc-900">
-                    <dt>Total</dt>
+                    <dt>{t("account.total")}</dt>
                     <dd>{formatPrice(order.total)}</dd>
                   </div>
                 </dl>
 
                 <p className="mt-3 text-xs text-zinc-500">
-                  Ship to: {order.shippingName}, {order.address}, {order.city}{" "}
-                  {order.zip}
+                  {t("account.shipTo", {
+                    address: `${order.shippingName}, ${order.address}, ${order.city} ${order.zip}`,
+                  })}
                 </p>
               </li>
             );

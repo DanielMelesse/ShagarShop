@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ProductGallery } from "@/components/ProductGallery";
 import { getDepartmentBySlug } from "@/lib/departments";
 import { formatPrice } from "@/lib/products";
+import { getProductConditionLabel } from "@/lib/product-condition";
 import { fetchSellerProduct } from "@/lib/seller-products-client";
 import {
   SELLER_HOME,
@@ -116,6 +117,12 @@ export function SellerViewProduct({ productId }: { productId: string }) {
               <dt className="font-medium text-zinc-500">Stock</dt>
               <dd className="mt-1 text-zinc-900">
                 {product.stock > 0 ? `${product.stock} available` : "Out of stock"}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-medium text-zinc-500">Listing type</dt>
+              <dd className="mt-1 text-zinc-900">
+                {getProductConditionLabel(product.condition)}
               </dd>
             </div>
             <div>

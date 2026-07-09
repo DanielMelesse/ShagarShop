@@ -1,34 +1,15 @@
 "use client";
 
-import { BestDealHero } from "@/components/deals/BestDealHero";
-import { DealsHero } from "@/components/DealsHero";
-import { useAuth } from "@/hooks/useAuth";
+import { DealsCarouselHero } from "@/components/deals/DealsCarouselHero";
 import type { Product } from "@/lib/types";
 
 interface DealsPageHeroProps {
-  bestDeal: Product | null;
-  dealCount: number;
+  deals: Product[];
   activeCategoryLabel?: string;
 }
 
-export function DealsPageHero({
-  bestDeal,
-  dealCount,
-  activeCategoryLabel,
-}: DealsPageHeroProps) {
-  const { user, isReady } = useAuth();
-
-  if (!isReady || !user || !bestDeal) {
-    return (
-      <DealsHero dealCount={dealCount} activeCategoryLabel={activeCategoryLabel} />
-    );
-  }
-
+export function DealsPageHero({ deals, activeCategoryLabel }: DealsPageHeroProps) {
   return (
-    <BestDealHero
-      product={bestDeal}
-      userName={user.name}
-      activeCategoryLabel={activeCategoryLabel}
-    />
+    <DealsCarouselHero deals={deals} activeCategoryLabel={activeCategoryLabel} />
   );
 }

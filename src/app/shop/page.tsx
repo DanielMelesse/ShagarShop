@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { DealSpotlightGate } from "@/components/deals/DealSpotlightGate";
 import { DealsPageHero } from "@/components/deals/DealsPageHero";
 import { ProductCard } from "@/components/ProductCard";
-import { sortDeals } from "@/lib/deals";
+import { shuffleDeals } from "@/lib/deals";
 import { getDepartmentBySlug } from "@/lib/departments";
 import { categories } from "@/lib/products";
 import { isCategory } from "@/lib/product-mapper";
@@ -37,7 +36,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         : undefined;
 
   const filtered = featuredOnly
-    ? sortDeals(
+    ? shuffleDeals(
         await filterProducts({
           category,
           featured: true,
@@ -50,16 +49,12 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
       });
 
   const activeCategory = categories.find((c) => c.id === category);
-  const spotlight = featuredOnly && !query ? filtered[0] : undefined;
-  const gridProducts =
-    featuredOnly && spotlight ? filtered.slice(1) : filtered;
 
   if (featuredOnly) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
         <DealsPageHero
-          bestDeal={spotlight ?? null}
-          dealCount={filtered.length}
+          deals={filtered}
           activeCategoryLabel={activeCategory?.label}
         />
 
@@ -78,21 +73,16 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
           </div>
         ) : (
           <>
-            {spotlight && <DealSpotlightGate product={spotlight} />}
-
             <div className="mt-10">
-              <h2 className="text-xl font-bold text-zinc-900">
-                {spotlight ? "More hot deals" : "All deals"}
-              </h2>
+              <h2 className="text-xl font-bold text-zinc-900">All deals</h2>
               <p className="mt-1 text-sm text-zinc-500">
-                {gridProducts.length} product
-                {gridProducts.length !== 1 ? "s" : ""} · sorted by biggest
-                savings
+                {filtered.length} product
+                {filtered.length !== 1 ? "s" : ""} · randomly sorted
               </p>
             </div>
 
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {gridProducts.map((product) => (
+              {filtered.map((product) => (
                 <ProductCard key={product.id} product={product} deal />
               ))}
             </div>

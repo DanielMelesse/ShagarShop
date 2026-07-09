@@ -12,7 +12,7 @@ function formPayload(form: ProductFormState) {
     size: form.size,
     featured: form.featured,
     shippingTier: form.shippingTier,
-    extraShippingBirr: form.extraShippingBirr ? Number(form.extraShippingBirr) : 0,
+    condition: form.condition,
   };
 }
 

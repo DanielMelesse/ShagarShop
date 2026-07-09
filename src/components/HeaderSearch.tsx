@@ -15,6 +15,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { useMounted } from "@/hooks/useMounted";
+import { useTranslations } from "@/context/LocaleContext";
 import {
   ALL_DEPARTMENTS_HREF,
   getSearchDepartmentHref,
@@ -202,6 +203,7 @@ export function HeaderSearch() {
   const router = useRouter();
   const pathname = usePathname();
   const mounted = useMounted();
+  const { t } = useTranslations();
   const listboxId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -530,7 +532,7 @@ export function HeaderSearch() {
           onSelect={handleDepartmentSelect}
         />
         <label htmlFor="header-search" className="sr-only">
-          Search products
+          {t("nav.searchProducts")}
         </label>
         <input
           id="header-search"
@@ -549,7 +551,7 @@ export function HeaderSearch() {
             }
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Search"
+          placeholder={t("nav.search")}
           autoComplete="off"
           role="combobox"
           aria-expanded={showDropdown}
@@ -559,9 +561,9 @@ export function HeaderSearch() {
           }
           className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 sm:px-3"
         />
-        <button type="submit" className={headerSearchButtonClass} aria-label="Search">
+        <button type="submit" className={headerSearchButtonClass} aria-label={t("nav.search")}>
           <SearchIcon className="sm:hidden" />
-          <span className="hidden sm:inline">Search</span>
+          <span className="hidden sm:inline">{t("nav.search")}</span>
         </button>
       </form>
 

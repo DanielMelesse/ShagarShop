@@ -14,6 +14,7 @@ import {
   SHIPPING_TIER_LABELS,
   SHIPPING_TIERS,
 } from "@/lib/shipping";
+import { PRODUCT_CONDITION_OPTIONS } from "@/lib/product-condition";
 import { MAX_PRODUCT_IMAGES } from "@/lib/product-image";
 import type { Product } from "@/lib/types";
 
@@ -29,7 +30,7 @@ export interface ProductFormState {
   size: string;
   featured: boolean;
   shippingTier: string;
-  extraShippingBirr: string;
+  condition: string;
 }
 
 export const emptyProductForm = (): ProductFormState => ({
@@ -42,7 +43,7 @@ export const emptyProductForm = (): ProductFormState => ({
   size: "",
   featured: false,
   shippingTier: "standard",
-  extraShippingBirr: "",
+  condition: "new",
 });
 
 export function productToFormState(product: Product): ProductFormState {
@@ -56,8 +57,7 @@ export function productToFormState(product: Product): ProductFormState {
     size: product.size ?? "",
     featured: product.featured ?? false,
     shippingTier: product.shippingTier ?? "standard",
-    extraShippingBirr:
-      product.extraShippingBirr > 0 ? String(product.extraShippingBirr) : "",
+    condition: product.condition ?? "new",
   };
 }
 
@@ -310,6 +310,24 @@ export function SellerProductForm({
           />
         </div>
         <div>
+          <label htmlFor={`${formId}-condition`} className="text-sm font-medium text-zinc-700">
+            Listing type
+          </label>
+          <select
+            id={`${formId}-condition`}
+            required
+            value={form.condition}
+            onChange={(e) => setForm((f) => ({ ...f, condition: e.target.value }))}
+            className={inputClass}
+          >
+            {PRODUCT_CONDITION_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
           <label htmlFor={`${formId}-price`} className="text-sm font-medium text-zinc-700">
             Price (Birr)
           </label>
@@ -382,24 +400,9 @@ export function SellerProductForm({
               </option>
             ))}
           </select>
-        </div>
-        <div>
-          <label htmlFor={`${formId}-extra-shipping`} className="text-sm font-medium text-zinc-700">
-            Extra shipping per unit (Birr)
-          </label>
-          <input
-            id={`${formId}-extra-shipping`}
-            type="number"
-            min="0"
-            step="1"
-            value={form.extraShippingBirr}
-            onChange={(e) => setForm((f) => ({ ...f, extraShippingBirr: e.target.value }))}
-            placeholder="0"
-            className={inputClass}
-          />
           <p className="mt-1 text-xs text-zinc-500">
-            Optional add-on for heavy or bulk items. Orders of 3+ or 5+ items also get a bulk
-            shipping surcharge at checkout.
+            Large and oversized items add per-unit shipping at checkout. Orders of 3+ or 5+ items
+            also include a bulk surcharge.
           </p>
         </div>
         {departmentNeedsSize(form.category) && (

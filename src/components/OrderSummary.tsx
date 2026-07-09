@@ -1,4 +1,7 @@
+"use client";
+
 import type { ShippingLineInput } from "@/lib/shipping";
+import { useTranslations } from "@/context/LocaleContext";
 import { calculateOrderTotals, formatPrice } from "@/lib/products";
 
 interface OrderSummaryProps {
@@ -14,6 +17,7 @@ export function OrderSummary({
   variant = "light",
   className = "",
 }: OrderSummaryProps) {
+  const { t } = useTranslations();
   const { total } = calculateOrderTotals(subtotal, shippingLines);
   const isDark = variant === "dark";
   const labelClass = isDark ? "text-zinc-400" : "text-zinc-500";
@@ -22,7 +26,7 @@ export function OrderSummary({
   return (
     <dl className={`text-sm ${className}`}>
       <div className={`flex justify-between text-base font-bold ${valueClass}`}>
-        <dt className={labelClass}>Total</dt>
+        <dt className={labelClass}>{t("common.total")}</dt>
         <dd>{formatPrice(total)}</dd>
       </div>
     </dl>

@@ -3,6 +3,7 @@
 import { OrderSummary } from "@/components/OrderSummary";
 import { ProductImage } from "@/components/ProductImage";
 import Link from "next/link";
+import { useTranslations } from "@/context/LocaleContext";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useMounted } from "@/hooks/useMounted";
@@ -10,6 +11,7 @@ import { formatPrice, shippingLinesFromCart } from "@/lib/products";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export default function CartPage() {
+  const { t } = useTranslations();
   const mounted = useMounted();
   const { isAuthenticated, isReady: authReady } = useAuth();
   const { items, itemCount, subtotal, updateQuantity, removeItem, isReady } =
@@ -32,13 +34,13 @@ export default function CartPage() {
         <p className="text-5xl" aria-hidden>
           🛒
         </p>
-        <h2 className="mt-4 text-2xl font-bold text-zinc-900">Your cart is empty</h2>
-        <p className="mt-2 text-zinc-500">Add items to get started.</p>
+        <h2 className="mt-4 text-2xl font-bold text-zinc-900">{t("cart.empty")}</h2>
+        <p className="mt-2 text-zinc-500">{t("cart.emptyHint")}</p>
         <Link
           href={TODAYS_DEALS_HREF}
           className="mt-8 inline-block rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-700"
         >
-          Continue shopping
+          {t("cart.continueShopping")}
         </Link>
       </div>
     );
@@ -47,7 +49,9 @@ export default function CartPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <h2 className="text-2xl font-bold text-zinc-900">
-        Cart ({itemCount} item{itemCount !== 1 ? "s" : ""})
+        {itemCount === 1
+          ? t("cart.titleOne")
+          : t("cart.title", { count: itemCount })}
       </h2>
 
       <div className="mt-8 grid gap-10 lg:grid-cols-3">
@@ -80,11 +84,13 @@ export default function CartPage() {
                   {formatPrice(product.price)}
                 </p>
                 {selectedSize && (
-                  <p className="mt-1 text-sm text-zinc-500">Size {selectedSize}</p>
+                  <p className="mt-1 text-sm text-zinc-500">
+                    {t("cart.size", { size: selectedSize })}
+                  </p>
                 )}
                 <div className="mt-auto flex items-center gap-3 pt-3">
                   <label className="flex items-center gap-2 text-sm text-zinc-600">
-                    Qty
+                    {t("cart.qty")}
                     <select
                       value={quantity}
                       onChange={(e) =>
@@ -111,7 +117,7 @@ export default function CartPage() {
                     onClick={() => removeItem(product.id, selectedSize)}
                     className="text-sm text-red-600 hover:underline"
                   >
-                    Remove
+                    {t("cart.remove")}
                   </button>
                 </div>
               </div>
@@ -125,7 +131,7 @@ export default function CartPage() {
         <aside className="h-fit rounded-2xl border border-zinc-200 bg-white p-6">
           {showOrderSummary ? (
             <>
-              <h2 className="font-semibold text-zinc-900">Order summary</h2>
+              <h2 className="font-semibold text-zinc-900">{t("cart.orderSummary")}</h2>
               <OrderSummary
                 subtotal={subtotal}
                 shippingLines={shippingLinesFromCart(items)}
@@ -135,26 +141,24 @@ export default function CartPage() {
                 href="/checkout"
                 className="mt-6 block w-full rounded-xl bg-brand-600 py-3 text-center text-sm font-semibold text-white hover:bg-brand-700"
               >
-                Proceed to checkout
+                {t("cart.proceedCheckout")}
               </Link>
             </>
           ) : (
             <>
-              <h2 className="font-semibold text-zinc-900">Checkout</h2>
-              <p className="mt-2 text-sm text-zinc-500">
-                Sign in to review totals and complete checkout.
-              </p>
+              <h2 className="font-semibold text-zinc-900">{t("cart.checkout")}</h2>
+              <p className="mt-2 text-sm text-zinc-500">{t("cart.signInHint")}</p>
               <Link
                 href="/login?callbackUrl=/cart"
                 className="mt-6 block w-full rounded-xl bg-brand-600 py-3 text-center text-sm font-semibold text-white hover:bg-brand-700"
               >
-                Log in to checkout
+                {t("cart.logInCheckout")}
               </Link>
               <Link
                 href="/signup?callbackUrl=/cart"
                 className="mt-3 block w-full rounded-xl border border-zinc-300 py-3 text-center text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
               >
-                Create account
+                {t("cart.createAccountCheckout")}
               </Link>
             </>
           )}

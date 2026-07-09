@@ -26,7 +26,8 @@ export function isShippingTier(value: string): value is ShippingTier {
 }
 
 export function normalizeShippingTier(value?: string): ShippingTier {
-  return isShippingTier(value ?? "") ? value : "standard";
+  const normalized = value ?? "";
+  return isShippingTier(normalized) ? normalized : "standard";
 }
 
 function bulkShippingFee(totalQuantity: number): number {

@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import {
-  ALL_DEPARTMENTS_HREF,
-  ALL_DEPARTMENTS_LABEL,
-} from "@/lib/departments";
+import { useTranslations } from "@/context/LocaleContext";
+import { ALL_DEPARTMENTS_HREF } from "@/lib/departments";
 import { isSellerAppPath } from "@/lib/seller-routes";
 import { isTodaysDealsPath, TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 import { useMounted } from "@/hooks/useMounted";
@@ -21,6 +19,7 @@ function HeaderNavInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const mounted = useMounted();
+  const { t } = useTranslations();
 
   const onSellerSurface =
     pathname.startsWith("/sell") || isSellerAppPath(pathname);
@@ -37,7 +36,7 @@ function HeaderNavInner() {
 
   return (
     <nav
-      aria-label="Shop"
+      aria-label={t("nav.shop")}
       className="border-b border-zinc-200 bg-white shadow-sm shadow-zinc-900/5"
     >
       <div className="mx-auto flex max-w-7xl items-center gap-1 px-4 py-2 sm:gap-2 sm:px-6">
@@ -45,7 +44,7 @@ function HeaderNavInner() {
           href={ALL_DEPARTMENTS_HREF}
           className={allDepartmentsActive ? navLinkActiveClass : navLinkClass}
         >
-          {ALL_DEPARTMENTS_LABEL}
+          {t("nav.allDepartments")}
         </Link>
 
         <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto sm:gap-2">
@@ -53,14 +52,14 @@ function HeaderNavInner() {
             href={TODAYS_DEALS_HREF}
             className={dealsActive ? navLinkActiveClass : navLinkClass}
           >
-            Today&apos;s Deals
+            {t("nav.todaysDeals")}
           </Link>
 
           <Link
             href="/sell"
             className={pathname.startsWith("/sell") ? navLinkActiveClass : navLinkClass}
           >
-            Seller
+            {t("nav.seller")}
           </Link>
 
           <Link
@@ -69,7 +68,7 @@ function HeaderNavInner() {
               pathname === "/customer-service" ? navLinkActiveClass : navLinkClass
             }
           >
-            Customer Service
+            {t("nav.customerService")}
           </Link>
         </div>
       </div>
@@ -78,16 +77,18 @@ function HeaderNavInner() {
 }
 
 function HeaderNavFallback() {
+  const { t } = useTranslations();
+
   return (
     <nav
-      aria-label="Shop"
+      aria-label={t("nav.shop")}
       className="border-b border-zinc-200 bg-white shadow-sm shadow-zinc-900/5"
     >
       <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-2 sm:px-6">
-        <span className={navLinkClass}>{ALL_DEPARTMENTS_LABEL}</span>
-        <span className={navLinkClass}>Today&apos;s Deals</span>
-        <span className={navLinkClass}>Seller</span>
-        <span className={navLinkClass}>Customer Service</span>
+        <span className={navLinkClass}>{t("nav.allDepartments")}</span>
+        <span className={navLinkClass}>{t("nav.todaysDeals")}</span>
+        <span className={navLinkClass}>{t("nav.seller")}</span>
+        <span className={navLinkClass}>{t("nav.customerService")}</span>
       </div>
     </nav>
   );

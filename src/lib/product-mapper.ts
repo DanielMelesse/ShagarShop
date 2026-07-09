@@ -1,4 +1,5 @@
 import type { Product as DbProduct } from "@prisma/client";
+import { normalizeProductCondition } from "@/lib/product-condition";
 import { normalizeProductImages } from "@/lib/product-image";
 import { categories } from "@/lib/products";
 import type { Category, Product } from "@/lib/types";
@@ -27,5 +28,6 @@ export function toProduct(row: DbProduct): Product {
     size: row.size,
     shippingTier: row.shippingTier,
     extraShippingBirr: row.extraShippingBirr,
+    condition: normalizeProductCondition(row.condition),
   };
 }

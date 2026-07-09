@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { EthiopiaShippingAddress } from "@/components/checkout/EthiopiaShippingAddress";
 import { OrderSummary } from "@/components/OrderSummary";
+import { useTranslations } from "@/context/LocaleContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/context/CartContext";
 import { calculateOrderTotals, formatPrice, shippingLinesFromCart } from "@/lib/products";
@@ -12,6 +13,7 @@ import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { t } = useTranslations();
   const { user, isAuthenticated, isReady: authReady } = useAuth();
   const { items, subtotal, clearCart, isReady: cartReady } = useCart();
   const [placed, setPlaced] = useState(false);
@@ -36,7 +38,7 @@ export default function CheckoutPage() {
   if (!isAuthenticated && !placed) {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
-        <p className="text-zinc-500">Redirecting to log in…</p>
+        <p className="text-zinc-500">{t("checkout.redirectLogin")}</p>
       </div>
     );
   }
@@ -44,9 +46,9 @@ export default function CheckoutPage() {
   if (items.length === 0 && !placed) {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
-        <p className="text-zinc-500">Your cart is empty.</p>
+        <p className="text-zinc-500">{t("checkout.emptyCart")}</p>
         <Link href={TODAYS_DEALS_HREF} className="mt-4 inline-block text-brand-600 hover:underline">
-          Go to shop
+          {t("checkout.goToShop")}
         </Link>
       </div>
     );
@@ -58,10 +60,11 @@ export default function CheckoutPage() {
         <p className="text-5xl" aria-hidden>
           ✓
         </p>
-        <h2 className="mt-4 text-2xl font-bold text-zinc-900">Order placed!</h2>
+        <h2 className="mt-4 text-2xl font-bold text-zinc-900">{t("checkout.orderPlaced")}</h2>
         <p className="mt-2 text-zinc-500">
-          Thank you{user ? `, ${user.name}` : ""}. Payment is still demo — no real
-          charge was made.
+          {t("checkout.thankYou", {
+            name: user ? `, ${user.name}` : "",
+          })}
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           {user && (
@@ -69,14 +72,14 @@ export default function CheckoutPage() {
               href="/account"
               className="rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white"
             >
-              View orders
+              {t("checkout.viewOrders")}
             </Link>
           )}
           <Link
             href={TODAYS_DEALS_HREF}
             className="rounded-xl border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-800"
           >
-            Continue shopping
+            {t("checkout.continueShopping")}
           </Link>
         </div>
       </div>
@@ -120,14 +123,14 @@ export default function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <h2 className="text-2xl font-bold text-zinc-900">Checkout</h2>
+      <h2 className="text-2xl font-bold text-zinc-900">{t("checkout.title")}</h2>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-8">
         <EthiopiaShippingAddress defaultName={user?.name ?? ""} />
 
         <fieldset className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6">
           <legend className="px-1 text-sm font-semibold text-zinc-900">
-            Payment (demo)
+            {t("checkout.paymentDemo")}
           </legend>
           <input
             required
@@ -158,7 +161,9 @@ export default function CheckoutPage() {
 
         <div className="rounded-2xl bg-zinc-900 p-6 text-white">
           <p className="text-sm text-zinc-400">
-            {items.length} item{items.length !== 1 ? "s" : ""}
+            {items.length === 1
+              ? t("common.item")
+              : t("common.items", { count: items.length })}
           </p>
           <OrderSummary
             subtotal={subtotal}
@@ -171,7 +176,9 @@ export default function CheckoutPage() {
             disabled={submitting}
             className="mt-6 w-full rounded-xl bg-brand-600 py-3 text-sm font-semibold hover:bg-brand-500 disabled:opacity-60"
           >
-            {submitting ? "Placing order..." : `Place order · ${formatPrice(total)}`}
+            {submitting
+              ? t("checkout.placingOrder")
+              : t("checkout.placeOrderWithTotal", { total: formatPrice(total) })}
           </button>
         </div>
       </form>

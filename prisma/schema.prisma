@@ -55,6 +55,7 @@ model Product {
   size        String?
   shippingTier      String   @default("standard")
   extraShippingBirr Float    @default(0)
+  condition         String   @default("new")
   sellerId    String?
   seller      User?       @relation(fields: [sellerId], references: [id])
   orderItems  OrderItem[]

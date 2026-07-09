@@ -20,6 +20,7 @@ export interface Product {
   size?: string | null;
   shippingTier: string;
   extraShippingBirr: number;
+  condition: string;
 }
 
 export interface CartItem {

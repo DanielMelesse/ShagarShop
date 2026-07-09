@@ -10,6 +10,7 @@ import {
   productImageErrorMessage,
   productImagesErrorMessage,
 } from "@/lib/product-image";
+import { isProductCondition, type ProductCondition } from "@/lib/product-condition";
 import { isShippingTier, type ShippingTier } from "@/lib/shipping";
 
 export interface SellerProductInput {
@@ -24,6 +25,7 @@ export interface SellerProductInput {
   size?: string | null;
   shippingTier: ShippingTier;
   extraShippingBirr: number;
+  condition: ProductCondition;
 }
 
 export function slugifyProductName(name: string): string {
@@ -95,24 +97,28 @@ function parseSizeForDepartment(
   return { ok: true, size };
 }
 
-function parseShippingFields(
+function parseShippingTier(
   body: Record<string, unknown>,
-): { ok: true; shippingTier: ShippingTier; extraShippingBirr: number } | { ok: false; error: string } {
+): { ok: true; shippingTier: ShippingTier } | { ok: false; error: string } {
   const shippingTier = String(body.shippingTier ?? "standard").trim();
-  const extraShippingBirr = Number(body.extraShippingBirr ?? 0);
 
   if (!isShippingTier(shippingTier)) {
     return { ok: false, error: "Pick a valid shipping size." };
   }
-  if (!Number.isFinite(extraShippingBirr) || extraShippingBirr < 0) {
-    return { ok: false, error: "Extra shipping must be zero or more." };
+
+  return { ok: true, shippingTier };
+}
+
+function parseProductConditionField(
+  body: Record<string, unknown>,
+): { ok: true; condition: ProductCondition } | { ok: false; error: string } {
+  const condition = String(body.condition ?? "new").trim();
+
+  if (!isProductCondition(condition)) {
+    return { ok: false, error: "Pick a valid product condition." };
   }
 
-  return {
-    ok: true,
-    shippingTier,
-    extraShippingBirr: Math.round(extraShippingBirr * 100) / 100,
-  };
+  return { ok: true, condition };
 }
 
 export function parseSellerProductInput(
@@ -143,8 +149,11 @@ export function parseSellerProductInput(
   const sizeResult = parseSizeForDepartment(category, body.size);
   if (!sizeResult.ok) return sizeResult;
 
-  const shippingResult = parseShippingFields(body);
+  const shippingResult = parseShippingTier(body);
   if (!shippingResult.ok) return shippingResult;
+
+  const conditionResult = parseProductConditionField(body);
+  if (!conditionResult.ok) return conditionResult;
 
   const { images } = imagesResult;
 
@@ -161,7 +170,8 @@ export function parseSellerProductInput(
       featured,
       size: sizeResult.size,
       shippingTier: shippingResult.shippingTier,
-      extraShippingBirr: shippingResult.extraShippingBirr,
+      extraShippingBirr: 0,
+      condition: conditionResult.condition,
     },
   };
 }
@@ -212,14 +222,16 @@ export function parseSellerProductUpdate(
   if (body.featured !== undefined) {
     data.featured = Boolean(body.featured);
   }
-  if (body.shippingTier !== undefined || body.extraShippingBirr !== undefined) {
-    const shippingResult = parseShippingFields({
-      shippingTier: body.shippingTier ?? "standard",
-      extraShippingBirr: body.extraShippingBirr ?? 0,
-    });
+  if (body.shippingTier !== undefined) {
+    const shippingResult = parseShippingTier(body);
     if (!shippingResult.ok) return shippingResult;
     data.shippingTier = shippingResult.shippingTier;
-    data.extraShippingBirr = shippingResult.extraShippingBirr;
+    data.extraShippingBirr = 0;
+  }
+  if (body.condition !== undefined) {
+    const conditionResult = parseProductConditionField(body);
+    if (!conditionResult.ok) return conditionResult;
+    data.condition = conditionResult.condition;
   }
 
   if (body.size !== undefined || body.category !== undefined) {

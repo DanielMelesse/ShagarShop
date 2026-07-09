@@ -1,7 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from "@/context/LocaleContext";
 import { ALL_PRODUCTS_HREF, TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export function Footer() {
+  const { t } = useTranslations();
+  const year = new Date().getFullYear();
+
   return (
     <footer className="mt-auto border-t border-zinc-200 bg-white">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
@@ -10,68 +16,66 @@ export function Footer() {
             <Link href={TODAYS_DEALS_HREF} className="font-bold text-zinc-900 transition hover:text-brand-600">
               Sheger<span className="text-brand-600">Shop</span>
             </Link>
-            <p className="mt-2 text-sm text-zinc-500">
-              Your marketplace for quality products from trusted sellers.
-            </p>
+            <p className="mt-2 text-sm text-zinc-500">{t("brand.tagline")}</p>
           </div>
           <div>
-            <p className="text-sm font-semibold text-zinc-900">Shop</p>
+            <p className="text-sm font-semibold text-zinc-900">{t("footer.shop")}</p>
             <ul className="mt-3 space-y-2 text-sm text-zinc-500">
               <li>
                 <Link href={ALL_PRODUCTS_HREF} className="hover:text-brand-600">
-                  All products
+                  {t("footer.allProducts")}
                 </Link>
               </li>
               <li>
                 <Link href={TODAYS_DEALS_HREF} className="hover:text-brand-600">
-                  Today&apos;s Deals
+                  {t("nav.todaysDeals")}
                 </Link>
               </li>
               <li>
                 <Link href="/cart" className="hover:text-brand-600">
-                  Cart
+                  {t("nav.cart")}
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <p className="text-sm font-semibold text-zinc-900">Account</p>
+            <p className="text-sm font-semibold text-zinc-900">{t("footer.account")}</p>
             <ul className="mt-3 space-y-2 text-sm text-zinc-500">
               <li>
                 <Link href="/login" className="hover:text-brand-600">
-                  Log in
+                  {t("footer.logIn")}
                 </Link>
               </li>
               <li>
                 <Link href="/signup" className="hover:text-brand-600">
-                  Sign up
+                  {t("footer.signUp")}
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <p className="text-sm font-semibold text-zinc-900">Help</p>
+            <p className="text-sm font-semibold text-zinc-900">{t("footer.help")}</p>
             <ul className="mt-3 space-y-2 text-sm text-zinc-500">
               <li>
                 <Link href="/sell" className="hover:text-brand-600">
-                  Sell
+                  {t("footer.sell")}
                 </Link>
               </li>
               <li>
                 <Link href="/service" className="hover:text-brand-600">
-                  Service
+                  {t("footer.service")}
                 </Link>
               </li>
               <li>
                 <Link href="/customer-service" className="hover:text-brand-600">
-                  Customer Service
+                  {t("nav.customerService")}
                 </Link>
               </li>
             </ul>
           </div>
         </div>
         <p className="mt-10 text-center text-xs text-zinc-400" suppressHydrationWarning>
-          © {new Date().getFullYear()} ShegerShop. Demo marketplace.
+          © {year} ShegerShop. {t("brand.demoNote")}
         </p>
       </div>
     </footer>

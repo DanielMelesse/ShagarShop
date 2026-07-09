@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
+import { useTranslations } from "@/context/LocaleContext";
 import { useAuth } from "@/hooks/useAuth";
 import { resolveAfterAuth, DEFAULT_AFTER_AUTH } from "@/lib/auth-redirect";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslations();
   const afterAuth = resolveAfterAuth(searchParams.get("callbackUrl"), null);
   const { login, user, isReady } = useAuth();
   const [error, setError] = useState("");
@@ -32,21 +34,19 @@ function LoginForm() {
     if (ok) {
       router.push(afterAuth);
     } else {
-      setError("Invalid phone number or password.");
+      setError(t("auth.invalidCredentials"));
     }
   }
 
   return (
     <div className="mx-auto flex max-w-md flex-col px-4 py-16 sm:px-6">
-      <h2 className="text-2xl font-bold text-zinc-900">Log in</h2>
-      <p className="mt-2 text-sm text-zinc-500">
-        Sign in with your phone number and password.
-      </p>
+      <h2 className="text-2xl font-bold text-zinc-900">{t("auth.logIn")}</h2>
+      <p className="mt-2 text-sm text-zinc-500">{t("auth.signInSubtitle")}</p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div>
           <label htmlFor="phone" className="text-sm font-medium text-zinc-700">
-            Phone number
+            {t("auth.phoneNumber")}
           </label>
           <input
             id="phone"
@@ -60,7 +60,7 @@ function LoginForm() {
         </div>
         <div>
           <label htmlFor="password" className="text-sm font-medium text-zinc-700">
-            Password
+            {t("auth.password")}
           </label>
           <input
             id="password"
@@ -77,12 +77,12 @@ function LoginForm() {
           disabled={loading}
           className="w-full rounded-xl bg-brand-600 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
         >
-          {loading ? "Signing in..." : "Log in"}
+          {loading ? t("auth.signingIn") : t("auth.logIn")}
         </button>
       </form>
 
       <p className="mt-6 text-center text-sm text-zinc-500">
-        No account?{" "}
+        {t("auth.noAccountShort")}{" "}
         <Link
           href={
             afterAuth !== DEFAULT_AFTER_AUTH
@@ -91,7 +91,7 @@ function LoginForm() {
           }
           className="font-medium text-brand-600 hover:underline"
         >
-          Sign up
+          {t("auth.signUp")}
         </Link>
       </p>
     </div>
