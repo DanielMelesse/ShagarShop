@@ -72,7 +72,10 @@ export const authOptions: NextAuthOptions = {
         session.user.email = (token.email as string | null) ?? null;
         session.user.name = token.name as string;
         session.user.role =
-          token.role === "SELLER" || token.role === "BUYER"
+          token.role === "SELLER" ||
+          token.role === "BUYER" ||
+          token.role === "DELIVERY" ||
+          token.role === "ADMIN"
             ? token.role
             : "BUYER";
       }

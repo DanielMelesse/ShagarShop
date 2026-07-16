@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { calculateOrderTotals } from "@/lib/products";
 import type { ShippingLineInput } from "@/lib/shipping";
+import { notifyOrderPlaced } from "@/lib/sms/order-notify";
 
 interface OrderItemInput {
   productId: string;
@@ -108,6 +109,13 @@ export async function POST(request: Request) {
         });
       }
       return created;
+    });
+
+    notifyOrderPlaced({
+      userId: session.user.id,
+      orderId: order.id,
+      total: order.total,
+      itemCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
     });
 
     return NextResponse.json({ order });

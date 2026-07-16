@@ -1,5 +1,7 @@
 import {
   defaultHomeForRole,
+  isAdminRole,
+  isDeliveryRole,
   isSellerRole,
   isShopOnlyPath,
   type UserRole,
@@ -20,6 +22,10 @@ export function resolveAfterAuth(
   raw: string | null | undefined,
   role: UserRole | string | null | undefined,
 ): string {
+  if (isAdminRole(role) || isDeliveryRole(role)) {
+    return defaultHomeForRole(role);
+  }
+
   const callbackUrl = safeCallbackUrl(raw);
   if (isSellerRole(role) && isShopOnlyPath(callbackUrl)) {
     return defaultHomeForRole(role);

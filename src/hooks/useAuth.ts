@@ -34,7 +34,12 @@ export function useAuth() {
           phone,
           password,
           email: email?.trim() || undefined,
-          role: role === "SELLER" ? "seller" : "buyer",
+      role:
+            role === "SELLER"
+              ? "seller"
+              : role === "DELIVERY"
+                ? "delivery"
+                : "buyer",
         }),
       });
       const data = await res.json().catch(() => ({}));

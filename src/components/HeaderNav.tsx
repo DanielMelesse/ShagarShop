@@ -5,6 +5,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useTranslations } from "@/context/LocaleContext";
 import { ALL_DEPARTMENTS_HREF } from "@/lib/departments";
+import { isAdminAppPath } from "@/lib/admin-routes";
+import { isDeliveryAppPath } from "@/lib/delivery-routes";
 import { isSellerAppPath } from "@/lib/seller-routes";
 import { isTodaysDealsPath, TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 import { useMounted } from "@/hooks/useMounted";
@@ -23,8 +25,11 @@ function HeaderNavInner() {
 
   const onSellerSurface =
     pathname.startsWith("/sell") || isSellerAppPath(pathname);
+  const onDeliverySurface =
+    pathname.startsWith("/deliver") || isDeliveryAppPath(pathname);
+  const onAdminSurface = isAdminAppPath(pathname);
 
-  if (onSellerSurface) {
+  if (onSellerSurface || onDeliverySurface || onAdminSurface) {
     return null;
   }
 

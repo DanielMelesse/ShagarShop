@@ -12,8 +12,8 @@ export function isFulfillmentStatus(value: string): value is FulfillmentStatus {
 }
 
 export const FULFILLMENT_STATUS_LABELS: Record<FulfillmentStatus, string> = {
-  pending: "Pending",
-  shipped: "Shipped",
+  pending: "Preparing",
+  shipped: "Ready for delivery",
   delivered: "Delivered",
   cancelled: "Cancelled",
 };

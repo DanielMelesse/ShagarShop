@@ -1,10 +1,20 @@
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
-export const USER_ROLES = ["BUYER", "SELLER"] as const;
+export const USER_ROLES = ["BUYER", "SELLER", "DELIVERY", "ADMIN"] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 
 export function isSellerRole(role: string | null | undefined): role is "SELLER" {
   return role === "SELLER";
+}
+
+export function isDeliveryRole(
+  role: string | null | undefined,
+): role is "DELIVERY" {
+  return role === "DELIVERY";
+}
+
+export function isAdminRole(role: string | null | undefined): role is "ADMIN" {
+  return role === "ADMIN";
 }
 
 export function isBuyerRole(role: string | null | undefined): role is "BUYER" {
@@ -12,7 +22,9 @@ export function isBuyerRole(role: string | null | undefined): role is "BUYER" {
 }
 
 export function parseSignupRole(raw: string | null | undefined): UserRole {
-  return raw === "seller" ? "SELLER" : "BUYER";
+  if (raw === "seller") return "SELLER";
+  if (raw === "delivery") return "DELIVERY";
+  return "BUYER";
 }
 
 const SHOP_ONLY_PREFIXES = [
@@ -31,5 +43,8 @@ export function isShopOnlyPath(pathname: string): boolean {
 }
 
 export function defaultHomeForRole(role: string | null | undefined): string {
-  return isSellerRole(role) ? "/seller" : TODAYS_DEALS_HREF;
+  if (isAdminRole(role)) return "/admin";
+  if (isSellerRole(role)) return "/seller";
+  if (isDeliveryRole(role)) return "/deliver";
+  return TODAYS_DEALS_HREF;
 }

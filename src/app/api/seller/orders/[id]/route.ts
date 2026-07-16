@@ -6,6 +6,7 @@ import {
   type FulfillmentStatus,
 } from "@/lib/seller-orders";
 import { getSellerOrderItem, setSellerOrderItemStatus } from "@/lib/seller-orders-server";
+import { notifyOrderItemStatus } from "@/lib/sms/order-notify";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -59,6 +60,11 @@ export async function PATCH(request: Request, context: RouteContext) {
   if (!updated) {
     return NextResponse.json({ error: "Could not update order." }, { status: 500 });
   }
+
+  notifyOrderItemStatus({
+    orderItemId: updated.id,
+    status: nextStatus as FulfillmentStatus,
+  });
 
   return NextResponse.json({ order: updated });
 }

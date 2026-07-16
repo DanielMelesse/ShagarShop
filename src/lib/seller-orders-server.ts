@@ -111,7 +111,12 @@ export async function setSellerOrderItemStatus(
 
   const updated = await prisma.orderItem.update({
     where: { id: orderItemId },
-    data: { fulfillmentStatus: status },
+    data: {
+      fulfillmentStatus: status,
+      ...(status === "cancelled" || status === "pending"
+        ? { deliveryId: null, deliveryAssignedAt: null }
+        : {}),
+    },
     include: orderItemInclude,
   });
 

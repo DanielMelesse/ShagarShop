@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -157,6 +158,63 @@ async function main() {
     });
   }
   console.log(`Seeded ${products.length} products`);
+
+  const deliveryPhone = "0911000002";
+  const passwordHash = await bcrypt.hash("delivery123", 10);
+  await prisma.user.upsert({
+    where: { phone: deliveryPhone },
+    update: {
+      name: "Demo Courier",
+      role: "DELIVERY",
+      passwordHash,
+      deliveryProfile: {
+        upsert: {
+          create: {
+            vehicleType: "motorcycle",
+            serviceArea: "Bole, Addis Ababa",
+            active: true,
+          },
+          update: {
+            vehicleType: "motorcycle",
+            serviceArea: "Bole, Addis Ababa",
+            active: true,
+          },
+        },
+      },
+    },
+    create: {
+      name: "Demo Courier",
+      phone: deliveryPhone,
+      role: "DELIVERY",
+      passwordHash,
+      deliveryProfile: {
+        create: {
+          vehicleType: "motorcycle",
+          serviceArea: "Bole, Addis Ababa",
+          active: true,
+        },
+      },
+    },
+  });
+  console.log(`Seeded delivery user ${deliveryPhone} / delivery123`);
+
+  const adminPhone = "0911000001";
+  const adminPasswordHash = await bcrypt.hash("admin123", 10);
+  await prisma.user.upsert({
+    where: { phone: adminPhone },
+    update: {
+      name: "ShegerShop Admin",
+      role: "ADMIN",
+      passwordHash: adminPasswordHash,
+    },
+    create: {
+      name: "ShegerShop Admin",
+      phone: adminPhone,
+      role: "ADMIN",
+      passwordHash: adminPasswordHash,
+    },
+  });
+  console.log(`Seeded admin user ${adminPhone} / admin123`);
 }
 
 main()

@@ -19,12 +19,12 @@ interface SellerOrderCardProps {
 function nextActions(status: FulfillmentStatus): { label: string; status: FulfillmentStatus }[] {
   if (status === "pending") {
     return [
-      { label: "Mark shipped", status: "shipped" },
+      { label: "Ready for delivery", status: "shipped" },
       { label: "Cancel", status: "cancelled" },
     ];
   }
   if (status === "shipped") {
-    return [{ label: "Mark delivered", status: "delivered" }];
+    return [{ label: "Cancel", status: "cancelled" }];
   }
   return [];
 }

@@ -10,19 +10,23 @@ datasource db {
 enum UserRole {
   BUYER
   SELLER
+  DELIVERY
+  ADMIN
 }
 
 model User {
-  id            String         @id @default(cuid())
-  phone         String         @unique
-  email         String?        @unique
-  passwordHash  String
-  name          String
-  role          UserRole       @default(BUYER)
-  createdAt     DateTime       @default(now())
-  orders        Order[]
-  products      Product[]
-  sellerProfile SellerProfile?
+  id              String           @id @default(cuid())
+  phone           String           @unique
+  email           String?          @unique
+  passwordHash    String
+  name            String
+  role            UserRole         @default(BUYER)
+  createdAt       DateTime         @default(now())
+  orders          Order[]
+  products        Product[]
+  sellerProfile   SellerProfile?
+  deliveryProfile DeliveryProfile?
+  deliveries      OrderItem[]      @relation("DeliveryAssignments")
 }
 
 model SellerProfile {
@@ -38,6 +42,20 @@ model SellerProfile {
   updatedAt   DateTime @updatedAt
 
   @@index([category])
+}
+
+model DeliveryProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleType String
+  serviceArea String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([serviceArea])
+  @@index([active])
 }
 
 model Product {
@@ -86,15 +104,20 @@ model Order {
 }
 
 model OrderItem {
-  id                String  @id @default(cuid())
+  id                String    @id @default(cuid())
   orderId           String
-  order             Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order             Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId         String
-  product           Product @relation(fields: [productId], references: [id])
+  product           Product   @relation(fields: [productId], references: [id])
   quantity          Int
   priceAtPurchase   Float
   productName       String
-  fulfillmentStatus String  @default("pending")
+  fulfillmentStatus String    @default("pending")
+  deliveryId        String?
+  delivery          User?     @relation("DeliveryAssignments", fields: [deliveryId], references: [id])
+  deliveryAssignedAt DateTime?
+  deliveredAt       DateTime?
 
   @@index([fulfillmentStatus])
+  @@index([deliveryId])
 }
