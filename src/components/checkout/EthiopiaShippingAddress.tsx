@@ -30,6 +30,8 @@ export function EthiopiaShippingAddress({ defaultName }: EthiopiaShippingAddress
   const [marker, setMarker] = useState<MapPosition | null>(null);
   const [mapFocus, setMapFocus] = useState<MapPosition | null>(null);
 
+  const [showMap, setShowMap] = useState(false);
+
   const region = getEthiopiaRegion(regionId);
   const areaOptions = useMemo(() => getLocationsForRegion(regionId), [regionId]);
 
@@ -124,14 +126,26 @@ export function EthiopiaShippingAddress({ defaultName }: EthiopiaShippingAddress
         />
       </label>
 
-      <EthiopiaMapPicker
-        marker={marker}
-        focus={mapFocus}
-        onMarkerChange={(position) => {
-          setMarker(position);
-          setMapFocus(position);
-        }}
-      />
+      <div className="space-y-3">
+        {!showMap ? (
+          <button
+            type="button"
+            onClick={() => setShowMap(true)}
+            className="w-full rounded-xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-3 text-sm font-medium text-zinc-700 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-800"
+          >
+            Pick location on map (optional)
+          </button>
+        ) : (
+          <EthiopiaMapPicker
+            marker={marker}
+            focus={mapFocus}
+            onMarkerChange={(position) => {
+              setMarker(position);
+              setMapFocus(position);
+            }}
+          />
+        )}
+      </div>
 
       {/* Submitted to existing order API */}
       <input type="hidden" name="city" value={cityValue} />

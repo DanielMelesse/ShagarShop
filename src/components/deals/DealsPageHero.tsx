@@ -1,10 +1,10 @@
 "use client";
 
 import { DealsCarouselHero } from "@/components/deals/DealsCarouselHero";
-import type { Product } from "@/lib/types";
+import type { ProductListItem } from "@/lib/types";
 
 interface DealsPageHeroProps {
-  deals: Product[];
+  deals: ProductListItem[];
   activeCategoryLabel?: string;
 }
 

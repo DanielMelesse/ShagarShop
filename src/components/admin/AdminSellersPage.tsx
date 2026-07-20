@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminTable, EmptyState, Td, Th } from "@/components/admin/AdminTable";
 import type { AdminSellerRow } from "@/lib/admin";
+import { adminSellerHref } from "@/lib/admin-routes";
 
 export function AdminSellersPage() {
   const [sellers, setSellers] = useState<AdminSellerRow[]>([]);
@@ -27,7 +29,7 @@ export function AdminSellersPage() {
   return (
     <AdminShell
       title="Sellers"
-      description="Marketplace vendors — shops, categories, and listing counts."
+      description="Marketplace vendors — click a shop for catalog, stock, and revenue."
     >
       {error && (
         <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -52,19 +54,60 @@ export function AdminSellersPage() {
           </thead>
           <tbody>
             {sellers.map((seller) => (
-              <tr key={seller.id} className="border-t border-zinc-100">
-                <Td className="font-medium text-zinc-900">{seller.shopName}</Td>
-                <Td>
-                  {seller.ownerName}
-                  <div className="text-xs text-zinc-400">{seller.ownerPhone}</div>
+              <tr
+                key={seller.id}
+                className="border-t border-zinc-100 transition hover:bg-zinc-50"
+              >
+                <Td className="font-medium text-zinc-900">
+                  <Link
+                    href={adminSellerHref(seller.id)}
+                    className="text-brand-700 hover:underline"
+                  >
+                    {seller.shopName}
+                  </Link>
                 </Td>
-                <Td>{seller.location}</Td>
-                <Td className="capitalize">{seller.category}</Td>
-                <Td>{seller.listings}</Td>
                 <Td>
-                  {new Date(seller.completedAt).toLocaleDateString(undefined, {
-                    dateStyle: "medium",
-                  })}
+                  <Link
+                    href={adminSellerHref(seller.id)}
+                    className="block text-zinc-600"
+                  >
+                    {seller.ownerName}
+                    <div className="text-xs text-zinc-400">{seller.ownerPhone}</div>
+                  </Link>
+                </Td>
+                <Td>
+                  <Link
+                    href={adminSellerHref(seller.id)}
+                    className="block text-zinc-600"
+                  >
+                    {seller.location}
+                  </Link>
+                </Td>
+                <Td>
+                  <Link
+                    href={adminSellerHref(seller.id)}
+                    className="block capitalize text-zinc-600"
+                  >
+                    {seller.category}
+                  </Link>
+                </Td>
+                <Td>
+                  <Link
+                    href={adminSellerHref(seller.id)}
+                    className="block text-zinc-600"
+                  >
+                    {seller.listings}
+                  </Link>
+                </Td>
+                <Td>
+                  <Link
+                    href={adminSellerHref(seller.id)}
+                    className="block text-zinc-600"
+                  >
+                    {new Date(seller.completedAt).toLocaleDateString(undefined, {
+                      dateStyle: "medium",
+                    })}
+                  </Link>
                 </Td>
               </tr>
             ))}

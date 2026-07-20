@@ -104,19 +104,24 @@ model Order {
 }
 
 model OrderItem {
-  id                String    @id @default(cuid())
-  orderId           String
-  order             Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId         String
-  product           Product   @relation(fields: [productId], references: [id])
-  quantity          Int
-  priceAtPurchase   Float
-  productName       String
-  fulfillmentStatus String    @default("pending")
-  deliveryId        String?
-  delivery          User?     @relation("DeliveryAssignments", fields: [deliveryId], references: [id])
+  id                 String    @id @default(cuid())
+  orderId            String
+  order              Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId          String
+  product            Product   @relation(fields: [productId], references: [id])
+  quantity           Int
+  priceAtPurchase    Float
+  productName        String
+  fulfillmentStatus  String    @default("pending")
+  /** Snapshot: 0 during promo, else platform rate (e.g. 0.1). */
+  commissionRate     Float     @default(0)
+  commissionAmount   Float     @default(0)
+  /** lineTotal − commissionAmount at purchase. */
+  sellerEarnings     Float     @default(0)
+  deliveryId         String?
+  delivery           User?     @relation("DeliveryAssignments", fields: [deliveryId], references: [id])
   deliveryAssignedAt DateTime?
-  deliveredAt       DateTime?
+  deliveredAt        DateTime?
 
   @@index([fulfillmentStatus])
   @@index([deliveryId])

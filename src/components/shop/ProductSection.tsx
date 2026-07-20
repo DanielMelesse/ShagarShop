@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
-import type { Product } from "@/lib/types";
+import type { ProductListItem } from "@/lib/types";
 
 interface ProductSectionProps {
   title: string;
   subtitle: string;
-  products: Product[];
+  products: ProductListItem[];
   viewAllHref?: string;
   viewAllLabel?: string;
   deal?: boolean;

@@ -56,6 +56,18 @@ export function SellerOrderCard({
             <p className="mt-1 text-sm text-zinc-500">
               Qty {order.quantity} · {formatPrice(order.lineTotal)}
             </p>
+            <p className="mt-1 text-sm text-zinc-700">
+              You earn {formatPrice(order.sellerEarnings)}
+              {order.commissionAmount > 0 ? (
+                <span className="text-zinc-400">
+                  {" "}
+                  · fee {formatPrice(order.commissionAmount)} (
+                  {Math.round(order.commissionRate * 100)}%)
+                </span>
+              ) : (
+                <span className="text-brand-700"> · promo 0% fee</span>
+              )}
+            </p>
             <p className="mt-1 text-xs text-zinc-400">
               Order #{order.orderId.slice(-8).toUpperCase()} ·{" "}
               {new Date(order.orderDate).toLocaleDateString("en-US", {

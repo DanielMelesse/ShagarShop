@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { DeliveryJobCard } from "@/components/delivery/DeliveryJobCard";
 import { DeliveryNav } from "@/components/delivery/DeliveryNav";
-import type { DeliveryJob } from "@/lib/delivery";
+import type { CourierDeliveryJob } from "@/lib/delivery";
 
 export function DeliveryAvailableJobs() {
-  const [jobs, setJobs] = useState<DeliveryJob[]>([]);
+  const [jobs, setJobs] = useState<CourierDeliveryJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -63,7 +63,7 @@ export function DeliveryAvailableJobs() {
         <div>
           <h1 className="text-2xl font-bold text-zinc-900">Available deliveries</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Claim a job to take it on the road.
+            Claim a stop to take every ready item for that address.
           </p>
         </div>
         <DeliveryNav />
@@ -87,7 +87,7 @@ export function DeliveryAvailableJobs() {
             <li key={job.id}>
               <DeliveryJobCard
                 job={job}
-                actionLabel="Claim delivery"
+                actionLabel="Claim stop"
                 busy={busyId === job.id}
                 onAction={() => claim(job.id)}
               />

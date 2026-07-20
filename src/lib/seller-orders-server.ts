@@ -1,3 +1,9 @@
+import {
+  commissionRateForSeller,
+  daysLeftInCommissionPromo,
+  isSellerInCommissionPromo,
+  SELLER_COMMISSION_RATE,
+} from "@/lib/commission";
 import { prisma } from "@/lib/db";
 import {
   type FulfillmentStatus,
@@ -26,6 +32,9 @@ function toOrderLine(row: {
   productName: string;
   quantity: number;
   priceAtPurchase: number;
+  commissionRate: number;
+  commissionAmount: number;
+  sellerEarnings: number;
   fulfillmentStatus: string;
   product: { image: string };
   order: {
@@ -40,6 +49,7 @@ function toOrderLine(row: {
   const status = isFulfillmentStatus(row.fulfillmentStatus)
     ? row.fulfillmentStatus
     : "pending";
+  const lineTotal = Math.round(row.priceAtPurchase * row.quantity * 100) / 100;
 
   return {
     id: row.id,
@@ -47,7 +57,13 @@ function toOrderLine(row: {
     productName: row.productName,
     productImage: row.product.image,
     quantity: row.quantity,
-    lineTotal: Math.round(row.priceAtPurchase * row.quantity * 100) / 100,
+    lineTotal,
+    commissionRate: row.commissionRate,
+    commissionAmount: row.commissionAmount,
+    sellerEarnings:
+      row.sellerEarnings > 0
+        ? row.sellerEarnings
+        : Math.round((lineTotal - row.commissionAmount) * 100) / 100,
     fulfillmentStatus: status,
     orderId: row.order.id,
     orderDate: row.order.createdAt.toISOString(),
@@ -58,11 +74,15 @@ function toOrderLine(row: {
   };
 }
 
-export async function getSellerOrderLines(sellerId: string): Promise<SellerOrderLine[]> {
+export async function getSellerOrderLines(
+  sellerId: string,
+  options?: { take?: number },
+): Promise<SellerOrderLine[]> {
   const rows = await prisma.orderItem.findMany({
     where: { product: { sellerId } },
     include: orderItemInclude,
     orderBy: { order: { createdAt: "desc" } },
+    take: options?.take ?? 50,
   });
 
   return rows.map(toOrderLine);
@@ -72,15 +92,27 @@ export async function getSellerDashboardStats(
   sellerId: string,
   orderLines: SellerOrderLine[],
 ): Promise<SellerDashboardStats> {
-  const products = await prisma.product.findMany({
-    where: { sellerId },
-    select: { stock: true, featured: true },
-  });
+  const [products, profile] = await Promise.all([
+    prisma.product.findMany({
+      where: { sellerId },
+      select: { stock: true, featured: true },
+    }),
+    prisma.sellerProfile.findUnique({
+      where: { userId: sellerId },
+      select: { completedAt: true },
+    }),
+  ]);
 
+  const active = orderLines.filter((l) => l.fulfillmentStatus !== "cancelled");
+  const totalRevenue = active.reduce((sum, l) => sum + l.lineTotal, 0);
+  const netEarnings = active.reduce((sum, l) => sum + l.sellerEarnings, 0);
+  const commissionPaid = active.reduce((sum, l) => sum + l.commissionAmount, 0);
   const pendingOrders = orderLines.filter((l) => l.fulfillmentStatus === "pending").length;
-  const totalRevenue = orderLines
-    .filter((l) => l.fulfillmentStatus !== "cancelled")
-    .reduce((sum, l) => sum + l.lineTotal, 0);
+
+  const completedAt = profile?.completedAt;
+  const inCommissionPromo = completedAt
+    ? isSellerInCommissionPromo(completedAt)
+    : false;
 
   return {
     listings: products.length,
@@ -88,6 +120,11 @@ export async function getSellerDashboardStats(
     featured: products.filter((p) => p.featured).length,
     pendingOrders,
     totalRevenue: Math.round(totalRevenue * 100) / 100,
+    netEarnings: Math.round(netEarnings * 100) / 100,
+    commissionPaid: Math.round(commissionPaid * 100) / 100,
+    promoDaysLeft: completedAt ? daysLeftInCommissionPromo(completedAt) : 0,
+    inCommissionPromo,
+    commissionRate: commissionRateForSeller(completedAt),
   };
 }
 
@@ -122,3 +159,5 @@ export async function setSellerOrderItemStatus(
 
   return toOrderLine(updated);
 }
+
+export { SELLER_COMMISSION_RATE };

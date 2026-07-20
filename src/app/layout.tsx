@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Inter, Noto_Sans_Ethiopic } from "next/font/google";
+import { Inter } from "next/font/google";
+import { AmharicFontLoader } from "@/components/AmharicFontLoader";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { HeaderNav } from "@/components/HeaderNav";
@@ -9,12 +10,7 @@ import "./globals.css";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-});
-
-const notoSansEthiopic = Noto_Sans_Ethiopic({
-  subsets: ["ethiopic"],
-  variable: "--font-ethiopic",
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -30,11 +26,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${notoSansEthiopic.variable} flex min-h-screen flex-col font-sans`}
+        className={`${inter.variable} flex min-h-screen flex-col font-sans`}
         suppressHydrationWarning
       >
         <Providers>
-          <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-md">
+          <AmharicFontLoader />
+          <div className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
             <div className="relative z-20">
               <Header />
             </div>

@@ -5,7 +5,7 @@ import { ALL_DEPARTMENTS_HREF, ALL_DEPARTMENTS_LABEL } from "@/lib/departments";
 import { getAllDepartmentsCatalog } from "@/lib/products-server";
 import { ALL_PRODUCTS_HREF, TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata = {
   title: `${ALL_DEPARTMENTS_LABEL} — ShegerShop`,

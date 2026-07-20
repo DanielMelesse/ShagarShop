@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ProductCard } from "@/components/ProductCard";
+import { ShopPagination } from "@/components/shop/ShopPagination";
 import {
   ALL_DEPARTMENTS_HREF,
   ALL_DEPARTMENTS_LABEL,
   getDepartmentBySlug,
   isDepartmentSlug,
 } from "@/lib/departments";
-import { filterProductsByDepartment } from "@/lib/products-server";
+import { filterProductsByDepartment, SHOP_PAGE_SIZE } from "@/lib/products-server";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 interface DepartmentPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
 }
 
 export async function generateMetadata({ params }: DepartmentPageProps) {
@@ -25,8 +27,13 @@ export async function generateMetadata({ params }: DepartmentPageProps) {
   };
 }
 
-export default async function DepartmentPage({ params }: DepartmentPageProps) {
+export default async function DepartmentPage({
+  params,
+  searchParams,
+}: DepartmentPageProps) {
   const { slug } = await params;
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1);
 
   if (!isDepartmentSlug(slug)) {
     notFound();
@@ -37,7 +44,12 @@ export default async function DepartmentPage({ params }: DepartmentPageProps) {
   if (department.href) {
     redirect(department.href);
   }
-  const products = await filterProductsByDepartment(slug);
+
+  const { products, total, pageSize } = await filterProductsByDepartment(slug, {
+    page,
+    pageSize: SHOP_PAGE_SIZE,
+  });
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -51,7 +63,7 @@ export default async function DepartmentPage({ params }: DepartmentPageProps) {
 
       <h2 className="mt-4 text-2xl font-bold text-zinc-900">{department.label}</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        {products.length} product{products.length !== 1 ? "s" : ""}
+        {total} product{total !== 1 ? "s" : ""}
       </p>
 
       {products.length === 0 ? (
@@ -68,11 +80,19 @@ export default async function DepartmentPage({ params }: DepartmentPageProps) {
           </Link>
         </div>
       ) : (
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <>
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+          <ShopPagination
+            page={page}
+            totalPages={totalPages}
+            basePath={`/shop/department/${slug}`}
+            searchParams={{}}
+          />
+        </>
       )}
     </div>
   );

@@ -1,23 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { AddToCartButton } from "@/app/product/[id]/AddToCartButton";
 import { ProductImage } from "@/components/ProductImage";
 import { DealsHero } from "@/components/DealsHero";
+import { listItemToCartProduct } from "@/lib/product-mapper";
 import { getDealMeta } from "@/lib/deals";
 import { formatPrice, productNeedsSizeSelection } from "@/lib/products";
-import type { Product } from "@/lib/types";
+import type { ProductListItem } from "@/lib/types";
 
 interface DealsCarouselHeroProps {
-  deals: Product[];
+  deals: ProductListItem[];
   activeCategoryLabel?: string;
 }
 
-const AUTO_ADVANCE_MS = 6000;
-
-function DealSlide({ product }: { product: Product }) {
+function DealSlide({
+  product,
+  priority,
+}: {
+  product: ProductListItem;
+  priority: boolean;
+}) {
   const { listPrice, savingsPercent } = getDealMeta(product);
+  const cartProduct = listItemToCartProduct(product);
 
   return (
     <div className="grid gap-6 lg:grid-cols-2 lg:items-center">
@@ -26,9 +32,10 @@ function DealSlide({ product }: { product: Product }) {
           src={product.image}
           alt={product.name}
           fill
+          variant="gallery"
           className="object-cover"
           sizes="(max-width: 1024px) 100vw, 50vw"
-          priority
+          priority={priority}
         />
         <span className="absolute left-4 top-4 rounded-lg bg-red-600 px-3 py-1 text-sm font-bold text-white shadow">
           Today&apos;s deal · {savingsPercent}% off
@@ -37,7 +44,6 @@ function DealSlide({ product }: { product: Product }) {
 
       <div className="p-6 lg:p-8">
         <h3 className="text-2xl font-bold text-zinc-900 sm:text-3xl">{product.name}</h3>
-        <p className="mt-3 line-clamp-3 text-sm text-zinc-600">{product.description}</p>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-zinc-500">
           <span className="text-amber-500">★</span>
           <span className="font-medium text-zinc-800">{product.rating}</span>
@@ -69,7 +75,7 @@ function DealSlide({ product }: { product: Product }) {
               Choose size & buy
             </Link>
           ) : (
-            <AddToCartButton product={product} />
+            <AddToCartButton product={cartProduct} />
           )}
           <Link
             href={`/product/${product.id}`}
@@ -98,12 +104,6 @@ export function DealsCarouselHero({
     [count],
   );
 
-  useEffect(() => {
-    if (count <= 1) return;
-    const timer = window.setInterval(() => goTo(index + 1), AUTO_ADVANCE_MS);
-    return () => window.clearInterval(timer);
-  }, [count, goTo, index]);
-
   if (count === 0) {
     return (
       <DealsHero dealCount={0} activeCategoryLabel={activeCategoryLabel} />
@@ -122,11 +122,11 @@ export function DealsCarouselHero({
             {title}
           </p>
           <p className="mt-1 text-sm text-amber-900/80">
-            {count} deal{count !== 1 ? "s" : ""} live · shuffled for you
+            {count} deal{count !== 1 ? "s" : ""} live · tap a dot to browse
           </p>
         </div>
 
-        <DealSlide key={deals[index].id} product={deals[index]} />
+        <DealSlide product={deals[index]} priority={index === 0} />
 
         {count > 1 && (
           <div className="flex flex-wrap justify-center gap-2 border-t border-amber-100 px-6 py-4">

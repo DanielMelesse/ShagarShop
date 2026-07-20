@@ -1,9 +1,9 @@
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { NextResponse } from "next/server";
+import sharp from "sharp";
 import { requireSellerSession } from "@/lib/require-seller";
 import {
-  ALLOWED_PRODUCT_IMAGE_TYPES,
   MAX_PRODUCT_IMAGE_BYTES,
   getUploadDir,
   isUploadBlob,
@@ -11,6 +11,10 @@ import {
 } from "@/lib/product-image";
 
 export const runtime = "nodejs";
+
+const GALLERY_MAX_EDGE = 1200;
+const CARD_MAX_EDGE = 400;
+const WEBP_QUALITY = 75;
 
 export async function POST(request: Request) {
   try {
@@ -46,19 +50,50 @@ export async function POST(request: Request) {
       );
     }
 
-    const ext = ALLOWED_PRODUCT_IMAGE_TYPES.get(mime)!;
-    const filename = `${session.user.id.slice(0, 8)}-${Date.now().toString(36)}${ext}`;
-    const uploadDir = getUploadDir();
-    await mkdir(uploadDir, { recursive: true });
-
     const bytes = Buffer.from(await entry.arrayBuffer());
     if (bytes.length === 0) {
       return NextResponse.json({ error: "Image file is empty." }, { status: 400 });
     }
 
-    await writeFile(path.join(uploadDir, filename), bytes);
+    const baseName = `${session.user.id.slice(0, 8)}-${Date.now().toString(36)}`;
+    const filename = `${baseName}.webp`;
+    const cardFilename = `${baseName}-card.webp`;
+    const uploadDir = getUploadDir();
+    await mkdir(uploadDir, { recursive: true });
 
-    return NextResponse.json({ url: `/uploads/products/${filename}` });
+    const pipeline = sharp(bytes, { animated: false }).rotate();
+
+    const galleryBuf = await pipeline
+      .clone()
+      .resize({
+        width: GALLERY_MAX_EDGE,
+        height: GALLERY_MAX_EDGE,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: WEBP_QUALITY })
+      .toBuffer();
+
+    const cardBuf = await pipeline
+      .clone()
+      .resize({
+        width: CARD_MAX_EDGE,
+        height: CARD_MAX_EDGE,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: WEBP_QUALITY })
+      .toBuffer();
+
+    await Promise.all([
+      writeFile(path.join(uploadDir, filename), galleryBuf),
+      writeFile(path.join(uploadDir, cardFilename), cardBuf),
+    ]);
+
+    return NextResponse.json({
+      url: `/uploads/products/${filename}`,
+      cardUrl: `/uploads/products/${cardFilename}`,
+    });
   } catch (error) {
     console.error("[seller/upload]", error);
     return NextResponse.json({ error: "Could not upload image." }, { status: 500 });

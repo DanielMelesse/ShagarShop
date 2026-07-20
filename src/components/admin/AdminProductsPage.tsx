@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminTable, EmptyState, Td, Th } from "@/components/admin/AdminTable";
 import type { AdminProductRow } from "@/lib/admin";
+import { adminProductHref } from "@/lib/admin-routes";
 import { formatPrice } from "@/lib/products";
 
 export function AdminProductsPage() {
@@ -28,7 +30,7 @@ export function AdminProductsPage() {
   return (
     <AdminShell
       title="Products"
-      description="Full catalog across all sellers — inventory, featured deals, and categories."
+      description="Full catalog across all sellers — click a product for inventory, shop, and sales details."
     >
       {error && (
         <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -53,21 +55,54 @@ export function AdminProductsPage() {
           </thead>
           <tbody>
             {products.map((product) => (
-              <tr key={product.id} className="border-t border-zinc-100">
-                <Td className="font-medium text-zinc-900">{product.name}</Td>
-                <Td className="capitalize">{product.category}</Td>
+              <tr
+                key={product.id}
+                className="border-t border-zinc-100 transition hover:bg-zinc-50"
+              >
+                <Td className="font-medium text-zinc-900">
+                  <Link
+                    href={adminProductHref(product.id)}
+                    className="text-brand-700 hover:underline"
+                  >
+                    {product.name}
+                  </Link>
+                </Td>
                 <Td>
-                  {product.shopName ?? product.sellerName ?? "—"}
-                  {product.shopName && product.sellerName && (
-                    <div className="text-xs text-zinc-400">{product.sellerName}</div>
-                  )}
+                  <Link
+                    href={adminProductHref(product.id)}
+                    className="block capitalize"
+                  >
+                    {product.category}
+                  </Link>
                 </Td>
-                <Td className={product.stock <= 5 ? "font-semibold text-amber-700" : ""}>
-                  {product.stock}
+                <Td>
+                  <Link href={adminProductHref(product.id)} className="block">
+                    {product.shopName ?? product.sellerName ?? "—"}
+                    {product.shopName && product.sellerName && (
+                      <div className="text-xs text-zinc-400">
+                        {product.sellerName}
+                      </div>
+                    )}
+                  </Link>
                 </Td>
-                <Td>{product.featured ? "Yes" : "No"}</Td>
+                <Td
+                  className={
+                    product.stock <= 5 ? "font-semibold text-amber-700" : ""
+                  }
+                >
+                  <Link href={adminProductHref(product.id)} className="block">
+                    {product.stock}
+                  </Link>
+                </Td>
+                <Td>
+                  <Link href={adminProductHref(product.id)} className="block">
+                    {product.featured ? "Yes" : "No"}
+                  </Link>
+                </Td>
                 <Td className="text-right font-semibold text-zinc-900">
-                  {formatPrice(product.price)}
+                  <Link href={adminProductHref(product.id)} className="block">
+                    {formatPrice(product.price)}
+                  </Link>
                 </Td>
               </tr>
             ))}

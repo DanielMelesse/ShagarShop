@@ -47,6 +47,9 @@ export interface SellerOrderLine {
   productImage: string;
   quantity: number;
   lineTotal: number;
+  commissionRate: number;
+  commissionAmount: number;
+  sellerEarnings: number;
   fulfillmentStatus: FulfillmentStatus;
   orderId: string;
   orderDate: string;
@@ -61,5 +64,15 @@ export interface SellerDashboardStats {
   unitsInStock: number;
   featured: number;
   pendingOrders: number;
+  /** Gross product sales (before commission). */
   totalRevenue: number;
+  /** Net after ShegerShop commission. */
+  netEarnings: number;
+  /** Platform commission taken. */
+  commissionPaid: number;
+  /** Days left in 0% promo; 0 if promo ended. */
+  promoDaysLeft: number;
+  /** True while seller pays 0% commission. */
+  inCommissionPromo: boolean;
+  commissionRate: number;
 }

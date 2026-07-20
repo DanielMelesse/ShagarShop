@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminTable, EmptyState, Td, Th } from "@/components/admin/AdminTable";
 import type { AdminCustomerRow } from "@/lib/admin";
+import { adminCustomerHref } from "@/lib/admin-routes";
 
 export function AdminCustomersPage() {
   const [customers, setCustomers] = useState<AdminCustomerRow[]>([]);
@@ -27,7 +29,7 @@ export function AdminCustomersPage() {
   return (
     <AdminShell
       title="Customers"
-      description="All accounts on the platform (Shopify-style customer directory)."
+      description="All accounts on the platform — click a customer for spend, orders, and linked profiles."
     >
       {error && (
         <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -52,20 +54,58 @@ export function AdminCustomersPage() {
           </thead>
           <tbody>
             {customers.map((customer) => (
-              <tr key={customer.id} className="border-t border-zinc-100">
-                <Td className="font-medium text-zinc-900">{customer.name}</Td>
-                <Td>{customer.phone}</Td>
-                <Td>{customer.email ?? "—"}</Td>
-                <Td>
-                  <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700">
-                    {customer.role}
-                  </span>
+              <tr
+                key={customer.id}
+                className="border-t border-zinc-100 transition hover:bg-zinc-50"
+              >
+                <Td className="font-medium text-zinc-900">
+                  <Link
+                    href={adminCustomerHref(customer.id)}
+                    className="text-brand-700 hover:underline"
+                  >
+                    {customer.name}
+                  </Link>
                 </Td>
-                <Td>{customer.orderCount}</Td>
                 <Td>
-                  {new Date(customer.createdAt).toLocaleDateString(undefined, {
-                    dateStyle: "medium",
-                  })}
+                  <Link
+                    href={adminCustomerHref(customer.id)}
+                    className="block text-zinc-600"
+                  >
+                    {customer.phone}
+                  </Link>
+                </Td>
+                <Td>
+                  <Link
+                    href={adminCustomerHref(customer.id)}
+                    className="block text-zinc-600"
+                  >
+                    {customer.email ?? "—"}
+                  </Link>
+                </Td>
+                <Td>
+                  <Link href={adminCustomerHref(customer.id)} className="block">
+                    <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700">
+                      {customer.role}
+                    </span>
+                  </Link>
+                </Td>
+                <Td>
+                  <Link
+                    href={adminCustomerHref(customer.id)}
+                    className="block text-zinc-600"
+                  >
+                    {customer.orderCount}
+                  </Link>
+                </Td>
+                <Td>
+                  <Link
+                    href={adminCustomerHref(customer.id)}
+                    className="block text-zinc-600"
+                  >
+                    {new Date(customer.createdAt).toLocaleDateString(undefined, {
+                      dateStyle: "medium",
+                    })}
+                  </Link>
                 </Td>
               </tr>
             ))}

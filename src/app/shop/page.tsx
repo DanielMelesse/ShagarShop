@@ -2,18 +2,26 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DealsPageHero } from "@/components/deals/DealsPageHero";
 import { ProductCard } from "@/components/ProductCard";
+import { ShopPagination } from "@/components/shop/ShopPagination";
 import { shuffleDeals } from "@/lib/deals";
 import { getDepartmentBySlug } from "@/lib/departments";
 import { categories } from "@/lib/products";
 import { isCategory } from "@/lib/product-mapper";
-import { filterProducts } from "@/lib/products-server";
+import { filterProducts, SHOP_PAGE_SIZE } from "@/lib/products-server";
 import { ALL_PRODUCTS_HREF, TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 import type { Category } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 interface ShopPageProps {
-  searchParams: Promise<{ category?: string; department?: string; featured?: string; all?: string; q?: string }>;
+  searchParams: Promise<{
+    category?: string;
+    department?: string;
+    featured?: string;
+    all?: string;
+    q?: string;
+    page?: string;
+  }>;
 }
 
 export default async function ShopPage({ searchParams }: ShopPageProps) {
@@ -23,6 +31,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const query = params.q?.trim();
   const featuredOnly = params.featured === "1";
   const showAllCatalog = params.all === "1";
+  const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
 
   if (!featuredOnly && !showAllCatalog && !categoryParam && !departmentParam && !query) {
     redirect(TODAYS_DEALS_HREF);
@@ -35,30 +44,26 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         ? getDepartmentBySlug(departmentParam)?.productCategory
         : undefined;
 
-  const filtered = featuredOnly
-    ? shuffleDeals(
-        await filterProducts({
-          category,
-          featured: true,
-          query: query || undefined,
-        }),
-      )
-    : await filterProducts({
-        category,
-        query: query || undefined,
-      });
-
   const activeCategory = categories.find((c) => c.id === category);
 
   if (featuredOnly) {
+    const result = await filterProducts({
+      category,
+      featured: true,
+      query: query || undefined,
+      page: 1,
+      pageSize: 48,
+    });
+    const deals = shuffleDeals(result.products);
+
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
         <DealsPageHero
-          deals={filtered}
+          deals={deals}
           activeCategoryLabel={activeCategory?.label}
         />
 
-        {filtered.length === 0 ? (
+        {deals.length === 0 ? (
           <div className="mt-16 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-16 text-center">
             <p className="text-lg font-medium text-zinc-800">No deals found</p>
             <p className="mt-2 text-sm text-zinc-500">
@@ -76,13 +81,13 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
             <div className="mt-10">
               <h2 className="text-xl font-bold text-zinc-900">All deals</h2>
               <p className="mt-1 text-sm text-zinc-500">
-                {filtered.length} product
-                {filtered.length !== 1 ? "s" : ""} · randomly sorted
+                {deals.length} product
+                {deals.length !== 1 ? "s" : ""} · randomly sorted
               </p>
             </div>
 
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filtered.map((product) => (
+              {deals.map((product) => (
                 <ProductCard key={product.id} product={product} deal />
               ))}
             </div>
@@ -105,25 +110,50 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     );
   }
 
+  const { products, total, pageSize } = await filterProducts({
+    category,
+    query: query || undefined,
+    page,
+    pageSize: SHOP_PAGE_SIZE,
+  });
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <p>
         <Link
-          href="/shop?featured=1"
+          href={TODAYS_DEALS_HREF}
           className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-900 transition hover:bg-amber-200"
         >
-          🔥 Today&apos;s Deals — limited-time savings
+          Today&apos;s Deals — limited-time savings
         </Link>
       </p>
 
-      {filtered.length === 0 ? (
+      {products.length === 0 ? (
         <p className="mt-16 text-center text-zinc-500">No products found.</p>
       ) : (
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <>
+          <p className="mt-6 text-sm text-zinc-500">
+            Showing {(page - 1) * pageSize + 1}–
+            {Math.min(page * pageSize, total)} of {total}
+          </p>
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+          <ShopPagination
+            page={page}
+            totalPages={totalPages}
+            searchParams={{
+              ...(categoryParam ? { category: categoryParam } : {}),
+              ...(departmentParam ? { department: departmentParam } : {}),
+              ...(showAllCatalog ? { all: "1" } : {}),
+              ...(query ? { q: query } : {}),
+            }}
+          />
+        </>
       )}
     </div>
   );

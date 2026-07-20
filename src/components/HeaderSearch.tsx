@@ -28,10 +28,10 @@ import {
   type SearchDepartment,
 } from "@/lib/products";
 import { headerSearchButtonClass } from "@/lib/header-ui";
-import type { Product } from "@/lib/types";
+import type { ProductListItem } from "@/lib/types";
 
 type DropdownItem =
-  | { type: "product"; product: Product }
+  | { type: "product"; product: ProductListItem }
   | { type: "category"; id: string; label: string }
   | { type: "see-all"; query: string };
 
@@ -215,7 +215,7 @@ export function HeaderSearch() {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [searchResults, setSearchResults] = useState<ProductListItem[]>([]);
 
   useEffect(() => {
     const match = pathname.match(/^\/shop\/department\/([^/]+)/);
@@ -229,22 +229,24 @@ export function HeaderSearch() {
   }, [pathname]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setDebouncedQuery(query), 200);
+    const timer = window.setTimeout(() => setDebouncedQuery(query), 280);
     return () => window.clearTimeout(timer);
   }, [query]);
 
   useEffect(() => {
     const q = debouncedQuery.trim();
-    if (!q) {
-      setSearchResults([]);
+    if (!open || !q) {
+      if (!q) setSearchResults([]);
       return;
     }
     const params = new URLSearchParams({ q, department });
-    fetch(`/api/products/search?${params}`)
+    const controller = new AbortController();
+    fetch(`/api/products/search?${params}`, { signal: controller.signal })
       .then((res) => res.json())
       .then((data) => setSearchResults(data.products ?? []))
       .catch(() => setSearchResults([]));
-  }, [debouncedQuery, department]);
+    return () => controller.abort();
+  }, [debouncedQuery, department, open]);
 
   const trimmed = query.trim();
   const hasQuery = trimmed.length > 0;
@@ -261,7 +263,9 @@ export function HeaderSearch() {
     ];
   }, [debouncedQuery, department, searchResults]);
 
-  const products = items.filter((i): i is { type: "product"; product: Product } => i.type === "product");
+  const products = items.filter(
+    (i): i is { type: "product"; product: ProductListItem } => i.type === "product",
+  );
   const matchedCategories = items.filter(
     (i): i is { type: "category"; id: string; label: string } => i.type === "category",
   );
@@ -460,6 +464,7 @@ export function HeaderSearch() {
                           src={item.product.image}
                           alt=""
                           fill
+                          variant="thumb"
                           className="object-cover"
                           sizes="40px"
                         />

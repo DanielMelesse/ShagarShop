@@ -1,18 +1,25 @@
 import { prisma } from "@/lib/db";
-import { toProduct } from "@/lib/product-mapper";
+import {
+  PRODUCT_LIST_SELECT,
+  toProduct,
+  toProductListItem,
+} from "@/lib/product-mapper";
 import { getDepartmentBySlug } from "@/lib/departments";
 import { sortDeals } from "@/lib/deals";
-import type { Category, Product } from "@/lib/types";
+import type { Category, Product, ProductListItem } from "@/lib/types";
 import type { SearchDepartment } from "@/lib/products";
+import { Prisma } from "@prisma/client";
 
 const CATALOG_SECTION_LIMIT = 8;
+export const SHOP_PAGE_SIZE = 24;
 
-export async function getFeaturedProducts(): Promise<Product[]> {
+export async function getFeaturedProducts(): Promise<ProductListItem[]> {
   const rows = await prisma.product.findMany({
     where: { featured: true },
+    select: PRODUCT_LIST_SELECT,
     orderBy: { name: "asc" },
   });
-  return rows.map(toProduct);
+  return rows.map(toProductListItem);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
@@ -24,75 +31,128 @@ export async function filterProducts(options: {
   category?: Category;
   featured?: boolean;
   query?: string;
-}): Promise<Product[]> {
-  const rows = await prisma.product.findMany({
-    where: {
-      ...(options.category ? { category: options.category } : {}),
-      ...(options.featured ? { featured: true } : {}),
-    },
-    orderBy: options.featured
-      ? [{ rating: "desc" }, { reviewCount: "desc" }]
-      : { name: "asc" },
-  });
-  let products = rows.map(toProduct);
-  if (options.query) {
-    const q = options.query.toLowerCase();
-    products = products.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q),
-    );
-  }
-  return products;
+  page?: number;
+  pageSize?: number;
+}): Promise<{ products: ProductListItem[]; total: number; page: number; pageSize: number }> {
+  const pageSize = options.pageSize ?? SHOP_PAGE_SIZE;
+  const page = Math.max(1, options.page ?? 1);
+  const q = options.query?.trim();
+
+  const where: Prisma.ProductWhereInput = {
+    ...(options.category ? { category: options.category } : {}),
+    ...(options.featured ? { featured: true } : {}),
+    ...(q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+            { category: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
+
+  const [total, rows] = await Promise.all([
+    prisma.product.count({ where }),
+    prisma.product.findMany({
+      where,
+      select: PRODUCT_LIST_SELECT,
+      orderBy: options.featured
+        ? [{ rating: "desc" }, { reviewCount: "desc" }]
+        : { name: "asc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  ]);
+
+  return {
+    products: rows.map(toProductListItem),
+    total,
+    page,
+    pageSize,
+  };
 }
 
-export async function filterProductsByDepartment(slug: string): Promise<Product[]> {
+/** Featured deals for home/hero — capped, no pagination UI. */
+export async function getDealsProducts(limit = 48): Promise<ProductListItem[]> {
+  const rows = await prisma.product.findMany({
+    where: { featured: true },
+    select: PRODUCT_LIST_SELECT,
+    orderBy: [{ rating: "desc" }, { reviewCount: "desc" }],
+    take: limit,
+  });
+  return rows.map(toProductListItem);
+}
+
+export async function filterProductsByDepartment(
+  slug: string,
+  options?: { page?: number; pageSize?: number },
+): Promise<{ products: ProductListItem[]; total: number; page: number; pageSize: number }> {
   const department = getDepartmentBySlug(slug);
+  const pageSize = options?.pageSize ?? SHOP_PAGE_SIZE;
+  const page = Math.max(1, options?.page ?? 1);
+
   if (!department) {
-    return [];
+    return { products: [], total: 0, page, pageSize };
   }
 
-  const rows = await prisma.product.findMany({
-    where: {
-      OR: [
-        { category: slug },
-        ...(department.productCategory ? [{ category: department.productCategory }] : []),
-      ],
-    },
-    orderBy: { name: "asc" },
-  });
+  const where: Prisma.ProductWhereInput = {
+    OR: [
+      { category: slug },
+      ...(department.productCategory ? [{ category: department.productCategory }] : []),
+    ],
+  };
 
-  return rows.map(toProduct);
+  const [total, rows] = await Promise.all([
+    prisma.product.count({ where }),
+    prisma.product.findMany({
+      where,
+      select: PRODUCT_LIST_SELECT,
+      orderBy: { name: "asc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  ]);
+
+  return {
+    products: rows.map(toProductListItem),
+    total,
+    page,
+    pageSize,
+  };
 }
 
 export async function getAllDepartmentsCatalog() {
   const [featuredRows, hotRows, bestSellerRows] = await Promise.all([
     prisma.product.findMany({
       where: { featured: true, stock: { gt: 0 } },
+      select: PRODUCT_LIST_SELECT,
       orderBy: [{ rating: "desc" }, { reviewCount: "desc" }],
+      take: CATALOG_SECTION_LIMIT * 2,
     }),
     prisma.product.findMany({
       where: {
         stock: { gt: 0 },
         OR: [{ featured: true }, { stock: { lte: 25 } }, { rating: { gte: 4.5 } }],
       },
+      select: PRODUCT_LIST_SELECT,
       orderBy: [{ rating: "desc" }, { reviewCount: "desc" }],
       take: CATALOG_SECTION_LIMIT * 2,
     }),
     prisma.product.findMany({
       where: { stock: { gt: 0 } },
+      select: PRODUCT_LIST_SELECT,
       orderBy: [{ reviewCount: "desc" }, { rating: "desc" }],
       take: CATALOG_SECTION_LIMIT,
     }),
   ]);
 
-  const bestDeals = sortDeals(featuredRows.map(toProduct)).slice(
+  const bestDeals = sortDeals(featuredRows.map(toProductListItem)).slice(
     0,
     CATALOG_SECTION_LIMIT,
   );
-  const hotItems = hotRows.map(toProduct).slice(0, CATALOG_SECTION_LIMIT);
-  const bestSellers = bestSellerRows.map(toProduct);
+  const hotItems = hotRows.map(toProductListItem).slice(0, CATALOG_SECTION_LIMIT);
+  const bestSellers = bestSellerRows.map(toProductListItem);
 
   return { bestDeals, hotItems, bestSellers };
 }
@@ -101,46 +161,45 @@ export async function searchProductsDb(
   query: string,
   limit = 6,
   department: SearchDepartment = "all",
-): Promise<Product[]> {
-  const q = query.trim().toLowerCase();
+): Promise<ProductListItem[]> {
+  const q = query.trim();
   if (!q) return [];
+
+  const textFilter: Prisma.ProductWhereInput = {
+    OR: [
+      { name: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+      { category: { contains: q, mode: "insensitive" } },
+    ],
+  };
+
+  let where: Prisma.ProductWhereInput = textFilter;
 
   if (department !== "all") {
     const dept = getDepartmentBySlug(department);
-    const rows = await prisma.product.findMany({
-      where: dept
-        ? {
-            OR: [
-              { category: department },
-              ...(dept.productCategory ? [{ category: dept.productCategory }] : []),
-            ],
-          }
-        : { category: department },
-      orderBy: { name: "asc" },
-    });
-
-    return rows
-      .map(toProduct)
-      .filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q),
-      )
-      .slice(0, limit);
+    where = {
+      AND: [
+        textFilter,
+        dept
+          ? {
+              OR: [
+                { category: department },
+                ...(dept.productCategory
+                  ? [{ category: dept.productCategory }]
+                  : []),
+              ],
+            }
+          : { category: department },
+      ],
+    };
   }
 
   const rows = await prisma.product.findMany({
+    where,
+    select: PRODUCT_LIST_SELECT,
     orderBy: { name: "asc" },
+    take: limit,
   });
 
-  return rows
-    .map(toProduct)
-    .filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q),
-    )
-    .slice(0, limit);
+  return rows.map(toProductListItem);
 }

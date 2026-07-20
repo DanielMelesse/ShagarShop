@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   SELLER_ADD,
+  SELLER_EARNINGS,
   SELLER_HOME,
   SELLER_LISTINGS,
   SELLER_ORDERS,
@@ -13,6 +14,7 @@ const tabs = [
   { href: SELLER_HOME, label: "Overview" },
   { href: SELLER_LISTINGS, label: "Listings" },
   { href: SELLER_ORDERS, label: "Orders" },
+  { href: SELLER_EARNINGS, label: "Earnings" },
 ] as const;
 
 export function SellerNav() {

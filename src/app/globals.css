@@ -17,6 +17,8 @@ body {
   @apply bg-zinc-50 text-zinc-900 antialiased;
 }
 
-html[data-locale="am"] body {
-  font-family: var(--font-ethiopic), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+html[data-locale="am"] body,
+html.locale-am body {
+  font-family: "Noto Sans Ethiopic", var(--font-inter), ui-sans-serif, system-ui,
+    sans-serif;
 }

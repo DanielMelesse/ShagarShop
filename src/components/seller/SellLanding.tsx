@@ -23,7 +23,7 @@ const steps = [
 ];
 
 const perks = [
-  "No listing fees during early access",
+  "0% commission for your first 30 days, then 10%",
   "Free shipping threshold applies to your buyers",
   "Featured deal eligibility for top-rated listings",
   "Seller support via email",

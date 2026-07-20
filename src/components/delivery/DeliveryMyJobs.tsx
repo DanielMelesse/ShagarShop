@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { DeliveryJobCard } from "@/components/delivery/DeliveryJobCard";
 import { DeliveryNav } from "@/components/delivery/DeliveryNav";
-import type { DeliveryJob } from "@/lib/delivery";
+import type { CourierDeliveryJob } from "@/lib/delivery";
 
 export function DeliveryMyJobs() {
-  const [jobs, setJobs] = useState<DeliveryJob[]>([]);
+  const [jobs, setJobs] = useState<CourierDeliveryJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -94,7 +94,7 @@ export function DeliveryMyJobs() {
                   <li key={job.id}>
                     <DeliveryJobCard
                       job={job}
-                      actionLabel="Mark delivered"
+                      actionLabel="Mark stop delivered"
                       busy={busyId === job.id}
                       onAction={() => deliver(job.id)}
                     />

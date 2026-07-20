@@ -1,14 +1,18 @@
 import type { Locale } from "./config";
-import { am } from "./messages/am";
 import { en, type Messages } from "./messages/en";
 
-const catalogs: Record<Locale, Messages> = {
-  en,
-  am,
-};
-
+/** Sync fallback (English). Amharic is loaded via `loadMessages` on the client. */
 export function getMessages(locale: Locale): Messages {
-  return catalogs[locale] ?? en;
+  if (locale === "en") return en;
+  return en;
+}
+
+export async function loadMessages(locale: Locale): Promise<Messages> {
+  if (locale === "am") {
+    const mod = await import("./messages/am");
+    return mod.am;
+  }
+  return en;
 }
 
 export function createTranslator(messages: Messages) {

@@ -1,6 +1,6 @@
 import type { ShippingLineInput } from "@/lib/shipping";
 import { calculateCartShipping, ORDER_BASE_SHIPPING_BIRR } from "@/lib/shipping";
-import type { Category, Product } from "./types";
+import type { Category, Product, ProductListItem } from "./types";
 import {
   departments,
   getDepartmentBySlug,
@@ -56,7 +56,9 @@ function resolveSizeCategory(categoryValue: string): Category | null {
 }
 
 /** Sizes a shopper can pick on the product page. */
-export function getCustomerSizeOptions(product: Product): readonly string[] {
+export function getCustomerSizeOptions(
+  product: Pick<Product, "category" | "size"> | Pick<ProductListItem, "category" | "size">,
+): readonly string[] {
   const category = resolveSizeCategory(product.category);
   if (!category || !categoryNeedsSize(category)) return [];
 
@@ -67,7 +69,9 @@ export function getCustomerSizeOptions(product: Product): readonly string[] {
   return options;
 }
 
-export function productNeedsSizeSelection(product: Product): boolean {
+export function productNeedsSizeSelection(
+  product: Pick<Product, "category" | "size"> | Pick<ProductListItem, "category" | "size">,
+): boolean {
   return getCustomerSizeOptions(product).length > 0;
 }
 
@@ -150,11 +154,19 @@ export function calculateOrderTotals(
 }
 
 export function shippingLinesFromCart(
-  items: { quantity: number; product: { shippingTier?: string; extraShippingBirr?: number } }[],
+  items: {
+    quantity: number;
+    product: {
+      shippingTier?: string;
+      extraShippingBirr?: number;
+      sellerId?: string | null;
+    };
+  }[],
 ): ShippingLineInput[] {
   return items.map((item) => ({
     quantity: item.quantity,
     shippingTier: item.product.shippingTier,
     extraShippingBirr: item.product.extraShippingBirr,
+    sellerId: item.product.sellerId,
   }));
 }

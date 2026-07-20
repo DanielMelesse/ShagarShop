@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { SellerOrderCard } from "@/components/seller/SellerOrderCard";
 import { SellerPageHeader } from "@/components/seller/SellerPageHeader";
+import { SELLER_COMMISSION_RATE } from "@/lib/commission";
 import { formatPrice } from "@/lib/products";
 import {
   fetchSellerOrders,
   updateSellerOrderStatus,
 } from "@/lib/seller-orders-client";
 import type { FulfillmentStatus, SellerDashboardStats, SellerOrderLine } from "@/lib/seller-orders";
-import { SELLER_ADD, SELLER_LISTINGS, SELLER_ORDERS } from "@/lib/seller-routes";
+import { SELLER_ADD, SELLER_EARNINGS, SELLER_LISTINGS, SELLER_ORDERS } from "@/lib/seller-routes";
 
 export function SellerDashboard() {
   const [stats, setStats] = useState<SellerDashboardStats | null>(null);
@@ -75,15 +76,39 @@ export function SellerDashboard() {
         <div className="mt-8 h-40 animate-pulse rounded-2xl bg-zinc-100" />
       ) : (
         <>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {stats?.inCommissionPromo && (
+            <div className="mt-6 rounded-2xl border border-brand-200 bg-brand-50 px-5 py-4 text-sm text-brand-900">
+              <p className="font-semibold">Launch promo: 0% commission</p>
+              <p className="mt-1 text-brand-800">
+                {stats.promoDaysLeft} day{stats.promoDaysLeft === 1 ? "" : "s"} left.
+                After that, ShegerShop takes {Math.round(SELLER_COMMISSION_RATE * 100)}% of
+                product sales.
+              </p>
+            </div>
+          )}
+
+          {!stats?.inCommissionPromo && stats && (
+            <p className="mt-6 text-sm text-zinc-500">
+              Platform fee: {Math.round(SELLER_COMMISSION_RATE * 100)}% of product sales
+              (delivery fees are separate).
+            </p>
+          )}
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {[
               { label: "Listings", value: stats?.listings ?? 0, href: SELLER_LISTINGS },
               { label: "Units in stock", value: stats?.unitsInStock ?? 0 },
               { label: "Featured", value: stats?.featured ?? 0 },
               { label: "Pending orders", value: stats?.pendingOrders ?? 0, href: SELLER_ORDERS },
               {
-                label: "Total revenue",
+                label: "Gross sales",
                 value: formatPrice(stats?.totalRevenue ?? 0),
+                href: SELLER_EARNINGS,
+              },
+              {
+                label: "Your earnings",
+                value: formatPrice(stats?.netEarnings ?? 0),
+                href: SELLER_EARNINGS,
               },
             ].map((stat) => (
               <div
@@ -123,6 +148,12 @@ export function SellerDashboard() {
               className="rounded-xl border border-zinc-300 px-5 py-2.5 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
             >
               View all orders
+            </Link>
+            <Link
+              href={SELLER_EARNINGS}
+              className="rounded-xl border border-zinc-300 px-5 py-2.5 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
+            >
+              View earnings
             </Link>
           </div>
 

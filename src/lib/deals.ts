@@ -1,4 +1,6 @@
-import type { Product } from "@/lib/types";
+import type { ProductListItem } from "@/lib/types";
+
+type Dealable = Pick<ProductListItem, "id" | "price" | "rating">;
 
 /** Stable "was" price for demo deals (no list price in DB). */
 export function getListPrice(price: number, productId: string): number {
@@ -11,13 +13,13 @@ export function getSavingsPercent(price: number, listPrice: number): number {
   return Math.round((1 - price / listPrice) * 100);
 }
 
-export function getDealMeta(product: Product) {
+export function getDealMeta(product: Dealable) {
   const listPrice = getListPrice(product.price, product.id);
   const savingsPercent = getSavingsPercent(product.price, listPrice);
   return { listPrice, savingsPercent };
 }
 
-export function sortDeals(products: Product[]): Product[] {
+export function sortDeals<T extends Dealable>(products: T[]): T[] {
   return [...products].sort((a, b) => {
     const saveA = getSavingsPercent(a.price, getListPrice(a.price, a.id));
     const saveB = getSavingsPercent(b.price, getListPrice(b.price, b.id));
@@ -27,7 +29,7 @@ export function sortDeals(products: Product[]): Product[] {
 }
 
 /** Fisher–Yates shuffle for a fresh random deal order each page load. */
-export function shuffleDeals(products: Product[]): Product[] {
+export function shuffleDeals<T>(products: T[]): T[] {
   const shuffled = [...products];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));

@@ -1,6 +1,10 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
+import {
+  commissionRateForSeller,
+  settleLineCommission,
+} from "@/lib/commission";
 import { prisma } from "@/lib/db";
 import { calculateOrderTotals } from "@/lib/products";
 import type { ShippingLineInput } from "@/lib/shipping";
@@ -46,6 +50,13 @@ export async function POST(request: Request) {
 
     const products = await prisma.product.findMany({
       where: { id: { in: items.map((i) => i.productId) } },
+      include: {
+        seller: {
+          select: {
+            sellerProfile: { select: { completedAt: true } },
+          },
+        },
+      },
     });
     if (products.length !== items.length) {
       return NextResponse.json({ error: "Invalid product in cart." }, { status: 400 });
@@ -59,8 +70,12 @@ export async function POST(request: Request) {
       quantity: number;
       priceAtPurchase: number;
       productName: string;
+      commissionRate: number;
+      commissionAmount: number;
+      sellerEarnings: number;
     }[] = [];
 
+    const now = new Date();
     for (const item of items) {
       const product = productMap.get(item.productId);
       if (!product || item.quantity < 1 || item.quantity > product.stock) {
@@ -69,17 +84,29 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       }
-      subtotal += product.price * item.quantity;
+      const lineTotal = product.price * item.quantity;
+      subtotal += lineTotal;
       shippingLines.push({
         quantity: item.quantity,
         shippingTier: product.shippingTier,
         extraShippingBirr: product.extraShippingBirr,
+        sellerId: product.sellerId,
       });
+
+      const rate = commissionRateForSeller(
+        product.seller?.sellerProfile?.completedAt,
+        now,
+      );
+      const settled = settleLineCommission(lineTotal, rate);
+
       lineItems.push({
         productId: product.id,
         quantity: item.quantity,
         priceAtPurchase: product.price,
         productName: product.name,
+        commissionRate: settled.commissionRate,
+        commissionAmount: settled.commissionAmount,
+        sellerEarnings: settled.sellerEarnings,
       });
     }
 

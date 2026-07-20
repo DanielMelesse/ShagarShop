@@ -12,11 +12,13 @@ import {
 import {
   createTranslator,
   DEFAULT_LOCALE,
-  getMessages,
+  loadMessages,
   isLocale,
   LOCALE_STORAGE_KEY,
   type Locale,
+  type Messages,
 } from "@/i18n";
+import { en } from "@/i18n/messages/en";
 
 type LocaleContextValue = {
   locale: Locale;
@@ -29,6 +31,7 @@ const LocaleContext = createContext<LocaleContextValue | null>(null);
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
+  const [messages, setMessages] = useState<Messages>(en);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -40,20 +43,27 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!ready) {
-      return;
-    }
-
+    if (!ready) return;
     localStorage.setItem(LOCALE_STORAGE_KEY, locale);
     document.documentElement.lang = locale;
     document.documentElement.dataset.locale = locale;
   }, [locale, ready]);
 
+  useEffect(() => {
+    let cancelled = false;
+    void loadMessages(locale).then((next) => {
+      if (!cancelled) setMessages(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [locale]);
+
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
   }, []);
 
-  const t = useMemo(() => createTranslator(getMessages(locale)), [locale]);
+  const t = useMemo(() => createTranslator(messages), [messages]);
 
   const value = useMemo(
     () => ({ locale, setLocale, t, ready }),

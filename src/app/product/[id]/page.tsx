@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/products";
 import { getProductById } from "@/lib/products-server";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;

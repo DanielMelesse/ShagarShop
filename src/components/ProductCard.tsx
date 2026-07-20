@@ -1,25 +1,25 @@
-"use client";
-
-import { ProductImage } from "@/components/ProductImage";
 import Link from "next/link";
-import { useCart } from "@/context/CartContext";
+import { ProductCardAddButton } from "@/components/ProductCardAddButton";
+import { ProductImage } from "@/components/ProductImage";
 import { getDealMeta } from "@/lib/deals";
-import { formatPrice, productNeedsSizeSelection } from "@/lib/products";
-import type { Product } from "@/lib/types";
+import { formatPrice } from "@/lib/products";
+import type { ProductListItem } from "@/lib/types";
 
 export function ProductCard({
   product,
   deal = false,
 }: {
-  product: Product;
+  product: ProductListItem;
   deal?: boolean;
 }) {
-  const { addItem } = useCart();
   const dealMeta = deal ? getDealMeta(product) : null;
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:border-brand-200 hover:shadow-md">
-      <Link href={`/product/${product.id}`} className="relative aspect-square overflow-hidden bg-zinc-100">
+      <Link
+        href={`/product/${product.id}`}
+        className="relative aspect-square overflow-hidden bg-zinc-100"
+      >
         {dealMeta && (
           <span className="absolute left-2 top-2 z-10 rounded-md bg-red-600 px-2 py-1 text-xs font-bold text-white shadow">
             -{dealMeta.savingsPercent}%
@@ -34,8 +34,9 @@ export function ProductCard({
           src={product.image}
           alt={product.name}
           fill
+          variant="card"
           className="object-cover transition duration-300 group-hover:scale-105"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
       </Link>
       <div className="flex flex-1 flex-col p-4">
@@ -74,22 +75,7 @@ export function ProductCard({
                 Save {dealMeta.savingsPercent}%
               </span>
             )}
-            {productNeedsSizeSelection(product) ? (
-              <Link
-                href={`/product/${product.id}`}
-                className="ml-auto rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-brand-700"
-              >
-                Choose size
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={() => addItem(product)}
-                className="ml-auto rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-brand-700"
-              >
-                Add
-              </button>
-            )}
+            <ProductCardAddButton product={product} />
           </div>
         </div>
       </div>

@@ -5,13 +5,14 @@ import Link from "next/link";
 import { DeliveryNav } from "@/components/delivery/DeliveryNav";
 import { DeliveryJobCard } from "@/components/delivery/DeliveryJobCard";
 import { useAuth } from "@/hooks/useAuth";
-import type { DeliveryJob, DeliveryStats } from "@/lib/delivery";
+import type { CourierDeliveryJob, DeliveryStats } from "@/lib/delivery";
 import {
   DELIVERY_VEHICLE_LABELS,
   isDeliveryVehicleType,
   type DeliveryVehicleType,
 } from "@/lib/delivery";
 import { DELIVERY_AVAILABLE, DELIVERY_MINE } from "@/lib/delivery-routes";
+import { formatPrice } from "@/lib/products";
 
 interface MeResponse {
   profile: {
@@ -24,7 +25,7 @@ interface MeResponse {
 export function DeliveryDashboard() {
   const { user } = useAuth();
   const [me, setMe] = useState<MeResponse | null>(null);
-  const [jobs, setJobs] = useState<DeliveryJob[]>([]);
+  const [jobs, setJobs] = useState<CourierDeliveryJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -115,11 +116,20 @@ export function DeliveryDashboard() {
         </p>
       )}
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: "Available", value: me?.stats.available ?? 0, href: DELIVERY_AVAILABLE },
-          { label: "On the way", value: me?.stats.active ?? 0, href: DELIVERY_MINE },
-          { label: "Delivered today", value: me?.stats.deliveredToday ?? 0, href: DELIVERY_MINE },
+          { label: "Available", value: String(me?.stats.available ?? 0), href: DELIVERY_AVAILABLE },
+          { label: "On the way", value: String(me?.stats.active ?? 0), href: DELIVERY_MINE },
+          {
+            label: "Delivered today",
+            value: String(me?.stats.deliveredToday ?? 0),
+            href: DELIVERY_MINE,
+          },
+          {
+            label: "Earnings today",
+            value: formatPrice(me?.stats.earningsToday ?? 0),
+            href: DELIVERY_MINE,
+          },
         ].map((stat) => (
           <Link
             key={stat.label}
@@ -152,7 +162,7 @@ export function DeliveryDashboard() {
               <li key={job.id}>
                 <DeliveryJobCard
                   job={job}
-                  actionLabel="Claim delivery"
+                  actionLabel="Claim stop"
                   busy={busyId === job.id}
                   onAction={() => claim(job.id)}
                 />

@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { slimProductForCart } from "@/lib/product-mapper";
 import type { CartItem, Product } from "@/lib/types";
 
 interface AddItemOptions {
@@ -35,6 +36,12 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | null>(null);
 
 const STORAGE_KEY = "sheger-cart";
+const STORAGE_VERSION = 2;
+
+type StoredCart = {
+  v: number;
+  items: CartItem[];
+};
 
 function sameLine(
   item: CartItem,
@@ -44,11 +51,29 @@ function sameLine(
   return item.product.id === productId && item.selectedSize === selectedSize;
 }
 
+function normalizeStoredItem(raw: CartItem): CartItem | null {
+  if (!raw?.product?.id) return null;
+  return {
+    quantity: Math.max(1, raw.quantity || 1),
+    selectedSize: raw.selectedSize,
+    product: slimProductForCart(raw.product as Product),
+  };
+}
+
 function loadCart(): CartItem[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as CartItem[]) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as StoredCart | CartItem[];
+    const list = Array.isArray(parsed)
+      ? parsed
+      : Array.isArray(parsed.items)
+        ? parsed.items
+        : [];
+    return list
+      .map(normalizeStoredItem)
+      .filter((item): item is CartItem => item !== null);
   } catch {
     return [];
   }
@@ -64,28 +89,39 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (isReady) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    }
+    if (!isReady) return;
+    const payload: StoredCart = {
+      v: STORAGE_VERSION,
+      items: items.map((item) => ({
+        ...item,
+        product: slimProductForCart(item.product),
+      })),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   }, [items, isReady]);
 
   const addItem = useCallback((product: Product, options?: AddItemOptions) => {
     const quantity = options?.quantity ?? 1;
     const selectedSize = options?.selectedSize;
+    const snapshot = slimProductForCart(product);
     setItems((prev) => {
       const existing = prev.find((i) => sameLine(i, product.id, selectedSize));
       if (existing) {
         return prev.map((i) =>
           sameLine(i, product.id, selectedSize)
-            ? { ...i, quantity: Math.min(i.quantity + quantity, product.stock) }
+            ? {
+                ...i,
+                quantity: Math.min(i.quantity + quantity, snapshot.stock),
+                product: snapshot,
+              }
             : i,
         );
       }
       return [
         ...prev,
         {
-          product,
-          quantity: Math.min(quantity, product.stock),
+          product: snapshot,
+          quantity: Math.min(quantity, snapshot.stock),
           selectedSize,
         },
       ];

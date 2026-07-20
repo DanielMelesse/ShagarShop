@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireDeliverySession } from "@/lib/require-delivery";
+import { toCourierDeliveryJob } from "@/lib/delivery";
 import {
   getAvailableDeliveryJobs,
   getMyDeliveryJobs,
@@ -18,9 +19,11 @@ export async function GET(request: Request) {
     const jobs = await getMyDeliveryJobs(auth.session.user.id, {
       includeDelivered: searchParams.get("history") === "1",
     });
-    return NextResponse.json({ jobs });
+    return NextResponse.json({
+      jobs: jobs.map(toCourierDeliveryJob),
+    });
   }
 
   const jobs = await getAvailableDeliveryJobs();
-  return NextResponse.json({ jobs });
+  return NextResponse.json({ jobs: jobs.map(toCourierDeliveryJob) });
 }

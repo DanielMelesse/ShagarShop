@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireDeliverySession } from "@/lib/require-delivery";
+import { toCourierDeliveryJob } from "@/lib/delivery";
 import { claimDeliveryJob, completeDeliveryJob } from "@/lib/delivery-server";
 import { notifyOrderItemStatus } from "@/lib/sms/order-notify";
 
@@ -25,7 +26,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         { status: 409 },
       );
     }
-    return NextResponse.json({ job });
+    return NextResponse.json({ job: toCourierDeliveryJob(job) });
   }
 
   if (action === "deliver") {
@@ -37,7 +38,12 @@ export async function PATCH(request: Request, context: RouteContext) {
       );
     }
     notifyOrderItemStatus({ orderItemId: job.id, status: "delivered" });
-    return NextResponse.json({ job });
+    for (const itemId of job.itemIds) {
+      if (itemId !== job.id) {
+        notifyOrderItemStatus({ orderItemId: itemId, status: "delivered" });
+      }
+    }
+    return NextResponse.json({ job: toCourierDeliveryJob(job) });
   }
 
   return NextResponse.json(
