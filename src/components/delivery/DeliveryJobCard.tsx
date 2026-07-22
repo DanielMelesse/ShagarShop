@@ -41,19 +41,6 @@ export function DeliveryJobCard({
               </p>
               <p className="mt-1 text-sm font-medium text-brand-700">
                 Your pay {formatPrice(job.courierEarning)}
-                {job.courierPayout.isBulk ? (
-                  <span className="font-normal text-zinc-500">
-                    {" "}
-                    · bulk {formatPrice(job.courierPayout.bulkFirst)}
-                    {job.courierPayout.extraCount > 0 && (
-                      <>
-                        {" "}
-                        + {job.courierPayout.extraCount}×
-                        {formatPrice(job.courierPayout.extraPerItem)}
-                      </>
-                    )}
-                  </span>
-                ) : null}
               </p>
               <p className="mt-1 text-xs text-zinc-400">
                 Order #{job.orderId.slice(-8).toUpperCase()}

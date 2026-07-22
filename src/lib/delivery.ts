@@ -78,14 +78,24 @@ export interface DeliveryStats {
   earningsToday: number;
 }
 
-/** Courier-facing job payload — no product/order item prices. */
+/** Courier-facing job payload — total pay only, no fee/split details. */
 export type CourierDeliveryJobItem = Omit<DeliveryJobItem, "lineTotal">;
-export type CourierDeliveryJob = Omit<DeliveryJob, "lineTotal" | "items"> & {
+export type CourierDeliveryJob = Omit<
+  DeliveryJob,
+  "lineTotal" | "items" | "deliveryFee" | "platformFee" | "courierPayout"
+> & {
   items: CourierDeliveryJobItem[];
 };
 
 export function toCourierDeliveryJob(job: DeliveryJob): CourierDeliveryJob {
-  const { lineTotal: _jobTotal, items, ...rest } = job;
+  const {
+    lineTotal: _jobTotal,
+    deliveryFee: _deliveryFee,
+    platformFee: _platformFee,
+    courierPayout: _courierPayout,
+    items,
+    ...rest
+  } = job;
   return {
     ...rest,
     items: items.map(({ lineTotal: _lineTotal, ...item }) => item),
