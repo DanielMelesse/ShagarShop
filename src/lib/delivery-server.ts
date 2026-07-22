@@ -116,6 +116,7 @@ export function rowsToStop(rows: JobRow[]): DeliveryJob | null {
     items.length,
     deliveryFee,
     singleShopStop,
+    stopQty,
   );
   const { courier, platform } = settleDeliveryFee(deliveryFee, payout.total);
 

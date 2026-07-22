@@ -217,10 +217,12 @@ export async function getAdminOrderDetail(
       sellerId: item.product.seller?.id ?? null,
     })),
   );
+  const orderUnits = order.items.reduce((sum, item) => sum + item.quantity, 0);
   const courierPayout = courierPayoutForStop(
     order.items.length,
     order.shipping,
     singleShop,
+    orderUnits,
   );
   const { platform: platformDeliveryMargin } = settleDeliveryFee(
     order.shipping,

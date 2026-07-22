@@ -7,7 +7,7 @@ export const SINGLE_SHOP_BASE_CHARGE_CAP = 3;
 export const SINGLE_SHOP_LARGE_ORDER_MIN_UNITS = 5;
 
 /** Extra Birr per unit when one shop sells more than 5 items in one order. */
-export const SINGLE_SHOP_LARGE_ORDER_SURCHARGE_PER_UNIT = 50;
+export const SINGLE_SHOP_LARGE_ORDER_SURCHARGE_PER_UNIT = 100;
 
 export const SHIPPING_TIERS = ["standard", "large", "oversized"] as const;
 export type ShippingTier = (typeof SHIPPING_TIERS)[number];
@@ -64,7 +64,7 @@ export function perUnitExtras(line: ShippingLineInput): number {
  * Default: each unit pays full base (200) + extras.
  * Single shop, >3 units: only 3× base (200) for the whole order, split by quantity;
  * tier/extras still apply per unit.
- * Single shop, >5 units: +50 Birr per unit.
+ * Single shop, >5 units: +100 Birr per unit.
  */
 export function calculateLineShippingFees(lines: ShippingLineInput[]): number[] {
   if (lines.length === 0) return [];
@@ -121,9 +121,14 @@ export const COURIER_BULK_FIRST_BIRR =
 export const COURIER_BULK_EXTRA_BIRR =
   Math.round(ORDER_BASE_SHIPPING_BIRR * COURIER_SHARE_EXTRA * 100) / 100;
 
+/** Courier share of the single-shop large-order surcharge (50/50). */
+export const COURIER_SHARE_LARGE_ORDER_SURCHARGE = 0.5;
+
 export interface CourierPayoutBreakdown {
   total: number;
+  /** Courier share of the base / first portion. */
   bulkFirst: number;
+  /** Courier share per extra unit (or mixed-shop bulk extra). */
   extraPerItem: number;
   extraCount: number;
   isBulk: boolean;
@@ -143,18 +148,50 @@ export function courierPayoutForTier(shippingTier?: string): number {
   return COURIER_PAYOUT_BIRR[normalizeShippingTier(shippingTier)];
 }
 
+export function singleShopLargeOrderSurcharge(totalUnits: number): number {
+  if (totalUnits > SINGLE_SHOP_LARGE_ORDER_MIN_UNITS) {
+    return totalUnits * SINGLE_SHOP_LARGE_ORDER_SURCHARGE_PER_UNIT;
+  }
+  return 0;
+}
+
 /**
  * Courier pay for one delivery stop.
- * Same shop → one payout (70% of stop fee), even with many items.
+ * Same shop → 70% of base stop fee + 50% of the 6+ item surcharge.
  * Mixed shops → bulk: 140 + 100 per extra line.
  */
 export function courierPayoutForDeliveryStop(
   itemCount: number,
   buyerDeliveryFee: number,
   singleShop: boolean,
+  totalUnits = itemCount,
 ): CourierPayoutBreakdown {
-  const count = singleShop ? 1 : Math.max(1, itemCount);
-  return courierPayoutBreakdown(count, buyerDeliveryFee);
+  const fee = Math.max(0, buyerDeliveryFee);
+
+  if (singleShop) {
+    const surcharge = Math.min(fee, singleShopLargeOrderSurcharge(totalUnits));
+    const baseFee = Math.max(0, fee - surcharge);
+    const baseCourier = baseFee * COURIER_SHARE_SINGLE;
+    const surchargeCourier = surcharge * COURIER_SHARE_LARGE_ORDER_SURCHARGE;
+    const total = Math.round((baseCourier + surchargeCourier) * 100) / 100;
+    const extraCount =
+      surcharge > 0 ? Math.max(0, totalUnits) : 0;
+
+    return {
+      total,
+      bulkFirst: Math.round(baseCourier * 100) / 100,
+      extraPerItem:
+        Math.round(
+          SINGLE_SHOP_LARGE_ORDER_SURCHARGE_PER_UNIT *
+            COURIER_SHARE_LARGE_ORDER_SURCHARGE *
+            100,
+        ) / 100,
+      extraCount,
+      isBulk: surcharge > 0,
+    };
+  }
+
+  return courierPayoutBreakdown(Math.max(1, itemCount), fee);
 }
 
 /**
@@ -198,9 +235,14 @@ export function courierPayoutForStop(
   itemCount: number,
   buyerDeliveryFee: number,
   singleShop = false,
+  totalUnits = itemCount,
 ): number {
-  return courierPayoutForDeliveryStop(itemCount, buyerDeliveryFee, singleShop)
-    .total;
+  return courierPayoutForDeliveryStop(
+    itemCount,
+    buyerDeliveryFee,
+    singleShop,
+    totalUnits,
+  ).total;
 }
 
 /** Buyer delivery fee vs courier payout → ShegerShop margin. */

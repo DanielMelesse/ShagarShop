@@ -184,8 +184,9 @@ export function AdminOrderDetailPage({ orderId }: { orderId: string }) {
                   />
                   <p className="pt-1 text-xs text-zinc-400">
                     Shipping: 200 Birr per item (+ size extras). One shop, 4+
-                    items: base capped at 3×200. One shop, 6+ items: +50 per
-                    item. Courier: one shop → 70% of stop fee.
+                    items: base capped at 3×200. One shop, 6+ items: +100 per
+                    item (50/50 courier/Sheger). Courier: one shop base → 70%.
+                  </p>
                   </p>
                   {order.tax > 0 && (
                     <Row label="Tax" value={formatPrice(order.tax)} />
