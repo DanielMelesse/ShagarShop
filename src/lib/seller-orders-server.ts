@@ -36,6 +36,7 @@ function toOrderLine(row: {
   commissionAmount: number;
   sellerEarnings: number;
   fulfillmentStatus: string;
+  trackingCode: string | null;
   product: { image: string };
   order: {
     id: string;
@@ -65,6 +66,7 @@ function toOrderLine(row: {
         ? row.sellerEarnings
         : Math.round((lineTotal - row.commissionAmount) * 100) / 100,
     fulfillmentStatus: status,
+    trackingCode: row.trackingCode,
     orderId: row.order.id,
     orderDate: row.order.createdAt.toISOString(),
     shippingName: row.order.shippingName,
@@ -142,22 +144,73 @@ export async function setSellerOrderItemStatus(
   sellerId: string,
   orderItemId: string,
   status: FulfillmentStatus,
-) {
+  trackingCode?: string | null,
+): Promise<
+  | { ok: true; order: SellerOrderLine }
+  | { ok: false; error: string; status: number }
+> {
   const item = await getSellerOrderItem(sellerId, orderItemId);
-  if (!item) return null;
+  if (!item) {
+    return { ok: false, error: "Order item not found.", status: 404 };
+  }
 
-  const updated = await prisma.orderItem.update({
-    where: { id: orderItemId },
-    data: {
-      fulfillmentStatus: status,
-      ...(status === "cancelled" || status === "pending"
-        ? { deliveryId: null, deliveryAssignedAt: null }
-        : {}),
-    },
-    include: orderItemInclude,
-  });
+  if (status === "shipped") {
+    const code = trackingCode?.trim() ?? "";
+    if (!code) {
+      return {
+        ok: false,
+        error: "Scan or enter a package barcode before marking ready for delivery.",
+        status: 400,
+      };
+    }
 
-  return toOrderLine(updated);
+    const taken = await prisma.orderItem.findFirst({
+      where: {
+        trackingCode: code,
+        NOT: { id: orderItemId },
+      },
+      select: { id: true },
+    });
+    if (taken) {
+      return {
+        ok: false,
+        error: "That barcode is already assigned to another package.",
+        status: 409,
+      };
+    }
+  }
+
+  try {
+    const updated = await prisma.orderItem.update({
+      where: { id: orderItemId },
+      data: {
+        fulfillmentStatus: status,
+        ...(status === "shipped" && trackingCode
+          ? { trackingCode }
+          : {}),
+        ...(status === "cancelled" || status === "pending"
+          ? {
+              deliveryId: null,
+              deliveryAssignedAt: null,
+              trackingCode: null,
+            }
+          : {}),
+      },
+      include: orderItemInclude,
+    });
+
+    return { ok: true, order: toOrderLine(updated) };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("Unique constraint") || message.includes("trackingCode")) {
+      return {
+        ok: false,
+        error: "That barcode is already assigned to another package.",
+        status: 409,
+      };
+    }
+    throw error;
+  }
 }
 
 export { SELLER_COMMISSION_RATE };

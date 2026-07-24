@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ProductImage } from "@/components/ProductImage";
+import { BarcodeLabel } from "@/components/BarcodeLabel";
+import { PackageBarcodeAssign } from "@/components/seller/PackageBarcodeAssign";
 import { formatPrice } from "@/lib/products";
 import {
   FULFILLMENT_STATUS_LABELS,
@@ -11,7 +14,11 @@ import {
 
 interface SellerOrderCardProps {
   order: SellerOrderLine;
-  onStatusChange?: (orderItemId: string, status: FulfillmentStatus) => void;
+  onStatusChange?: (
+    orderItemId: string,
+    status: FulfillmentStatus,
+    trackingCode?: string,
+  ) => void;
   updatingId?: string | null;
   compact?: boolean;
 }
@@ -35,8 +42,23 @@ export function SellerOrderCard({
   updatingId,
   compact = false,
 }: SellerOrderCardProps) {
+  const [assigningBarcode, setAssigningBarcode] = useState(false);
   const actions = onStatusChange ? nextActions(order.fulfillmentStatus) : [];
   const isUpdating = updatingId === order.id;
+
+  useEffect(() => {
+    if (order.fulfillmentStatus !== "pending" || order.trackingCode) {
+      setAssigningBarcode(false);
+    }
+  }, [order.fulfillmentStatus, order.trackingCode]);
+
+  function handleAction(status: FulfillmentStatus) {
+    if (status === "shipped") {
+      setAssigningBarcode(true);
+      return;
+    }
+    onStatusChange?.(order.id, status);
+  }
 
   return (
     <article className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
@@ -74,6 +96,15 @@ export function SellerOrderCard({
                 dateStyle: "medium",
               })}
             </p>
+            {order.trackingCode ? (
+              <div className="mt-3">
+                <BarcodeLabel value={order.trackingCode} label="Package barcode" />
+              </div>
+            ) : (
+              <p className="mt-2 text-xs text-zinc-500">
+                Package barcode is assigned when you mark this ready for delivery.
+              </p>
+            )}
           </div>
         </div>
         <span
@@ -92,14 +123,25 @@ export function SellerOrderCard({
         </div>
       )}
 
-      {actions.length > 0 && (
+      {assigningBarcode ? (
+        <PackageBarcodeAssign
+          productName={order.productName}
+          busy={isUpdating}
+          onCancel={() => setAssigningBarcode(false)}
+          onConfirm={(barcode) => {
+            onStatusChange?.(order.id, "shipped", barcode);
+          }}
+        />
+      ) : null}
+
+      {!assigningBarcode && actions.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {actions.map((action) => (
             <button
               key={action.status}
               type="button"
               disabled={isUpdating}
-              onClick={() => onStatusChange?.(order.id, action.status)}
+              onClick={() => handleAction(action.status)}
               className={`rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-60 ${
                 action.status === "cancelled"
                   ? "border border-red-200 text-red-700 hover:bg-red-50"

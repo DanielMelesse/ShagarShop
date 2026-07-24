@@ -82,6 +82,20 @@ export const en = {
     redirectLogin: "Redirecting to log in…",
     shippingAddress: "Shipping address",
     paymentDemo: "Payment (demo)",
+    subtotal: "Subtotal",
+    delivery: "Delivery",
+    shippingBase: "Base · {units} × 200 Birr ({amount})",
+    shippingBaseCapped: "Base · one-shop cap for {units} items ({amount})",
+    shippingBulkSurcharge: "Bulk add-on · {units} × 100 Birr ({amount})",
+    shippingSizeExtras: "Large/oversized add-on ({amount})",
+    shippingNoteOneShop:
+      "All items are from one shop. Delivery is 200 Birr per item (+ size extras).",
+    shippingNoteOneShopCap:
+      "One-shop order: delivery base is capped at 600 Birr (3 × 200) for 4–5 items.",
+    shippingNoteOneShopLarge:
+      "One-shop order: base capped at 600 Birr, plus 100 Birr per item when you buy 6 or more.",
+    shippingNoteMixed:
+      "Items from more than one shop: 200 Birr delivery per item (+ size extras).",
   },
   account: {
     myAccount: "My account",
@@ -126,7 +140,7 @@ export const en = {
     primaryCategory: "Primary category",
     shippingSize: "Shipping size",
     shippingHint:
-      "Large and oversized items add per-unit shipping at checkout. Orders of 3+ or 5+ items also include a bulk surcharge.",
+      "Standard delivery is 200 Birr per item. One shop: 4–5 items cap base at 600 Birr; 6+ items add 100 Birr each. Large/oversized sizes add per-unit fees.",
     featureDeals: "Feature in Today's Deals",
     listingType: "Listing type",
     standard: "Standard",

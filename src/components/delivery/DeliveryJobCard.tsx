@@ -1,5 +1,6 @@
 "use client";
 
+import { BarcodeLabel } from "@/components/BarcodeLabel";
 import { ProductImage } from "@/components/ProductImage";
 import type { CourierDeliveryJob } from "@/lib/delivery";
 import { formatPrice } from "@/lib/products";
@@ -61,12 +62,25 @@ export function DeliveryJobCard({
             <ul className="mt-3 space-y-1 text-sm text-zinc-600">
               {job.items.map((item) => (
                 <li key={item.id} className="flex justify-between gap-2">
-                  <span className="truncate">{item.productName}</span>
+                  <span className="truncate">
+                    {item.productName}
+                    <span className="ml-2 font-mono text-xs text-zinc-400">
+                      {item.trackingCode}
+                    </span>
+                  </span>
                   <span className="shrink-0 text-zinc-400">×{item.quantity}</span>
                 </li>
               ))}
             </ul>
           )}
+
+          <div className="mt-3">
+            {job.trackingCode ? (
+              <BarcodeLabel value={job.trackingCode} label="Tracking" />
+            ) : (
+              <p className="text-xs text-zinc-500">No package barcode yet.</p>
+            )}
+          </div>
 
           <div className="mt-4 rounded-xl bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
             <p className="font-medium text-zinc-800">Deliver to</p>

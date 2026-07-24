@@ -31,6 +31,7 @@ export interface DeliveryJobItem {
   quantity: number;
   lineTotal: number;
   shippingTier: string;
+  trackingCode: string;
 }
 
 /**
@@ -49,6 +50,8 @@ export interface DeliveryJob {
   productImage: string;
   quantity: number;
   lineTotal: number;
+  /** Primary tracking barcode for this stop. */
+  trackingCode: string;
   /** Buyer delivery fee allocated to this stop's items. */
   deliveryFee: number;
   /** Courier payout for the whole stop. */

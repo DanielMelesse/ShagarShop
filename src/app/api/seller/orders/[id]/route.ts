@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import {
+  isValidPackageBarcode,
+  normalizePackageBarcode,
+} from "@/lib/barcode";
 import { requireSellerSession } from "@/lib/require-seller";
 import {
   canTransitionFulfillment,
@@ -51,20 +55,37 @@ export async function PATCH(request: Request, context: RouteContext) {
     });
   }
 
-  const updated = await setSellerOrderItemStatus(
+  let trackingCode: string | null = null;
+  if (nextStatus === "shipped") {
+    const raw = typeof body.trackingCode === "string" ? body.trackingCode : "";
+    const normalized = normalizePackageBarcode(raw);
+    if (!isValidPackageBarcode(normalized)) {
+      return NextResponse.json(
+        {
+          error:
+            "A valid package barcode is required (scan or type) before marking ready for delivery.",
+        },
+        { status: 400 },
+      );
+    }
+    trackingCode = normalized;
+  }
+
+  const result = await setSellerOrderItemStatus(
     auth.session.user.id,
     id,
     nextStatus as FulfillmentStatus,
+    trackingCode,
   );
 
-  if (!updated) {
-    return NextResponse.json({ error: "Could not update order." }, { status: 500 });
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
   notifyOrderItemStatus({
-    orderItemId: updated.id,
+    orderItemId: result.order.id,
     status: nextStatus as FulfillmentStatus,
   });
 
-  return NextResponse.json({ order: updated });
+  return NextResponse.json({ order: result.order });
 }

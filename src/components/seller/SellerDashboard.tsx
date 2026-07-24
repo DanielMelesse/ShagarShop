@@ -36,10 +36,14 @@ export function SellerDashboard() {
     void load();
   }, [load]);
 
-  async function handleStatusChange(orderItemId: string, status: FulfillmentStatus) {
+  async function handleStatusChange(
+    orderItemId: string,
+    status: FulfillmentStatus,
+    trackingCode?: string,
+  ) {
     setUpdatingId(orderItemId);
     setMessage("");
-    const result = await updateSellerOrderStatus(orderItemId, status);
+    const result = await updateSellerOrderStatus(orderItemId, status, trackingCode);
     setUpdatingId(null);
 
     if (!result.ok) {
@@ -48,7 +52,15 @@ export function SellerDashboard() {
     }
 
     setOrders((prev) =>
-      prev.map((o) => (o.id === orderItemId ? { ...o, fulfillmentStatus: status } : o)),
+      prev.map((o) =>
+        o.id === orderItemId
+          ? {
+              ...o,
+              fulfillmentStatus: status,
+              trackingCode: result.order.trackingCode,
+            }
+          : o,
+      ),
     );
     setStats((prev) => {
       if (!prev) return prev;

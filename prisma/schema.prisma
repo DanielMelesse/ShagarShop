@@ -113,6 +113,8 @@ model OrderItem {
   priceAtPurchase    Float
   productName        String
   fulfillmentStatus  String    @default("pending")
+  /** Package barcode assigned by seller when marking ready for courier pickup. */
+  trackingCode       String?   @unique
   /** Snapshot: 0 during promo, else platform rate (e.g. 0.1). */
   commissionRate     Float     @default(0)
   commissionAmount   Float     @default(0)
@@ -125,4 +127,5 @@ model OrderItem {
 
   @@index([fulfillmentStatus])
   @@index([deliveryId])
+  @@index([trackingCode])
 }

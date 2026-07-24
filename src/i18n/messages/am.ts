@@ -86,6 +86,20 @@ export const am: Messages = {
     redirectLogin: "ወደ መግቢያ በመሄድ ላይ…",
     shippingAddress: "የማድረሻ አድራሻ",
     paymentDemo: "ክፍያ (ማሳያ)",
+    subtotal: "ንዑስ ድምር",
+    delivery: "ማድረስ",
+    shippingBase: "መሠረት · {units} × 200 ብር ({amount})",
+    shippingBaseCapped: "መሠረት · ለአንድ ሱቅ {units} እቃዎች ገደብ ({amount})",
+    shippingBulkSurcharge: "የጅምላ ተጨማሪ · {units} × 100 ብር ({amount})",
+    shippingSizeExtras: "ትልቅ/ከባድ ተጨማሪ ({amount})",
+    shippingNoteOneShop:
+      "ሁሉም እቃዎች ከአንድ ሱቅ ናቸው። ማድረስ በእያንዳንዱ እቃ 200 ብር ነው (+ የመጠን ተጨማሪ).",
+    shippingNoteOneShopCap:
+      "አንድ ሱቅ: ለ4–5 እቃዎች የማድረስ መሠረት በ600 ብር (3 × 200) ይገደባል።",
+    shippingNoteOneShopLarge:
+      "አንድ ሱቅ: መሠረት በ600 ብር ይገደባል፣ ለ6+ እቃዎች በእያንዳንዱ 100 ብር ይታከላል።",
+    shippingNoteMixed:
+      "ከአንድ በላይ ሱቆች: በእያንዳንዱ እቃ 200 ብር ማድረስ (+ የመጠን ተጨማሪ).",
   },
   account: {
     myAccount: "መለያዬ",
@@ -131,7 +145,7 @@ export const am: Messages = {
     primaryCategory: "ዋና ምድብ",
     shippingSize: "የማጓጓዣ መጠን",
     shippingHint:
-      "ትላልቅ እና ከባድ እቃዎች በክፍያ ላይ ተጨማሪ ማጓጓዣ ያክላሉ። 3+ ወይም 5+ እቃዎች ትዕዛዝ ተጨማሪ ክፍያ አለው።",
+      "መደበኛ ማድረስ በእያንዳንዱ እቃ 200 ብር ነው። አንድ ሱቅ: 4–5 እቃዎች መሠረት በ600 ብር; 6+ እቃዎች በእያንዳንዱ 100 ብር ይታከላል። ትልቅ/ከባድ መጠኖች ተጨማሪ ክፍያ አላቸው።",
     featureDeals: "በየዛሬ ቅናሾች ውስጥ አሳይ",
     listingType: "የዝርዝር አይነት",
     standard: "መደበኛ",

@@ -43,6 +43,7 @@ type JobRow = {
   quantity: number;
   priceAtPurchase: number;
   fulfillmentStatus: string;
+  trackingCode: string | null;
   deliveryId: string | null;
   deliveryAssignedAt: Date | null;
   deliveredAt?: Date | null;
@@ -76,6 +77,7 @@ function toJobItem(row: JobRow): DeliveryJobItem {
     quantity: row.quantity,
     lineTotal: Math.round(row.priceAtPurchase * row.quantity * 100) / 100,
     shippingTier: row.product.shippingTier,
+    trackingCode: row.trackingCode ?? "",
   };
 }
 
@@ -136,6 +138,7 @@ export function rowsToStop(rows: JobRow[]): DeliveryJob | null {
     productImage: items[0].productImage,
     quantity: stopQty,
     lineTotal: Math.round(items.reduce((sum, i) => sum + i.lineTotal, 0) * 100) / 100,
+    trackingCode: items[0].trackingCode || items.map((i) => i.trackingCode).find(Boolean) || "",
     deliveryFee,
     courierEarning: courier,
     courierPayout: payout,

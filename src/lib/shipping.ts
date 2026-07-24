@@ -100,6 +100,62 @@ export function calculateCartShipping(lines: ShippingLineInput[]): number {
   return Math.round(lineFees.reduce((sum, fee) => sum + fee, 0) * 100) / 100;
 }
 
+/** Buyer-facing breakdown for cart / checkout UX. */
+export interface CartShippingBreakdown {
+  total: number;
+  units: number;
+  singleShop: boolean;
+  /** Base delivery before size extras / large-order surcharge. */
+  baseFee: number;
+  /** True when one-shop base was capped at 3 × 200. */
+  baseCapped: boolean;
+  sizeExtras: number;
+  largeOrderSurcharge: number;
+}
+
+export function getCartShippingBreakdown(
+  lines: ShippingLineInput[],
+): CartShippingBreakdown {
+  const units = countTotalUnits(lines);
+  if (units === 0) {
+    return {
+      total: 0,
+      units: 0,
+      singleShop: false,
+      baseFee: 0,
+      baseCapped: false,
+      sizeExtras: 0,
+      largeOrderSurcharge: 0,
+    };
+  }
+
+  const singleShop = isSingleShopOrder(lines);
+  const baseCapped = singleShop && units > SINGLE_SHOP_BASE_CHARGE_CAP;
+  const baseFee = baseCapped
+    ? SINGLE_SHOP_BASE_CHARGE_CAP * ORDER_BASE_SHIPPING_BIRR
+    : units * ORDER_BASE_SHIPPING_BIRR;
+  const sizeExtras = Math.round(
+    lines.reduce((sum, line) => sum + line.quantity * perUnitExtras(line), 0) *
+      100,
+  ) / 100;
+  const largeOrderSurcharge =
+    singleShop && units > SINGLE_SHOP_LARGE_ORDER_MIN_UNITS
+      ? units * SINGLE_SHOP_LARGE_ORDER_SURCHARGE_PER_UNIT
+      : 0;
+  const total =
+    Math.round((baseFee + sizeExtras + largeOrderSurcharge) * 100) / 100;
+
+  return {
+    total,
+    units,
+    singleShop,
+    baseFee,
+    baseCapped,
+    sizeExtras,
+    largeOrderSurcharge,
+  };
+}
+
 /** Kept for admin display of legacy large/oversized reference rates. */
 export const COURIER_PAYOUT_BIRR: Record<ShippingTier, number> = {
   standard: 140,
