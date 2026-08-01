@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   emptyProductForm,
   SellerProductForm,
@@ -12,6 +13,7 @@ import { SELLER_HOME, sellerViewPath } from "@/lib/seller-routes";
 
 export function SellerAddProduct() {
   const router = useRouter();
+  const [initial] = useState(() => emptyProductForm());
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
@@ -31,7 +33,7 @@ export function SellerAddProduct() {
       <div className="mt-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
         <SellerProductForm
           formId="add-product"
-          initial={emptyProductForm()}
+          initial={initial}
           submitLabel="List product"
           onCancel={() => router.push(SELLER_HOME)}
           onSubmit={async (form) => {

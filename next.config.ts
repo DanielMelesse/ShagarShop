@@ -7,6 +7,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
+  async rewrites() {
+    // Serve runtime uploads from disk. `next start` does not reliably pick up
+    // files written to public/ after the process starts.
+    return {
+      beforeFiles: [
+        {
+          source: "/uploads/products/:filename",
+          destination: "/api/uploads/products/:filename",
+        },
+      ],
+    };
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     qualities: [70, 75],

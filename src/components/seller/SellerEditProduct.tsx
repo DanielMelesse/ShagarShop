@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   productToFormState,
   SellerProductForm,
@@ -19,6 +19,10 @@ export function SellerEditProduct({ productId }: { productId: string }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const initial = useMemo(
+    () => (product ? productToFormState(product) : null),
+    [product],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -82,18 +86,21 @@ export function SellerEditProduct({ productId }: { productId: string }) {
       <p className="mt-1 text-sm text-zinc-500">Update details for {product.name}.</p>
 
       <div className="mt-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <SellerProductForm
-          formId={`edit-${product.id}`}
-          initial={productToFormState(product)}
-          submitLabel="Save changes"
-          onCancel={() => router.push(sellerViewPath(product.id))}
-          onSubmit={async (form) => {
-            const result = await updateSellerProduct(product.id, form);
-            if (!result.ok) return result;
-            router.push(sellerViewPath(product.id));
-            return { ok: true };
-          }}
-        />
+        {initial ? (
+          <SellerProductForm
+            key={product.id}
+            formId={`edit-${product.id}`}
+            initial={initial}
+            submitLabel="Save changes"
+            onCancel={() => router.push(sellerViewPath(product.id))}
+            onSubmit={async (form) => {
+              const result = await updateSellerProduct(product.id, form);
+              if (!result.ok) return result;
+              router.push(sellerViewPath(product.id));
+              return { ok: true };
+            }}
+          />
+        ) : null}
       </div>
     </div>
   );

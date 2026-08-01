@@ -1,7 +1,6 @@
 "use client";
 
-import { ProductImage } from "@/components/ProductImage";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import {
   departmentNeedsSize,
   getDepartmentProductCategory,
@@ -137,12 +136,12 @@ function ProductImagesField({
           {images.map((image, index) => (
             <div key={`${image}-${index}`} className="relative">
               <div className="relative h-24 w-24 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100">
-                <ProductImage
+                {/* Plain img: next/image can cache a 404 if public/ uploads lag in production. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={image}
                   alt={`Product image ${index + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="96px"
+                  className="h-full w-full object-cover"
                 />
               </div>
               {index === 0 && (
@@ -210,6 +209,12 @@ function ProductImagesField({
                 placeholder="https://..."
                 value={urlDraft}
                 onChange={(e) => setUrlDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    void addImage(urlDraft);
+                  }
+                }}
                 className={inputClass}
               />
               <button
@@ -248,11 +253,6 @@ export function SellerProductForm({
   const [form, setForm] = useState(initial);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setForm(initial);
-    setError("");
-  }, [initial]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
