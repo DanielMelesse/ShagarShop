@@ -115,17 +115,23 @@ export function formatPrice(amount: number): string {
 
 export const FREE_SHIPPING_THRESHOLD = 5000;
 export const SHIPPING_COST = 5.99;
+/** Flip to `true` to bake 15% VAT into listing prices and order tax again. */
+export const TAX_ENABLED = false;
 export const TAX_RATE = 0.15;
 /** Flat shipping base added once per order at checkout (Birr). */
 export { ORDER_BASE_SHIPPING_BIRR as LISTING_SHIPPING_BIRR };
 
-/** Listed price with 15% VAT from the seller's entered amount. */
+/** Listed price (optionally with VAT from the seller's entered amount). */
 export function calculateListedProductPrice(sellerPrice: number): number {
+  const rounded = Math.round(sellerPrice * 100) / 100;
+  if (!TAX_ENABLED) return rounded;
   return Math.round(sellerPrice * (1 + TAX_RATE) * 100) / 100;
 }
 
-/** Seller-entered price from a VAT-inclusive listed price (for edit forms). */
+/** Seller-entered price from a listed price (for edit forms). */
 export function sellerPriceFromListed(listedPrice: number): number {
+  const rounded = Math.max(0, Math.round(listedPrice * 100) / 100);
+  if (!TAX_ENABLED) return rounded;
   return Math.max(0, Math.round((listedPrice / (1 + TAX_RATE)) * 100) / 100);
 }
 
@@ -135,11 +141,11 @@ export function getShippingCost(subtotal: number): number {
 }
 
 export function getTaxAmount(subtotal: number): number {
-  if (subtotal <= 0) return 0;
+  if (!TAX_ENABLED || subtotal <= 0) return 0;
   return Math.round(subtotal * TAX_RATE * 100) / 100;
 }
 
-/** VAT is in product prices; shipping uses cart line tiers and bulk rules. */
+/** Shipping uses cart line tiers and bulk rules. Tax is off while TAX_ENABLED is false. */
 export function calculateOrderTotals(
   subtotal: number,
   shippingLines: ShippingLineInput[] = [],
@@ -148,7 +154,9 @@ export function calculateOrderTotals(
     return { subtotal: 0, shipping: 0, tax: 0, total: 0 };
   }
   const shipping = calculateCartShipping(shippingLines);
-  const tax = Math.round((subtotal - subtotal / (1 + TAX_RATE)) * 100) / 100;
+  const tax = TAX_ENABLED
+    ? Math.round((subtotal - subtotal / (1 + TAX_RATE)) * 100) / 100
+    : 0;
   const total = Math.round((subtotal + shipping) * 100) / 100;
   return { subtotal, shipping, tax, total };
 }
