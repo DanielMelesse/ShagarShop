@@ -60,6 +60,11 @@ export interface AdminOrderDetail {
   id: string;
   status: string;
   createdAt: string;
+  paymentStatus: string;
+  paymentMethod: string;
+  paymentTxRef: string | null;
+  paymentRef: string | null;
+  paidAt: string | null;
   subtotal: number;
   shipping: number;
   /** Courier payout for the stop (standard % split or fixed large/oversized). */

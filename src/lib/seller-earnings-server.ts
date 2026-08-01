@@ -29,7 +29,15 @@ export async function getSellerEarnings(
       select: { completedAt: true },
     }),
     prisma.orderItem.findMany({
-      where: { product: { sellerId } },
+      where: {
+        product: { sellerId },
+        order: {
+          OR: [
+            { paymentStatus: { in: ["paid", "cod"] } },
+            { paymentMethod: "demo", status: "placed" },
+          ],
+        },
+      },
       select: {
         id: true,
         productName: true,

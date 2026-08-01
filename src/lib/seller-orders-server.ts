@@ -81,7 +81,15 @@ export async function getSellerOrderLines(
   options?: { take?: number },
 ): Promise<SellerOrderLine[]> {
   const rows = await prisma.orderItem.findMany({
-    where: { product: { sellerId } },
+    where: {
+      product: { sellerId },
+      order: {
+        OR: [
+          { paymentStatus: { in: ["paid", "cod"] } },
+          { paymentMethod: "demo", status: "placed" },
+        ],
+      },
+    },
     include: orderItemInclude,
     orderBy: { order: { createdAt: "desc" } },
     take: options?.take ?? 50,

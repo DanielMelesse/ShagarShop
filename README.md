@@ -10,7 +10,7 @@ Standalone marketplace web application built with **Next.js 15**, **Prisma**, **
 - **Auth** — NextAuth credentials (phone + password, optional email)
 - **Shop** — browse, filter, search from database
 - **Cart** — localStorage (client-side)
-- **Checkout** — saves orders to database; updates stock
+- **Checkout** — Telebirr (Ethio Telecom merchant H5) and Chapa (separate merchant APIs), or cash on delivery; stock updates when paid (or on COD place)
 - **Order history** — `/account/orders` when logged in
 - **Birr** pricing, category bar, Today's Deals, service pages
 
@@ -66,6 +66,15 @@ bun run setup && bun run db:up && bun run dev
 | `DATABASE_URL` | PostgreSQL connection string |
 | `NEXTAUTH_SECRET` | Random secret (`openssl rand -base64 32`) |
 | `NEXTAUTH_URL` | `http://localhost:3000` |
+| `CHAPA_SECRET_KEY` | Chapa merchant secret (optional locally — mock without it) |
+| `CHAPA_MODE` | `mock` or `live` (optional) |
+| `TELEBIRR_FABRIC_APP_ID` | Ethio Telecom Telebirr fabric app id |
+| `TELEBIRR_APP_SECRET` | Telebirr app secret |
+| `TELEBIRR_MERCHANT_APP_ID` | Telebirr merchant app id |
+| `TELEBIRR_MERCHANT_CODE` | Telebirr merchant code |
+| `TELEBIRR_PRIVATE_KEY` | RSA private key (PEM or bare base64) |
+| `TELEBIRR_MODE` | `mock` or `live` (optional) |
+| `PAYMENT_MODE` | Global `mock` / `live` override (optional) |
 
 Example local URL (Docker):
 

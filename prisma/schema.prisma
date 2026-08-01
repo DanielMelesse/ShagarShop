@@ -87,7 +87,16 @@ model Order {
   id           String      @id @default(cuid())
   userId       String?
   user         User?       @relation(fields: [userId], references: [id])
+  /** awaiting_payment | placed | cancelled */
   status       String      @default("placed")
+  /** pending | paid | cod | failed | cancelled */
+  paymentStatus String     @default("paid")
+  /** chapa | telebirr | cod | demo | none */
+  paymentMethod String     @default("demo")
+  /** Unique Chapa tx_ref (or mock ref). */
+  paymentTxRef  String?    @unique
+  paymentRef    String?
+  paidAt        DateTime?
   subtotal     Float
   shipping     Float
   tax          Float       @default(0)
@@ -101,6 +110,8 @@ model Order {
 
   @@index([userId])
   @@index([createdAt])
+  @@index([paymentStatus])
+  @@index([status])
 }
 
 model OrderItem {

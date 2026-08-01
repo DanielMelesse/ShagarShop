@@ -9,6 +9,7 @@ import { useTranslations } from "@/context/LocaleContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/context/CartContext";
 import { calculateOrderTotals, formatPrice, shippingLinesFromCart } from "@/lib/products";
+import type { PaymentMethod } from "@/lib/payment";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export default function CheckoutPage() {
@@ -16,9 +17,9 @@ export default function CheckoutPage() {
   const { t } = useTranslations();
   const { user, isAuthenticated, isReady: authReady } = useAuth();
   const { items, subtotal, clearCart, isReady: cartReady } = useCart();
-  const [placed, setPlaced] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("telebirr");
 
   useEffect(() => {
     if (authReady && !isAuthenticated) {
@@ -35,7 +36,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!isAuthenticated && !placed) {
+  if (!isAuthenticated) {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
         <p className="text-zinc-500">{t("checkout.redirectLogin")}</p>
@@ -43,7 +44,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (items.length === 0 && !placed) {
+  if (items.length === 0) {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
         <p className="text-zinc-500">{t("checkout.emptyCart")}</p>
@@ -54,39 +55,8 @@ export default function CheckoutPage() {
     );
   }
 
-  if (placed) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-20 text-center">
-        <p className="text-5xl" aria-hidden>
-          ✓
-        </p>
-        <h2 className="mt-4 text-2xl font-bold text-zinc-900">{t("checkout.orderPlaced")}</h2>
-        <p className="mt-2 text-zinc-500">
-          {t("checkout.thankYou", {
-            name: user ? `, ${user.name}` : "",
-          })}
-        </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          {user && (
-            <Link
-              href="/account"
-              className="rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white"
-            >
-              {t("checkout.viewOrders")}
-            </Link>
-          )}
-          <Link
-            href={TODAYS_DEALS_HREF}
-            className="rounded-xl border border-zinc-300 px-6 py-3 text-sm font-semibold text-zinc-800"
-          >
-            {t("checkout.continueShopping")}
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   const { total } = calculateOrderTotals(subtotal, shippingLinesFromCart(items));
+  const isOnline = paymentMethod === "telebirr" || paymentMethod === "chapa";
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -94,31 +64,42 @@ export default function CheckoutPage() {
     setSubmitting(true);
 
     const form = new FormData(e.currentTarget);
-    const res = await fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        items: items.map((i) => ({
-          productId: i.product.id,
-          quantity: i.quantity,
-        })),
-        shippingName: String(form.get("name") ?? ""),
-        address: String(form.get("address") ?? ""),
-        city: String(form.get("city") ?? ""),
-        zip: String(form.get("zip") ?? ""),
-      }),
-    });
-    const data = await res.json();
-    setSubmitting(false);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((i) => ({
+            productId: i.product.id,
+            quantity: i.quantity,
+          })),
+          shippingName: String(form.get("name") ?? ""),
+          address: String(form.get("address") ?? ""),
+          city: String(form.get("city") ?? ""),
+          zip: String(form.get("zip") ?? ""),
+          paymentMethod,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Could not place order.");
+        setSubmitting(false);
+        return;
+      }
 
-    if (!res.ok) {
-      setError(data.error ?? "Could not place order.");
-      return;
+      const redirectUrl = data.payment?.checkoutUrl as string | undefined;
+      if (isOnline && redirectUrl) {
+        window.location.href = redirectUrl;
+        return;
+      }
+
+      clearCart();
+      router.push(`/checkout/result?orderId=${data.order.id}&method=cod`);
+      router.refresh();
+    } catch {
+      setError("Could not place order.");
+      setSubmitting(false);
     }
-
-    clearCart();
-    setPlaced(true);
-    router.refresh();
   }
 
   return (
@@ -128,33 +109,67 @@ export default function CheckoutPage() {
       <form onSubmit={handleSubmit} className="mt-8 space-y-8">
         <EthiopiaShippingAddress defaultName={user?.name ?? ""} />
 
-        <fieldset className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6">
+        <fieldset className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-6">
           <legend className="px-1 text-sm font-semibold text-zinc-900">
-            {t("checkout.paymentDemo")}
+            {t("checkout.paymentMethod")}
           </legend>
-          <input
-            required
-            name="card"
-            placeholder="Card number"
-            defaultValue="4242 4242 4242 4242"
-            className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm"
-          />
-          <div className="grid gap-4 sm:grid-cols-2">
+
+          <label className="flex cursor-pointer gap-3 rounded-xl border border-zinc-200 p-4 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50">
             <input
-              required
-              name="expiry"
-              placeholder="MM/YY"
-              defaultValue="12/28"
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm"
+              type="radio"
+              name="paymentMethod"
+              value="telebirr"
+              checked={paymentMethod === "telebirr"}
+              onChange={() => setPaymentMethod("telebirr")}
+              className="mt-1"
             />
+            <span>
+              <span className="block text-sm font-semibold text-zinc-900">
+                {t("checkout.payWithTelebirr")}
+              </span>
+              <span className="mt-0.5 block text-xs text-zinc-500">
+                {t("checkout.payWithTelebirrHint")}
+              </span>
+            </span>
+          </label>
+
+          <label className="flex cursor-pointer gap-3 rounded-xl border border-zinc-200 p-4 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50">
             <input
-              required
-              name="cvc"
-              placeholder="CVC"
-              defaultValue="123"
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm"
+              type="radio"
+              name="paymentMethod"
+              value="chapa"
+              checked={paymentMethod === "chapa"}
+              onChange={() => setPaymentMethod("chapa")}
+              className="mt-1"
             />
-          </div>
+            <span>
+              <span className="block text-sm font-semibold text-zinc-900">
+                {t("checkout.payWithChapa")}
+              </span>
+              <span className="mt-0.5 block text-xs text-zinc-500">
+                {t("checkout.payWithChapaHint")}
+              </span>
+            </span>
+          </label>
+
+          <label className="flex cursor-pointer gap-3 rounded-xl border border-zinc-200 p-4 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50">
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="cod"
+              checked={paymentMethod === "cod"}
+              onChange={() => setPaymentMethod("cod")}
+              className="mt-1"
+            />
+            <span>
+              <span className="block text-sm font-semibold text-zinc-900">
+                {t("checkout.payWithCod")}
+              </span>
+              <span className="mt-0.5 block text-xs text-zinc-500">
+                {t("checkout.payWithCodHint")}
+              </span>
+            </span>
+          </label>
         </fieldset>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
@@ -177,8 +192,12 @@ export default function CheckoutPage() {
             className="mt-6 w-full rounded-xl bg-brand-600 py-3 text-sm font-semibold hover:bg-brand-500 disabled:opacity-60"
           >
             {submitting
-              ? t("checkout.placingOrder")
-              : t("checkout.placeOrderWithTotal", { total: formatPrice(total) })}
+              ? isOnline
+                ? t("checkout.redirectingPayment")
+                : t("checkout.placingOrder")
+              : isOnline
+                ? t("checkout.payNowWithTotal", { total: formatPrice(total) })
+                : t("checkout.placeOrderWithTotal", { total: formatPrice(total) })}
           </button>
         </div>
       </form>

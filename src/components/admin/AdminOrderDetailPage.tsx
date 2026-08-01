@@ -7,6 +7,7 @@ import { ProductImage } from "@/components/ProductImage";
 import type { AdminOrderDetail } from "@/lib/admin";
 import { ADMIN_ORDERS } from "@/lib/admin-routes";
 import { getFulfillmentStatusStyle } from "@/lib/order-status";
+import { paymentMethodLabel, paymentStatusLabel } from "@/lib/payment";
 import { formatPrice } from "@/lib/products";
 import {
   DELIVERY_VEHICLE_LABELS,
@@ -198,8 +199,10 @@ export function AdminOrderDetailPage({ orderId }: { orderId: string }) {
                     />
                   </div>
                 </dl>
-                <p className="mt-3 text-xs text-zinc-400">
-                  Payment method: Demo card (no live charge)
+                <p className="mt-3 text-xs text-zinc-500">
+                  {paymentMethodLabel(order.paymentMethod)} ·{" "}
+                  {paymentStatusLabel(order.paymentStatus)}
+                  {order.paymentTxRef ? ` · ref ${order.paymentTxRef}` : ""}
                 </p>
               </InfoCard>
             </aside>

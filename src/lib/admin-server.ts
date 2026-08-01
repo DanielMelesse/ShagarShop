@@ -52,14 +52,53 @@ export async function getAdminOverviewStats(): Promise<AdminOverviewStats> {
     couriers,
     activeCouriers,
   ] = await Promise.all([
-    prisma.order.aggregate({ _sum: { total: true } }),
     prisma.order.aggregate({
-      where: { createdAt: { gte: today } },
+      where: {
+        OR: [
+          { paymentStatus: { in: ["paid", "cod"] } },
+          { paymentMethod: "demo", status: "placed" },
+        ],
+      },
       _sum: { total: true },
     }),
-    prisma.order.count(),
-    prisma.order.count({ where: { createdAt: { gte: today } } }),
-    prisma.orderItem.count({ where: { fulfillmentStatus: "pending" } }),
+    prisma.order.aggregate({
+      where: {
+        createdAt: { gte: today },
+        OR: [
+          { paymentStatus: { in: ["paid", "cod"] } },
+          { paymentMethod: "demo", status: "placed" },
+        ],
+      },
+      _sum: { total: true },
+    }),
+    prisma.order.count({
+      where: {
+        OR: [
+          { paymentStatus: { in: ["paid", "cod"] } },
+          { paymentMethod: "demo", status: "placed" },
+        ],
+      },
+    }),
+    prisma.order.count({
+      where: {
+        createdAt: { gte: today },
+        OR: [
+          { paymentStatus: { in: ["paid", "cod"] } },
+          { paymentMethod: "demo", status: "placed" },
+        ],
+      },
+    }),
+    prisma.orderItem.count({
+      where: {
+        fulfillmentStatus: "pending",
+        order: {
+          OR: [
+            { paymentStatus: { in: ["paid", "cod"] } },
+            { paymentMethod: "demo", status: "placed" },
+          ],
+        },
+      },
+    }),
     prisma.orderItem.count({
       where: { fulfillmentStatus: "shipped", deliveryId: null },
     }),
@@ -233,6 +272,11 @@ export async function getAdminOrderDetail(
     id: order.id,
     status: order.status,
     createdAt: order.createdAt.toISOString(),
+    paymentStatus: order.paymentStatus,
+    paymentMethod: order.paymentMethod,
+    paymentTxRef: order.paymentTxRef,
+    paymentRef: order.paymentRef,
+    paidAt: order.paidAt?.toISOString() ?? null,
     subtotal: order.subtotal,
     shipping: order.shipping,
     courierPayout,
@@ -258,9 +302,24 @@ export async function getAdminOrderDetail(
     timeline: [
       {
         key: "placed",
-        label: "Order placed",
+        label:
+          order.paymentStatus === "pending"
+            ? "Awaiting payment"
+            : "Order placed",
         at: order.createdAt.toISOString(),
-        done: true,
+        done: order.status !== "awaiting_payment",
+      },
+      {
+        key: "paid",
+        label:
+          order.paymentMethod === "cod"
+            ? "Cash on delivery"
+            : "Payment confirmed",
+        at: order.paidAt?.toISOString() ?? null,
+        done:
+          order.paymentStatus === "paid" ||
+          order.paymentStatus === "cod" ||
+          order.paymentMethod === "demo",
       },
       {
         key: "ready",

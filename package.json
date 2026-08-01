@@ -20,7 +20,9 @@
     "predb:setup": "bash scripts/ensure-env.sh && bash scripts/check-postgres-env.sh",
     "db:setup": "bash scripts/prisma.sh generate && bash scripts/prisma.sh migrate deploy && bun prisma/seed.ts",
     "setup": "bun install --ignore-scripts && bun run db:setup",
-    "db:generate": "bash scripts/prisma.sh generate"
+    "db:generate": "bash scripts/prisma.sh generate",
+    "test:payments": "bun scripts/test-payments-local.ts",
+    "test:payments:http": "bun scripts/test-payments-http.ts"
   },
   "prisma": {
     "seed": "bun prisma/seed.ts"
@@ -30,6 +32,7 @@
   },
   "packageManager": "bun@1.3.14",
   "dependencies": {
+    "@melakudemeke/telebirr-js": "^3.1.0",
     "@prisma/client": "6.19.3",
     "bcryptjs": "^3.0.2",
     "leaflet": "^1.9.4",
