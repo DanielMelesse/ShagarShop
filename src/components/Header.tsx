@@ -188,7 +188,7 @@ export function Header() {
               </button>
             ) : (
               <Link
-                href={`/login?callbackUrl=${encodeURIComponent(DELIVER_LANDING)}`}
+                href={`/login?callbackUrl=${encodeURIComponent(DELIVERY_HOME)}`}
                 className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
               >
                 {t("nav.login")}

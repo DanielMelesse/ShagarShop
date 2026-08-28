@@ -1,13 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { DELIVER_LANDING, DELIVERY_HOME, DELIVERY_REGISTER } from "@/lib/delivery-routes";
+import { DELIVERY_HOME, DELIVERY_REGISTER } from "@/lib/delivery-routes";
 import { isDeliveryRole } from "@/lib/user-role";
 
 export function DeliverLanding() {
+  const router = useRouter();
   const { user, isReady } = useAuth();
-  const isCourier = isReady && user && isDeliveryRole(user.role);
+  const isCourier = Boolean(user && isDeliveryRole(user.role));
+
+  useEffect(() => {
+    if (!isReady) return;
+    if (isCourier) {
+      router.replace(DELIVERY_HOME);
+    }
+  }, [isReady, isCourier, router]);
+
+  if (!isReady || isCourier) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+        <div className="h-40 animate-pulse rounded-2xl bg-zinc-100" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
@@ -23,29 +41,18 @@ export function DeliverLanding() {
           Buyers get SMS updates automatically.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          {isCourier ? (
-            <Link
-              href={DELIVERY_HOME}
-              className="rounded-xl bg-white px-5 py-3 text-sm font-semibold text-brand-800 hover:bg-brand-50"
-            >
-              Open delivery dashboard
-            </Link>
-          ) : (
-            <>
-              <Link
-                href={DELIVERY_REGISTER}
-                className="rounded-xl bg-white px-5 py-3 text-sm font-semibold text-brand-800 hover:bg-brand-50"
-              >
-                Become a courier
-              </Link>
-              <Link
-                href={`/login?callbackUrl=${encodeURIComponent(DELIVER_LANDING)}`}
-                className="rounded-xl border border-white/40 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10"
-              >
-                Courier login
-              </Link>
-            </>
-          )}
+          <Link
+            href={DELIVERY_REGISTER}
+            className="rounded-xl bg-white px-5 py-3 text-sm font-semibold text-brand-800 hover:bg-brand-50"
+          >
+            Become a courier
+          </Link>
+          <Link
+            href={`/login?callbackUrl=${encodeURIComponent(DELIVERY_HOME)}`}
+            className="rounded-xl border border-white/40 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10"
+          >
+            Courier login
+          </Link>
         </div>
       </div>
 

@@ -45,6 +45,7 @@ export function isShopOnlyPath(pathname: string): boolean {
 export function defaultHomeForRole(role: string | null | undefined): string {
   if (isAdminRole(role)) return "/admin";
   if (isSellerRole(role)) return "/seller";
-  if (isDeliveryRole(role)) return "/deliver";
+  /** Courier dashboard (gated), not the public /deliver marketing page. */
+  if (isDeliveryRole(role)) return "/delivery";
   return TODAYS_DEALS_HREF;
 }

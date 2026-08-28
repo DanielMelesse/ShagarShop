@@ -1,10 +1,10 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { isDeliveryRole } from "@/lib/user-role";
-import { DELIVERY_REGISTER } from "@/lib/delivery-routes";
+import { DELIVER_LANDING } from "@/lib/delivery-routes";
 
 function DeliveryPageSkeleton() {
   return (
@@ -16,25 +16,90 @@ function DeliveryPageSkeleton() {
   );
 }
 
+/** Cookie session — avoids hanging SessionProvider.update(). */
+async function fetchSessionRole(timeoutMs = 2500): Promise<string | undefined> {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    const res = await fetch("/api/auth/session", {
+      cache: "no-store",
+      signal: ctrl.signal,
+    });
+    clearTimeout(timer);
+    if (!res.ok) return undefined;
+    const data = (await res.json()) as { user?: { role?: string } };
+    return data?.user?.role;
+  } catch {
+    return undefined;
+  }
+}
+
 export function DeliveryLayoutGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isReady } = useAuth();
+  const { user, isReady, isAuthenticated, refreshSession } = useAuth();
+  const [checking, setChecking] = useState(true);
+  const [roleOk, setRoleOk] = useState(false);
+  const retried = useRef(false);
 
   useEffect(() => {
-    if (!isReady) return;
+    let cancelled = false;
 
-    if (!user) {
-      router.replace(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
-      return;
+    async function gate() {
+      if (!isReady) return;
+
+      if (!isAuthenticated || !user) {
+        if (!cancelled) {
+          setChecking(false);
+          setRoleOk(false);
+          router.replace(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+        }
+        return;
+      }
+
+      if (isDeliveryRole(user.role)) {
+        if (!cancelled) {
+          setRoleOk(true);
+          setChecking(false);
+        }
+        return;
+      }
+
+      // Role missing/stale right after login — re-read cookie once (do not await update()).
+      if (!retried.current) {
+        retried.current = true;
+        const cookieRole = await fetchSessionRole();
+        if (cancelled) return;
+        if (isDeliveryRole(cookieRole)) {
+          void refreshSession().catch(() => undefined);
+          setRoleOk(true);
+          setChecking(false);
+          return;
+        }
+      }
+
+      if (!cancelled) {
+        setRoleOk(false);
+        setChecking(false);
+        router.replace(DELIVER_LANDING);
+      }
     }
 
-    if (!isDeliveryRole(user.role)) {
-      router.replace(DELIVERY_REGISTER);
-    }
-  }, [isReady, user, router, pathname]);
+    void gate();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    isReady,
+    isAuthenticated,
+    user,
+    user?.role,
+    router,
+    pathname,
+    refreshSession,
+  ]);
 
-  if (!isReady || !user || !isDeliveryRole(user.role)) {
+  if (!isReady || checking || !roleOk) {
     return <DeliveryPageSkeleton />;
   }
 

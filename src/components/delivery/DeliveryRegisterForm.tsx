@@ -8,7 +8,7 @@ import {
   DELIVERY_VEHICLE_LABELS,
   DELIVERY_VEHICLE_TYPES,
 } from "@/lib/delivery";
-import { DELIVER_LANDING } from "@/lib/delivery-routes";
+import { DELIVERY_HOME } from "@/lib/delivery-routes";
 import { isDeliveryRole } from "@/lib/user-role";
 
 export function DeliveryRegisterForm() {
@@ -19,7 +19,7 @@ export function DeliveryRegisterForm() {
 
   useEffect(() => {
     if (isReady && user && isDeliveryRole(user.role)) {
-      router.replace(DELIVER_LANDING);
+      router.replace(DELIVERY_HOME);
     }
   }, [isReady, user, router]);
 
@@ -50,14 +50,15 @@ export function DeliveryRegisterForm() {
         return;
       }
 
-      const ok = await login(payload.phone, payload.password);
+      const auth = await login(payload.phone, payload.password);
       setLoading(false);
-      if (!ok) {
+      if (!auth.ok) {
         setError("Account created — please log in.");
-        router.push(`/login?callbackUrl=${encodeURIComponent(DELIVER_LANDING)}`);
+        router.push(`/login?callbackUrl=${encodeURIComponent(DELIVERY_HOME)}`);
         return;
       }
-      router.replace(DELIVER_LANDING);
+      router.replace(DELIVERY_HOME);
+      router.refresh();
     } catch {
       setLoading(false);
       setError("Registration failed.");
@@ -154,7 +155,7 @@ export function DeliveryRegisterForm() {
       <p className="mt-6 text-center text-sm text-zinc-500">
         Already registered?{" "}
         <Link
-          href={`/login?callbackUrl=${encodeURIComponent(DELIVER_LANDING)}`}
+          href={`/login?callbackUrl=${encodeURIComponent(DELIVERY_HOME)}`}
           className="font-medium text-brand-600 hover:underline"
         >
           Log in

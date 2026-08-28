@@ -56,7 +56,10 @@ function SignupForm() {
     const result = await signup(name, phone, password, email, signupRole);
     setLoading(false);
     if (result.ok) {
-      router.push(afterAuth);
+      router.replace(
+        resolveAfterAuth(searchParams.get("callbackUrl"), result.role ?? signupRole),
+      );
+      router.refresh();
     } else {
       setError(result.error ?? "Could not create account.");
     }

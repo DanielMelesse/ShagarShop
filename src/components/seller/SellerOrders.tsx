@@ -79,6 +79,7 @@ export function SellerOrders() {
               ...o,
               fulfillmentStatus: status,
               trackingCode: result.order.trackingCode,
+              shopName: result.order.shopName ?? o.shopName,
             }
           : o,
       ),
@@ -137,7 +138,9 @@ export function SellerOrders() {
               <SellerOrderCard
                 order={order}
                 updatingId={updatingId}
-                onStatusChange={(id, status) => void handleStatusChange(id, status)}
+                onStatusChange={(id, status, code) =>
+                  void handleStatusChange(id, status, code)
+                }
               />
             </li>
           ))}

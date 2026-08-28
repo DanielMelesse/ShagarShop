@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.phone = user.phone;
@@ -50,7 +50,9 @@ export const authOptions: NextAuthOptions = {
         return token;
       }
 
-      if (token.id) {
+      // Only refresh from DB on explicit session update — not every session poll.
+      // Hitting Prisma on every /api/auth/session call starved the pool and hung login.
+      if (trigger === "update" && token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
           select: { role: true, name: true, phone: true, email: true },

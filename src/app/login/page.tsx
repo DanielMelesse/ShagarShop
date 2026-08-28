@@ -1,26 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useTranslations } from "@/context/LocaleContext";
 import { useAuth } from "@/hooks/useAuth";
-import { resolveAfterAuth, DEFAULT_AFTER_AUTH } from "@/lib/auth-redirect";
+import { resolveAfterAuth } from "@/lib/auth-redirect";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
   const { t } = useTranslations();
-  const afterAuth = resolveAfterAuth(searchParams.get("callbackUrl"), null);
   const { login, user, isReady } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Already signed in → leave /login (full navigation avoids client race).
+  // Do not wait for submit `loading` — session can land while update() is slow.
   useEffect(() => {
-    if (isReady && user) {
-      router.replace(resolveAfterAuth(searchParams.get("callbackUrl"), user.role));
+    if (!isReady || !user) return;
+    const dest = resolveAfterAuth(callbackUrl, user.role);
+    if (window.location.pathname === "/login") {
+      window.location.replace(dest);
     }
-  }, [isReady, user, router, searchParams]);
+  }, [isReady, user, callbackUrl]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,14 +32,35 @@ function LoginForm() {
     const form = new FormData(e.currentTarget);
     const phone = String(form.get("phone") ?? "");
     const password = String(form.get("password") ?? "");
-    const ok = await login(phone, password);
-    setLoading(false);
-    if (ok) {
-      router.push(afterAuth);
-    } else {
+    const result = await login(phone, password);
+    if (!result.ok) {
+      setLoading(false);
       setError(t("auth.invalidCredentials"));
+      return;
     }
+
+    // If session role timed out, still honor known role destinations from callback.
+    const dest =
+      result.role != null
+        ? resolveAfterAuth(callbackUrl, result.role)
+        : callbackUrl?.startsWith("/delivery")
+          ? "/delivery"
+          : callbackUrl?.startsWith("/seller") ||
+              callbackUrl === "/sell" ||
+              callbackUrl?.startsWith("/sell/")
+            ? "/seller"
+            : resolveAfterAuth(callbackUrl, "BUYER");
+    // Hard navigation so role dashboards mount with a fresh session cookie.
+    window.location.assign(dest);
   }
+
+  const signupHref =
+    callbackUrl &&
+    callbackUrl.startsWith("/") &&
+    !callbackUrl.startsWith("//") &&
+    !callbackUrl.startsWith("/delivery")
+      ? `/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`
+      : "/signup";
 
   return (
     <div className="mx-auto flex max-w-md flex-col px-4 py-16 sm:px-6">
@@ -83,17 +107,19 @@ function LoginForm() {
 
       <p className="mt-6 text-center text-sm text-zinc-500">
         {t("auth.noAccountShort")}{" "}
-        <Link
-          href={
-            afterAuth !== DEFAULT_AFTER_AUTH
-              ? `/signup?callbackUrl=${encodeURIComponent(afterAuth)}`
-              : "/signup"
-          }
-          className="font-medium text-brand-600 hover:underline"
-        >
+        <Link href={signupHref} className="font-medium text-brand-600 hover:underline">
           {t("auth.signUp")}
         </Link>
       </p>
+      {callbackUrl?.startsWith("/delivery") && (
+        <p className="mt-3 text-center text-xs text-zinc-400">
+          Couriers: use your delivery phone &amp; password. New partners register at{" "}
+          <Link href="/deliver/register" className="text-brand-600 hover:underline">
+            /deliver/register
+          </Link>
+          .
+        </p>
+      )}
     </div>
   );
 }

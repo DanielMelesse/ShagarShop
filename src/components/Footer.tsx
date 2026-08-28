@@ -2,11 +2,18 @@
 
 import Link from "next/link";
 import { useTranslations } from "@/context/LocaleContext";
+import { useAuth } from "@/hooks/useAuth";
+import { ACCOUNT_HOME } from "@/lib/account-routes";
+import { DELIVERY_HOME } from "@/lib/delivery-routes";
+import { SELLER_HOME } from "@/lib/seller-routes";
 import { ALL_PRODUCTS_HREF, TODAYS_DEALS_HREF } from "@/lib/shop-routes";
+import { isDeliveryRole, isSellerRole } from "@/lib/user-role";
 
 export function Footer() {
   const { t } = useTranslations();
+  const { user, isReady } = useAuth();
   const year = new Date().getFullYear();
+  const loggedIn = isReady && Boolean(user);
 
   return (
     <footer className="mt-auto border-t border-zinc-200 bg-white">
@@ -41,16 +48,42 @@ export function Footer() {
           <div>
             <p className="text-sm font-semibold text-zinc-900">{t("footer.account")}</p>
             <ul className="mt-3 space-y-2 text-sm text-zinc-500">
-              <li>
-                <Link href="/login" className="hover:text-brand-600">
-                  {t("footer.logIn")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/signup" className="hover:text-brand-600">
-                  {t("footer.signUp")}
-                </Link>
-              </li>
+              {loggedIn ? (
+                <>
+                  <li>
+                    <Link href={ACCOUNT_HOME} className="hover:text-brand-600">
+                      {t("nav.account")}
+                    </Link>
+                  </li>
+                  {isDeliveryRole(user?.role) && (
+                    <li>
+                      <Link href={DELIVERY_HOME} className="hover:text-brand-600">
+                        Delivery
+                      </Link>
+                    </li>
+                  )}
+                  {isSellerRole(user?.role) && (
+                    <li>
+                      <Link href={SELLER_HOME} className="hover:text-brand-600">
+                        {t("nav.seller")}
+                      </Link>
+                    </li>
+                  )}
+                </>
+              ) : (
+                <>
+                  <li>
+                    <Link href="/login" className="hover:text-brand-600">
+                      {t("footer.logIn")}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/signup" className="hover:text-brand-600">
+                      {t("footer.signUp")}
+                    </Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
           <div>

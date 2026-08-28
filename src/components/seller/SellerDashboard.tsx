@@ -58,6 +58,7 @@ export function SellerDashboard() {
               ...o,
               fulfillmentStatus: status,
               trackingCode: result.order.trackingCode,
+              shopName: result.order.shopName ?? o.shopName,
             }
           : o,
       ),
@@ -197,7 +198,9 @@ export function SellerDashboard() {
                       order={order}
                       compact
                       updatingId={updatingId}
-                      onStatusChange={(id, status) => void handleStatusChange(id, status)}
+                      onStatusChange={(id, status, code) =>
+                        void handleStatusChange(id, status, code)
+                      }
                     />
                   </li>
                 ))}

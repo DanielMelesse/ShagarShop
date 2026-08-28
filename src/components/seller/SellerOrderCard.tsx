@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { ProductImage } from "@/components/ProductImage";
 import { BarcodeLabel } from "@/components/BarcodeLabel";
-import { PackageBarcodeAssign } from "@/components/seller/PackageBarcodeAssign";
 import { formatPrice } from "@/lib/products";
 import {
   FULFILLMENT_STATUS_LABELS,
@@ -42,20 +41,20 @@ export function SellerOrderCard({
   updatingId,
   compact = false,
 }: SellerOrderCardProps) {
-  const [assigningBarcode, setAssigningBarcode] = useState(false);
+  const [justMadeReady, setJustMadeReady] = useState(false);
   const actions = onStatusChange ? nextActions(order.fulfillmentStatus) : [];
   const isUpdating = updatingId === order.id;
+  const orderRef = order.orderId.slice(-8).toUpperCase();
 
   useEffect(() => {
-    if (order.fulfillmentStatus !== "pending" || order.trackingCode) {
-      setAssigningBarcode(false);
+    if (order.fulfillmentStatus !== "shipped") {
+      setJustMadeReady(false);
     }
-  }, [order.fulfillmentStatus, order.trackingCode]);
+  }, [order.fulfillmentStatus]);
 
   function handleAction(status: FulfillmentStatus) {
     if (status === "shipped") {
-      setAssigningBarcode(true);
-      return;
+      setJustMadeReady(true);
     }
     onStatusChange?.(order.id, status);
   }
@@ -91,18 +90,32 @@ export function SellerOrderCard({
               )}
             </p>
             <p className="mt-1 text-xs text-zinc-400">
-              Order #{order.orderId.slice(-8).toUpperCase()} ·{" "}
+              Order #{orderRef} ·{" "}
               {new Date(order.orderDate).toLocaleDateString("en-US", {
                 dateStyle: "medium",
               })}
             </p>
             {order.trackingCode ? (
               <div className="mt-3">
-                <BarcodeLabel value={order.trackingCode} label="Package barcode" />
+                <BarcodeLabel
+                  value={order.trackingCode}
+                  label="Package barcode"
+                  printable
+                  shopName={order.shopName}
+                  productName={order.productName}
+                  quantity={order.quantity}
+                  orderRef={orderRef}
+                />
+                {justMadeReady ? (
+                  <p className="mt-2 text-xs text-brand-700">
+                    Ready for delivery — print and stick this barcode on the package.
+                  </p>
+                ) : null}
               </div>
             ) : (
               <p className="mt-2 text-xs text-zinc-500">
-                Package barcode is assigned when you mark this ready for delivery.
+                A unique shop package barcode is created when you mark this ready for
+                delivery.
               </p>
             )}
           </div>
@@ -123,18 +136,7 @@ export function SellerOrderCard({
         </div>
       )}
 
-      {assigningBarcode ? (
-        <PackageBarcodeAssign
-          productName={order.productName}
-          busy={isUpdating}
-          onCancel={() => setAssigningBarcode(false)}
-          onConfirm={(barcode) => {
-            onStatusChange?.(order.id, "shipped", barcode);
-          }}
-        />
-      ) : null}
-
-      {!assigningBarcode && actions.length > 0 && (
+      {actions.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {actions.map((action) => (
             <button
@@ -148,7 +150,11 @@ export function SellerOrderCard({
                   : "bg-brand-600 text-white hover:bg-brand-700"
               }`}
             >
-              {isUpdating ? "Updating…" : action.label}
+              {isUpdating
+                ? action.status === "shipped"
+                  ? "Creating barcode…"
+                  : "Updating…"
+                : action.label}
             </button>
           ))}
         </div>

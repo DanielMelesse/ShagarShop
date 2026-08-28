@@ -51,24 +51,25 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   if (nextStatus === currentStatus) {
     return NextResponse.json({
-      order: { id: existing.id, fulfillmentStatus: currentStatus },
+      order: {
+        id: existing.id,
+        fulfillmentStatus: currentStatus,
+        trackingCode: existing.trackingCode,
+      },
     });
   }
 
+  // Optional override — otherwise server creates a shop+item unique barcode.
   let trackingCode: string | null = null;
-  if (nextStatus === "shipped") {
-    const raw = typeof body.trackingCode === "string" ? body.trackingCode : "";
-    const normalized = normalizePackageBarcode(raw);
-    if (!isValidPackageBarcode(normalized)) {
+  if (nextStatus === "shipped" && typeof body.trackingCode === "string") {
+    const normalized = normalizePackageBarcode(body.trackingCode);
+    if (normalized && !isValidPackageBarcode(normalized)) {
       return NextResponse.json(
-        {
-          error:
-            "A valid package barcode is required (scan or type) before marking ready for delivery.",
-        },
+        { error: "Invalid package barcode format." },
         { status: 400 },
       );
     }
-    trackingCode = normalized;
+    trackingCode = normalized || null;
   }
 
   const result = await setSellerOrderItemStatus(
