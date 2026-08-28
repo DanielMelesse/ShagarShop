@@ -15,7 +15,7 @@ import { isDeliveryAppPath, DELIVER_LANDING, DELIVERY_HOME } from "@/lib/deliver
 import { isSellerAppPath, SELLER_HOME } from "@/lib/seller-routes";
 import { ACCOUNT_HOME } from "@/lib/account-routes";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
-import { isAdminRole, isDeliveryRole } from "@/lib/user-role";
+import { isAdminRole, isDeliveryRole, isSellerRole } from "@/lib/user-role";
 
 const navLinkClass =
   "text-sm font-medium text-zinc-600 transition hover:text-brand-600";
@@ -87,11 +87,9 @@ export function Header() {
   const mounted = useMounted();
   const { t } = useTranslations();
   const { user, isReady: authReady, logout } = useAuth();
-  const { isSeller, checkingSeller } = useIsSeller();
   const { itemCount, isReady: cartReady } = useCart();
 
   const showUser = mounted && authReady && user;
-  const sellerAccount = showUser && (isSeller || checkingSeller);
   const onSellerSurface =
     pathname.startsWith("/sell") || isSellerAppPath(pathname);
   const onDeliverySurface =
@@ -99,6 +97,11 @@ export function Header() {
   const onAdminSurface = isAdminAppPath(pathname);
   const deliveryAccount = showUser && isDeliveryRole(user?.role);
   const adminAccount = showUser && isAdminRole(user?.role);
+  const needsSellerCheck =
+    onSellerSurface || (showUser && isSellerRole(user?.role));
+  const { isSeller, checkingSeller } = useIsSeller({ enabled: needsSellerCheck });
+  const sellerAccount =
+    showUser && (isSellerRole(user?.role) || isSeller || checkingSeller);
   const sellerNav =
     onSellerSurface &&
     (sellerAccount || (mounted && authReady && !showUser));

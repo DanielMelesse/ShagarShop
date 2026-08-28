@@ -2,9 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { isSellerRole } from "@/lib/user-role";
+import { isAdminRole, isDeliveryRole, isSellerRole } from "@/lib/user-role";
 
-export function useIsSeller() {
+interface UseIsSellerOptions {
+  /** When false, skip /api/seller/me (shop pages for buyers/couriers). */
+  enabled?: boolean;
+}
+
+export function useIsSeller(options: UseIsSellerOptions = {}) {
+  const { enabled = true } = options;
   const { user, isReady } = useAuth();
   const [verifiedSeller, setVerifiedSeller] = useState<boolean | null>(null);
 
@@ -18,6 +24,17 @@ export function useIsSeller() {
 
     if (isSellerRole(user.role)) {
       setVerifiedSeller(true);
+      return;
+    }
+
+    // Known non-sellers — never call seller API from the header/shop shell.
+    if (isDeliveryRole(user.role) || isAdminRole(user.role) || user.role === "BUYER") {
+      setVerifiedSeller(false);
+      return;
+    }
+
+    if (!enabled) {
+      setVerifiedSeller(false);
       return;
     }
 
@@ -35,13 +52,20 @@ export function useIsSeller() {
     return () => {
       cancelled = true;
     };
-  }, [user, isReady]);
+  }, [user, isReady, enabled]);
 
   const isSeller =
     isReady && !!user && (isSellerRole(user.role) || verifiedSeller === true);
 
   const checkingSeller =
-    isReady && !!user && !isSellerRole(user.role) && verifiedSeller === null;
+    enabled &&
+    isReady &&
+    !!user &&
+    !isSellerRole(user.role) &&
+    !isDeliveryRole(user.role) &&
+    user.role !== "BUYER" &&
+    !isAdminRole(user.role) &&
+    verifiedSeller === null;
 
   return { user, isReady, isSeller, checkingSeller };
 }

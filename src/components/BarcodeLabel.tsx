@@ -157,11 +157,12 @@ export function BarcodeLabel({
     // Always paint a visible barcode immediately (no blank state).
     drawFallbackBarcode(svg, value);
 
+    if (!printable) return;
+
     let cancelled = false;
     void (async () => {
       const upgraded = await tryUpgradeToJsBarcode(svg, value);
       if (cancelled) return;
-      // If upgrade failed, keep the fallback that is already on screen.
       if (!upgraded && svg.childNodes.length === 0) {
         drawFallbackBarcode(svg, value);
       }
@@ -170,7 +171,7 @@ export function BarcodeLabel({
     return () => {
       cancelled = true;
     };
-  }, [value]);
+  }, [value, printable]);
 
   function handlePrint() {
     const svg = svgRef.current;

@@ -7,7 +7,7 @@ import { LocaleProvider } from "@/context/LocaleContext";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <SessionProvider>
+    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
       <LocaleProvider>
         <CartProvider>{children}</CartProvider>
       </LocaleProvider>
