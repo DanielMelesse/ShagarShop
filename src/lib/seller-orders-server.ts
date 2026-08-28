@@ -43,7 +43,7 @@ function toOrderLine(
     sellerEarnings: number;
     fulfillmentStatus: string;
     trackingCode: string | null;
-    product: { image: string; sellerId?: string };
+    product: { image: string; sellerId?: string | null };
     order: {
       id: string;
       createdAt: Date;

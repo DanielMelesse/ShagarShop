@@ -11,9 +11,9 @@ import { isDeliveryRole, isSellerRole } from "@/lib/user-role";
 
 export function Footer() {
   const { t } = useTranslations();
-  const { user, isReady } = useAuth();
+  const { user } = useAuth();
   const year = new Date().getFullYear();
-  const loggedIn = isReady && Boolean(user);
+  const loggedIn = Boolean(user);
 
   return (
     <footer className="mt-auto border-t border-zinc-200 bg-white">

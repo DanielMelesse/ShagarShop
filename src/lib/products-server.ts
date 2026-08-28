@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import {
   PRODUCT_LIST_SELECT,
@@ -14,18 +15,34 @@ const CATALOG_SECTION_LIMIT = 8;
 export const SHOP_PAGE_SIZE = 24;
 
 export async function getFeaturedProducts(): Promise<ProductListItem[]> {
-  const rows = await prisma.product.findMany({
-    where: { featured: true },
-    select: PRODUCT_LIST_SELECT,
-    orderBy: { name: "asc" },
-  });
-  return rows.map(toProductListItem);
+  return getFeaturedProductsCached();
 }
 
+const getFeaturedProductsCached = unstable_cache(
+  async () => {
+    const rows = await prisma.product.findMany({
+      where: { featured: true },
+      select: PRODUCT_LIST_SELECT,
+      orderBy: { name: "asc" },
+    });
+    return rows.map(toProductListItem);
+  },
+  ["featured-products"],
+  { revalidate: 60 },
+);
+
 export async function getProductById(id: string): Promise<Product | null> {
-  const row = await prisma.product.findUnique({ where: { id } });
-  return row ? toProduct(row) : null;
+  return getProductByIdCached(id);
 }
+
+const getProductByIdCached = unstable_cache(
+  async (id: string) => {
+    const row = await prisma.product.findUnique({ where: { id } });
+    return row ? toProduct(row) : null;
+  },
+  ["product-by-id"],
+  { revalidate: 60 },
+);
 
 export async function filterProducts(options: {
   category?: Category;
@@ -75,14 +92,22 @@ export async function filterProducts(options: {
 
 /** Featured deals for home/hero — capped, no pagination UI. */
 export async function getDealsProducts(limit = 48): Promise<ProductListItem[]> {
-  const rows = await prisma.product.findMany({
-    where: { featured: true },
-    select: PRODUCT_LIST_SELECT,
-    orderBy: [{ rating: "desc" }, { reviewCount: "desc" }],
-    take: limit,
-  });
-  return rows.map(toProductListItem);
+  return getDealsProductsCached(limit);
 }
+
+const getDealsProductsCached = unstable_cache(
+  async (limit: number) => {
+    const rows = await prisma.product.findMany({
+      where: { featured: true },
+      select: PRODUCT_LIST_SELECT,
+      orderBy: [{ rating: "desc" }, { reviewCount: "desc" }],
+      take: limit,
+    });
+    return rows.map(toProductListItem);
+  },
+  ["deals-products"],
+  { revalidate: 60 },
+);
 
 export async function filterProductsByDepartment(
   slug: string,
@@ -123,39 +148,47 @@ export async function filterProductsByDepartment(
 }
 
 export async function getAllDepartmentsCatalog() {
-  const [featuredRows, hotRows, bestSellerRows] = await Promise.all([
-    prisma.product.findMany({
-      where: { featured: true, stock: { gt: 0 } },
-      select: PRODUCT_LIST_SELECT,
-      orderBy: [{ rating: "desc" }, { reviewCount: "desc" }],
-      take: CATALOG_SECTION_LIMIT * 2,
-    }),
-    prisma.product.findMany({
-      where: {
-        stock: { gt: 0 },
-        OR: [{ featured: true }, { stock: { lte: 25 } }, { rating: { gte: 4.5 } }],
-      },
-      select: PRODUCT_LIST_SELECT,
-      orderBy: [{ rating: "desc" }, { reviewCount: "desc" }],
-      take: CATALOG_SECTION_LIMIT * 2,
-    }),
-    prisma.product.findMany({
-      where: { stock: { gt: 0 } },
-      select: PRODUCT_LIST_SELECT,
-      orderBy: [{ reviewCount: "desc" }, { rating: "desc" }],
-      take: CATALOG_SECTION_LIMIT,
-    }),
-  ]);
-
-  const bestDeals = sortDeals(featuredRows.map(toProductListItem)).slice(
-    0,
-    CATALOG_SECTION_LIMIT,
-  );
-  const hotItems = hotRows.map(toProductListItem).slice(0, CATALOG_SECTION_LIMIT);
-  const bestSellers = bestSellerRows.map(toProductListItem);
-
-  return { bestDeals, hotItems, bestSellers };
+  return getAllDepartmentsCatalogCached();
 }
+
+const getAllDepartmentsCatalogCached = unstable_cache(
+  async () => {
+    const [featuredRows, hotRows, bestSellerRows] = await Promise.all([
+      prisma.product.findMany({
+        where: { featured: true, stock: { gt: 0 } },
+        select: PRODUCT_LIST_SELECT,
+        orderBy: [{ rating: "desc" }, { reviewCount: "desc" }],
+        take: CATALOG_SECTION_LIMIT * 2,
+      }),
+      prisma.product.findMany({
+        where: {
+          stock: { gt: 0 },
+          OR: [{ featured: true }, { stock: { lte: 25 } }, { rating: { gte: 4.5 } }],
+        },
+        select: PRODUCT_LIST_SELECT,
+        orderBy: [{ rating: "desc" }, { reviewCount: "desc" }],
+        take: CATALOG_SECTION_LIMIT * 2,
+      }),
+      prisma.product.findMany({
+        where: { stock: { gt: 0 } },
+        select: PRODUCT_LIST_SELECT,
+        orderBy: [{ reviewCount: "desc" }, { rating: "desc" }],
+        take: CATALOG_SECTION_LIMIT,
+      }),
+    ]);
+
+    const bestDeals = sortDeals(featuredRows.map(toProductListItem)).slice(
+      0,
+      CATALOG_SECTION_LIMIT,
+    );
+    const hotItems = hotRows.map(toProductListItem).slice(0, CATALOG_SECTION_LIMIT);
+    const bestSellers = bestSellerRows.map(toProductListItem);
+
+    return { bestDeals, hotItems, bestSellers };
+  },
+  ["departments-catalog"],
+  { revalidate: 60 },
+);
 
 export async function searchProductsDb(
   query: string,

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { getServerSession } from "next-auth";
 import { AmharicFontLoader } from "@/components/AmharicFontLoader";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { HeaderNav } from "@/components/HeaderNav";
 import { Providers } from "@/components/Providers";
+import { authOptions } from "@/lib/auth";
 import "./globals.css";
 
 const inter = Inter({
@@ -18,18 +20,20 @@ export const metadata: Metadata = {
   description: "Discover and shop quality products from trusted sellers.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.variable} flex min-h-screen flex-col font-sans`}
         suppressHydrationWarning
       >
-        <Providers>
+        <Providers session={session}>
           <AmharicFontLoader />
           <div className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
             <div className="relative z-20">

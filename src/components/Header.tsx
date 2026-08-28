@@ -1,9 +1,9 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { HeaderSearch } from "@/components/HeaderSearch";
 import { useTranslations } from "@/context/LocaleContext";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,6 +19,22 @@ import { isAdminRole, isDeliveryRole, isSellerRole } from "@/lib/user-role";
 
 const navLinkClass =
   "text-sm font-medium text-zinc-600 transition hover:text-brand-600";
+
+const HeaderSearch = dynamic(
+  () =>
+    import("@/components/HeaderSearch").then((mod) => ({
+      default: mod.HeaderSearch,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="h-9 min-w-0 flex-1 rounded-lg bg-zinc-100"
+        aria-hidden
+      />
+    ),
+  },
+);
 
 function HeaderActions({
   showUser,
@@ -89,7 +105,7 @@ export function Header() {
   const { user, isReady: authReady, logout } = useAuth();
   const { itemCount, isReady: cartReady } = useCart();
 
-  const showUser = mounted && authReady && user;
+  const showUser = authReady && user != null;
   const onSellerSurface =
     pathname.startsWith("/sell") || isSellerAppPath(pathname);
   const onDeliverySurface =

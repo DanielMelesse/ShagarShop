@@ -1,6 +1,6 @@
 import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
+import { resolveSessionRole } from "@/lib/session-role";
 import { isAdminRole, type UserRole } from "@/lib/user-role";
 
 export async function requireAdminSession(request: Request) {
@@ -13,23 +13,23 @@ export async function requireAdminSession(request: Request) {
     return { error: "Unauthorized" as const, status: 401 as const };
   }
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: token.id as string },
-    select: { id: true, name: true, phone: true, email: true, role: true },
-  });
+  const role = await resolveSessionRole(
+    token.id as string,
+    token.role as UserRole | undefined,
+  );
 
-  if (!dbUser || !isAdminRole(dbUser.role)) {
+  if (!isAdminRole(role)) {
     return { error: "Admin access required." as const, status: 403 as const };
   }
 
   return {
     session: {
       user: {
-        id: dbUser.id,
-        name: dbUser.name,
-        phone: dbUser.phone,
-        email: dbUser.email,
-        role: dbUser.role as UserRole,
+        id: token.id as string,
+        name: (token.name as string) ?? "",
+        phone: (token.phone as string) ?? "",
+        email: (token.email as string | null) ?? null,
+        role,
       },
     },
   };

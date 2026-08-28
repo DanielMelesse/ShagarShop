@@ -1,19 +1,7 @@
 import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
-import { isSellerRole, type UserRole } from "@/lib/user-role";
-
-async function resolveSessionRole(
-  userId: string,
-  role: UserRole | string | undefined,
-): Promise<UserRole> {
-  if (isSellerRole(role)) return "SELLER";
-  const dbUser = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { role: true },
-  });
-  return dbUser?.role === "SELLER" ? "SELLER" : "BUYER";
-}
+import { resolveSessionRole } from "@/lib/session-role";
+import type { UserRole } from "@/lib/user-role";
 
 export async function requireAuthSession(request: Request) {
   const token = await getToken({

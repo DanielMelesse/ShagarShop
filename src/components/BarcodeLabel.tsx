@@ -89,15 +89,14 @@ async function tryUpgradeToJsBarcode(
   value: string,
 ): Promise<boolean> {
   try {
-    const mod = (await import("jsbarcode")) as {
-      default?: unknown;
-      (el: SVGSVGElement, v: string, o: object): void;
-    };
+    const imported = await import("jsbarcode");
     const JsBarcode =
-      typeof mod === "function"
-        ? mod
-        : typeof mod.default === "function"
-          ? mod.default
+      "default" in imported &&
+      typeof (imported as { default: unknown }).default === "function"
+        ? (imported as { default: (el: SVGSVGElement, v: string, o: object) => void })
+            .default
+        : typeof imported === "function"
+          ? (imported as (el: SVGSVGElement, v: string, o: object) => void)
           : null;
     if (typeof JsBarcode !== "function") return false;
 
