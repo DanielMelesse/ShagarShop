@@ -7,7 +7,8 @@ import { EthiopiaShippingAddress } from "@/components/checkout/EthiopiaShippingA
 import { OrderSummary } from "@/components/OrderSummary";
 import { useTranslations } from "@/context/LocaleContext";
 import { useAuth } from "@/hooks/useAuth";
-import { useCart } from "@/context/CartContext";
+import { useCart, cartClientHeaders } from "@/context/CartContext";
+import { openPaymentCheckout } from "@/lib/mobile-payment";
 import { calculateOrderTotals, formatPrice, shippingLinesFromCart } from "@/lib/products";
 import type { PaymentMethod } from "@/lib/payment";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
@@ -67,7 +68,11 @@ export default function CheckoutPage() {
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...cartClientHeaders(),
+        },
+        credentials: "same-origin",
         body: JSON.stringify({
           items: items.map((i) => ({
             productId: i.product.id,
@@ -89,7 +94,8 @@ export default function CheckoutPage() {
 
       const redirectUrl = data.payment?.checkoutUrl as string | undefined;
       if (isOnline && redirectUrl) {
-        window.location.href = redirectUrl;
+        await openPaymentCheckout(redirectUrl);
+        setSubmitting(false);
         return;
       }
 

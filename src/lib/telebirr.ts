@@ -105,6 +105,8 @@ export interface TelebirrCheckoutInput {
   merchOrderId: string;
   title: string;
   amount: number;
+  /** Override mock checkout return (mobile deep link). */
+  returnUrl?: string;
 }
 
 export interface TelebirrCheckoutResult {
@@ -122,11 +124,14 @@ export async function createTelebirrCheckout(
   const amount = (Math.round(input.amount * 100) / 100).toFixed(2);
 
   if (mode === "mock") {
+    const returnTarget =
+      input.returnUrl ??
+      `${base}/checkout/result?tx_ref=${encodeURIComponent(input.merchOrderId)}&mock=1&via=telebirr`;
     return {
       mode: "mock",
       merchOrderId: input.merchOrderId,
       prepayId: `mock-prepay-${input.merchOrderId}`,
-      checkoutUrl: `${base}/checkout/result?tx_ref=${encodeURIComponent(input.merchOrderId)}&mock=1&via=telebirr`,
+      checkoutUrl: returnTarget,
     };
   }
 

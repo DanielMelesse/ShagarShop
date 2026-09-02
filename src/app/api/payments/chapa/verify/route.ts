@@ -1,18 +1,17 @@
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
 import { getChapaMode, verifyChapaPayment } from "@/lib/chapa";
 import { prisma } from "@/lib/db";
 import { finalizeOnlinePaidOrder } from "@/lib/order-payment";
+import { requireAuthSession } from "@/lib/require-auth";
 
 /**
  * Buyer return-url verification after Chapa checkout (or mock redirect).
  */
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAuthSession(request);
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const body = (await request.json()) as {
@@ -36,7 +35,7 @@ export async function POST(request: Request) {
       },
     });
 
-    if (!order || order.userId !== session.user.id) {
+    if (!order || order.userId !== auth.session.user.id) {
       return NextResponse.json({ error: "Order not found." }, { status: 404 });
     }
 

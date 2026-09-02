@@ -3,6 +3,8 @@
 import type { ReactNode } from "react";
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
+import { MobileShell } from "@/components/MobileShell";
+import { PushRegister } from "@/components/PushRegister";
 import { CartProvider } from "@/context/CartContext";
 import { LocaleProvider } from "@/context/LocaleContext";
 
@@ -20,7 +22,11 @@ export function Providers({
       refetchInterval={0}
     >
       <LocaleProvider>
-        <CartProvider>{children}</CartProvider>
+        <CartProvider>
+          <MobileShell />
+          <PushRegister />
+          {children}
+        </CartProvider>
       </LocaleProvider>
     </SessionProvider>
   );

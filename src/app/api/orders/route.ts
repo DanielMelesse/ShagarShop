@@ -1,6 +1,4 @@
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
 import {
   chapaCustomerEmail,
   initializeChapaPayment,
@@ -14,7 +12,12 @@ import {
 import { prisma } from "@/lib/db";
 import { createPaymentTxRef } from "@/lib/order-payment";
 import { isOnlinePaymentMethod, isPaymentMethod } from "@/lib/payment";
+import {
+  isMobileAppRequest,
+  resolvePaymentReturnUrl,
+} from "@/lib/payment-return";
 import { calculateOrderTotals } from "@/lib/products";
+import { requireAuthSession } from "@/lib/require-auth";
 import type { ShippingLineInput } from "@/lib/shipping";
 import { notifyOrderPlaced } from "@/lib/sms/order-notify";
 import {
@@ -27,14 +30,14 @@ interface OrderItemInput {
   quantity: number;
 }
 
-export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function GET(request: Request) {
+  const auth = await requireAuthSession(request);
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   const orders = await prisma.order.findMany({
-    where: { userId: session.user.id },
+    where: { userId: auth.session.user.id },
     include: { items: true },
     orderBy: { createdAt: "desc" },
   });
@@ -44,10 +47,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAuthSession(request);
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
+    const session = auth.session;
+    const mobileClient = isMobileAppRequest(request);
 
     const body = await request.json();
     const items = body.items as OrderItemInput[];
@@ -224,10 +229,15 @@ export async function POST(request: Request) {
 
     try {
       if (paymentMethod === "telebirr") {
+        const telebirrReturn = resolvePaymentReturnUrl("telebirr", {
+          mobile: mobileClient,
+          txRef,
+        });
         const checkout = await createTelebirrCheckout({
           merchOrderId: txRef,
           title: `ShegerShop ${draft.id.slice(0, 8)}`,
           amount: total,
+          returnUrl: telebirrReturn,
         });
 
         await prisma.order.update({
@@ -255,6 +265,10 @@ export async function POST(request: Request) {
         });
       }
 
+      const chapaReturn = resolvePaymentReturnUrl("chapa", {
+        mobile: mobileClient,
+        txRef,
+      });
       const payment = await initializeChapaPayment({
         amount: total,
         txRef,
@@ -264,6 +278,7 @@ export async function POST(request: Request) {
         phone: accountPhone,
         title: "ShegerShop",
         description: `Order ${draft.id.slice(0, 8)}`,
+        returnUrl: chapaReturn,
       });
 
       return NextResponse.json({

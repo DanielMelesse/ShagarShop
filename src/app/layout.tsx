@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { getServerSession } from "next-auth";
 import { AmharicFontLoader } from "@/components/AmharicFontLoader";
@@ -18,6 +18,19 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ShegerShop — Marketplace",
   description: "Discover and shop quality products from trusted sellers.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "ShegerShop",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#16a34a",
 };
 
 export default async function RootLayout({

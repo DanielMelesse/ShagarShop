@@ -27,6 +27,9 @@ model User {
   sellerProfile   SellerProfile?
   deliveryProfile DeliveryProfile?
   deliveries      OrderItem[]      @relation("DeliveryAssignments")
+  cart            Cart?
+  mobileRefreshTokens MobileRefreshToken[]
+  pushDevices     PushDevice[]
 }
 
 model SellerProfile {
@@ -77,6 +80,7 @@ model Product {
   sellerId    String?
   seller      User?       @relation(fields: [sellerId], references: [id])
   orderItems  OrderItem[]
+  cartItems   CartItem[]
 
   @@index([featured])
   @@index([category])
@@ -139,4 +143,50 @@ model OrderItem {
   @@index([fulfillmentStatus])
   @@index([deliveryId])
   @@index([trackingCode])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id           String  @id @default(cuid())
+  cartId       String
+  cart         Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product @relation(fields: [productId], references: [id])
+  quantity     Int
+  selectedSize String?
+
+  @@unique([cartId, productId, selectedSize])
+  @@index([cartId])
+}
+
+model MobileRefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PushDevice {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }

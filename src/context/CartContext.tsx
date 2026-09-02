@@ -1,15 +1,18 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import { slimProductForCart } from "@/lib/product-mapper";
+import { isNativeApp, mobileFetch } from "@/lib/mobile-auth-client";
 import type { CartItem, Product } from "@/lib/types";
 
 interface AddItemOptions {
@@ -21,7 +24,6 @@ interface CartContextValue {
   items: CartItem[];
   itemCount: number;
   subtotal: number;
-  /** False until localStorage has been read on the client. */
   isReady: boolean;
   addItem: (product: Product, options?: AddItemOptions) => void;
   removeItem: (productId: string, selectedSize?: string) => void;
@@ -60,7 +62,7 @@ function normalizeStoredItem(raw: CartItem): CartItem | null {
   };
 }
 
-function loadCart(): CartItem[] {
+function loadLocalCart(): CartItem[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -79,60 +81,146 @@ function loadCart(): CartItem[] {
   }
 }
 
+function saveLocalCart(items: CartItem[]) {
+  const payload: StoredCart = {
+    v: STORAGE_VERSION,
+    items: items.map((item) => ({
+      ...item,
+      product: slimProductForCart(item.product),
+    })),
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+function serverLinesToCartItems(
+  lines: Array<{
+    productId: string;
+    quantity: number;
+    selectedSize: string | null;
+    product: Product;
+  }>,
+): CartItem[] {
+  return lines.map((line) => ({
+    product: line.product,
+    quantity: line.quantity,
+    selectedSize: line.selectedSize ?? undefined,
+  }));
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id;
+  const isAuthenticated = status === "authenticated" && Boolean(userId);
+
   const [items, setItems] = useState<CartItem[]>([]);
   const [isReady, setIsReady] = useState(false);
+  const mergedRef = useRef(false);
 
   useEffect(() => {
-    setItems(loadCart());
-    setIsReady(true);
-  }, []);
+    if (status === "loading") return;
 
-  useEffect(() => {
-    if (!isReady) return;
-    const payload: StoredCart = {
-      v: STORAGE_VERSION,
-      items: items.map((item) => ({
-        ...item,
-        product: slimProductForCart(item.product),
-      })),
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }, [items, isReady]);
+    if (!isAuthenticated) {
+      setItems(loadLocalCart());
+      setIsReady(true);
+      mergedRef.current = false;
+      return;
+    }
 
-  const addItem = useCallback((product: Product, options?: AddItemOptions) => {
-    const quantity = options?.quantity ?? 1;
-    const selectedSize = options?.selectedSize;
-    const snapshot = slimProductForCart(product);
-    setItems((prev) => {
-      const existing = prev.find((i) => sameLine(i, product.id, selectedSize));
-      if (existing) {
-        return prev.map((i) =>
-          sameLine(i, product.id, selectedSize)
-            ? {
-                ...i,
-                quantity: Math.min(i.quantity + quantity, snapshot.stock),
-                product: snapshot,
-              }
-            : i,
-        );
+    void (async () => {
+      const localItems = loadLocalCart();
+      if (localItems.length > 0 && !mergedRef.current) {
+        mergedRef.current = true;
+        const mergeRes = await mobileFetch("/api/cart", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "merge", items: localItems }),
+        });
+        if (mergeRes.ok) {
+          const data = await mergeRes.json();
+          setItems(serverLinesToCartItems(data.items ?? []));
+          saveLocalCart([]);
+          setIsReady(true);
+          return;
+        }
       }
-      return [
-        ...prev,
-        {
-          product: snapshot,
-          quantity: Math.min(quantity, snapshot.stock),
-          selectedSize,
-        },
-      ];
-    });
-  }, []);
 
-  const removeItem = useCallback((productId: string, selectedSize?: string) => {
-    setItems((prev) =>
-      prev.filter((i) => !sameLine(i, productId, selectedSize)),
-    );
-  }, []);
+      const res = await mobileFetch("/api/cart");
+      if (res.ok) {
+        const data = await res.json();
+        setItems(serverLinesToCartItems(data.items ?? []));
+      } else {
+        setItems(localItems);
+      }
+      setIsReady(true);
+    })();
+  }, [isAuthenticated, status, userId]);
+
+  useEffect(() => {
+    if (!isReady || isAuthenticated) return;
+    saveLocalCart(items);
+  }, [items, isReady, isAuthenticated]);
+
+  const syncServerLine = useCallback(
+    async (
+      productId: string,
+      quantity: number,
+      selectedSize?: string,
+    ) => {
+      if (!isAuthenticated) return;
+      await mobileFetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "set",
+          productId,
+          quantity,
+          selectedSize: selectedSize ?? null,
+        }),
+      });
+    },
+    [isAuthenticated],
+  );
+
+  const addItem = useCallback(
+    (product: Product, options?: AddItemOptions) => {
+      const quantity = options?.quantity ?? 1;
+      const selectedSize = options?.selectedSize;
+      const snapshot = slimProductForCart(product);
+      setItems((prev) => {
+        const existing = prev.find((i) => sameLine(i, product.id, selectedSize));
+        const nextQty = existing
+          ? Math.min(existing.quantity + quantity, snapshot.stock)
+          : Math.min(quantity, snapshot.stock);
+        const next = existing
+          ? prev.map((i) =>
+              sameLine(i, product.id, selectedSize)
+                ? { ...i, quantity: nextQty, product: snapshot }
+                : i,
+            )
+          : [
+              ...prev,
+              {
+                product: snapshot,
+                quantity: nextQty,
+                selectedSize,
+              },
+            ];
+        void syncServerLine(product.id, nextQty, selectedSize);
+        return next;
+      });
+    },
+    [syncServerLine],
+  );
+
+  const removeItem = useCallback(
+    (productId: string, selectedSize?: string) => {
+      setItems((prev) =>
+        prev.filter((i) => !sameLine(i, productId, selectedSize)),
+      );
+      void syncServerLine(productId, 0, selectedSize);
+    },
+    [syncServerLine],
+  );
 
   const updateQuantity = useCallback(
     (productId: string, quantity: number, selectedSize?: string) => {
@@ -148,11 +236,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
           })
           .filter((i): i is CartItem => i !== null),
       );
+      void syncServerLine(productId, quantity, selectedSize);
     },
-    [],
+    [syncServerLine],
   );
 
-  const clearCart = useCallback(() => setItems([]), []);
+  const clearCart = useCallback(() => {
+    setItems([]);
+    if (isAuthenticated) {
+      void mobileFetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "clear" }),
+      });
+    } else {
+      saveLocalCart([]);
+    }
+  }, [isAuthenticated]);
 
   const itemCount = useMemo(
     () => items.reduce((sum, i) => sum + i.quantity, 0),
@@ -185,4 +285,9 @@ export function useCart() {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error("useCart must be used within CartProvider");
   return ctx;
+}
+
+/** Client hint for checkout API (Telebirr/Chapa mobile return URLs). */
+export function cartClientHeaders(): Record<string, string> {
+  return isNativeApp() ? { "x-sheger-client": "capacitor" } : {};
 }

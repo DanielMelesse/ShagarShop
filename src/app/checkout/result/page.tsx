@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/products";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
+import { mobileFetch } from "@/lib/mobile-auth-client";
+import { closePaymentBrowser } from "@/lib/mobile-payment";
 
 function CheckoutResultInner() {
   const { t } = useTranslations();
@@ -61,7 +63,7 @@ function CheckoutResultInner() {
 
     (async () => {
       try {
-        const res = await fetch(verifyPath, {
+        const res = await mobileFetch(verifyPath, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -78,6 +80,8 @@ function CheckoutResultInner() {
           setStatus("error");
           return;
         }
+
+        await closePaymentBrowser();
 
         clearCart();
         setOrderId(data.orderId ?? "");

@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { NextResponse } from "next/server";
 import sharp from "sharp";
+import { storeObject } from "@/lib/object-storage";
 import { requireSellerSession } from "@/lib/require-seller";
 import {
   MAX_PRODUCT_IMAGE_BYTES,
@@ -58,8 +59,6 @@ export async function POST(request: Request) {
     const baseName = `${session.user.id.slice(0, 8)}-${Date.now().toString(36)}`;
     const filename = `${baseName}.webp`;
     const cardFilename = `${baseName}-card.webp`;
-    const uploadDir = getUploadDir();
-    await mkdir(uploadDir, { recursive: true });
 
     const pipeline = sharp(bytes, { animated: false }).rotate();
 
@@ -85,15 +84,39 @@ export async function POST(request: Request) {
       .webp({ quality: WEBP_QUALITY })
       .toBuffer();
 
-    await Promise.all([
-      writeFile(path.join(uploadDir, filename), galleryBuf),
-      writeFile(path.join(uploadDir, cardFilename), cardBuf),
+    const [galleryStored, cardStored] = await Promise.all([
+      storeObject({
+        key: `products/${filename}`,
+        body: galleryBuf,
+        contentType: "image/webp",
+        localSubdir: "products",
+      }),
+      storeObject({
+        key: `products/${cardFilename}`,
+        body: cardBuf,
+        contentType: "image/webp",
+        localSubdir: "products",
+      }),
     ]);
 
-    return NextResponse.json({
-      url: `/uploads/products/${filename}`,
-      cardUrl: `/uploads/products/${cardFilename}`,
-    });
+    // Keep local copies when using disk fallback (API serve route expects paths)
+    if (galleryStored.url.startsWith("/uploads/")) {
+      const uploadDir = getUploadDir();
+      await mkdir(uploadDir, { recursive: true });
+      await Promise.all([
+        writeFile(path.join(uploadDir, filename), galleryBuf),
+        writeFile(path.join(uploadDir, cardFilename), cardBuf),
+      ]);
+    }
+
+    const url = galleryStored.url.startsWith("http")
+      ? galleryStored.url
+      : `/uploads/products/${filename}`;
+    const cardUrl = cardStored.url.startsWith("http")
+      ? cardStored.url
+      : `/uploads/products/${cardFilename}`;
+
+    return NextResponse.json({ url, cardUrl });
   } catch (error) {
     console.error("[seller/upload]", error);
     return NextResponse.json({ error: "Could not upload image." }, { status: 500 });

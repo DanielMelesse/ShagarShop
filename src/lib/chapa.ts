@@ -79,6 +79,7 @@ export interface ChapaInitializeInput {
   phone?: string | null;
   title?: string;
   description?: string;
+  returnUrl?: string;
 }
 
 export interface ChapaInitializeResult {
@@ -92,7 +93,9 @@ export async function initializeChapaPayment(
 ): Promise<ChapaInitializeResult> {
   const mode = getChapaMode();
   const base = appBaseUrl();
-  const returnUrl = `${base}/checkout/result?tx_ref=${encodeURIComponent(input.txRef)}&via=chapa`;
+  const returnUrl =
+    input.returnUrl ??
+    `${base}/checkout/result?tx_ref=${encodeURIComponent(input.txRef)}&via=chapa`;
   const callbackUrl = `${base}/api/payments/chapa/webhook`;
 
   if (mode === "mock") {

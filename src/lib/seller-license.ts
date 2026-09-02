@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+import { storeObject } from "@/lib/object-storage";
 import { guessMimeFromFilename, isUploadBlob, resolveUploadMime } from "@/lib/product-image";
 
 export const LICENSE_UPLOAD_PREFIX = "/uploads/licenses/";
@@ -58,14 +59,25 @@ export async function saveLicenseFile(
 
   const ext = ALLOWED_LICENSE_TYPES.get(mime)!;
   const filename = `${userId.slice(0, 8)}-${Date.now().toString(36)}${ext}`;
-  const uploadDir = getLicenseUploadDir();
-  await mkdir(uploadDir, { recursive: true });
 
   const bytes = Buffer.from(await file.arrayBuffer());
   if (bytes.length === 0) {
     return { ok: false, error: "License file is empty." };
   }
 
-  await writeFile(path.join(uploadDir, filename), bytes);
-  return { ok: true, url: `${LICENSE_UPLOAD_PREFIX}${filename}` };
+  const stored = await storeObject({
+    key: `licenses/${filename}`,
+    body: bytes,
+    contentType: mime,
+    localSubdir: "licenses",
+  });
+
+  if (stored.url.startsWith("/uploads/")) {
+    const uploadDir = getLicenseUploadDir();
+    await mkdir(uploadDir, { recursive: true });
+    await writeFile(path.join(uploadDir, filename), bytes);
+    return { ok: true, url: `${LICENSE_UPLOAD_PREFIX}${filename}` };
+  }
+
+  return { ok: true, url: stored.url };
 }
