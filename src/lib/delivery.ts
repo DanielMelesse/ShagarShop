@@ -50,7 +50,7 @@ export interface DeliveryJob {
   productImage: string;
   quantity: number;
   lineTotal: number;
-  /** Primary tracking barcode for this stop. */
+  /** Primary tracking code for this stop. */
   trackingCode: string;
   /** Buyer delivery fee allocated to this stop's items. */
   deliveryFee: number;

@@ -51,7 +51,7 @@ export interface SellerOrderLine {
   commissionAmount: number;
   sellerEarnings: number;
   fulfillmentStatus: FulfillmentStatus;
-  /** Package barcode unique to shop + order item (set when ready for delivery). */
+  /** System tracking code (assigned when ready for delivery). */
   trackingCode: string | null;
   /** Seller shop name (for printable labels). */
   shopName: string | null;

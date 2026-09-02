@@ -1,5 +1,6 @@
 export const SELL_LANDING = "/sell";
 export const SELLER_REGISTER = "/sell/register";
+export const SELLER_SCAN = "/seller/scan";
 export const SELLER_HOME = "/seller";
 export const SELLER_LISTINGS = "/seller/listings";
 export const SELLER_ORDERS = "/seller/orders";

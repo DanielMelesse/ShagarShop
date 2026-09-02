@@ -5,9 +5,11 @@ import {
   SELLER_COMMISSION_RATE,
 } from "@/lib/commission";
 import {
-  isValidPackageBarcode,
-  normalizePackageBarcode,
-} from "@/lib/barcode";
+  createOrderItemTrackingCode,
+  isValidTrackingCode,
+  normalizeTrackingCode,
+} from "@/lib/tracking-code";
+import { assignTrackingCodeIfMissing } from "@/lib/tracking-scan-server";
 import { prisma } from "@/lib/db";
 import {
   type FulfillmentStatus,
@@ -110,6 +112,14 @@ export async function getSellerOrderLines(
   ]);
 
   const shopName = profile?.shopName ?? null;
+
+  for (const row of rows) {
+    if (row.fulfillmentStatus === "pending" && !row.trackingCode) {
+      const code = await assignTrackingCodeIfMissing(row.id, shopName);
+      if (code) row.trackingCode = code;
+    }
+  }
+
   return rows.map((row) => toOrderLine(row, shopName));
 }
 
@@ -167,7 +177,6 @@ export async function setSellerOrderItemStatus(
   sellerId: string,
   orderItemId: string,
   status: FulfillmentStatus,
-  trackingCode?: string | null,
 ): Promise<
   | { ok: true; order: SellerOrderLine }
   | { ok: false; error: string; status: number }
@@ -185,33 +194,40 @@ export async function setSellerOrderItemStatus(
 
   let codeToStore: string | null = null;
   if (status === "shipped") {
-    const code = trackingCode?.trim()
-      ? normalizePackageBarcode(trackingCode)
+    const existing = item.trackingCode?.trim()
+      ? normalizeTrackingCode(item.trackingCode)
       : "";
-    if (!code || !isValidPackageBarcode(code)) {
-      return {
-        ok: false,
-        error: "Scan or enter a package barcode before marking ready for delivery.",
-        status: 400,
-      };
+    if (existing && isValidTrackingCode(existing)) {
+      codeToStore = existing;
+    } else {
+      let retry = 0;
+      while (retry < 6) {
+        const candidate = createOrderItemTrackingCode({
+          orderItemId,
+          shopName,
+          retry: retry > 0 ? retry : undefined,
+        });
+        const taken = await prisma.orderItem.findFirst({
+          where: {
+            trackingCode: candidate,
+            NOT: { id: orderItemId },
+          },
+          select: { id: true },
+        });
+        if (!taken) {
+          codeToStore = candidate;
+          break;
+        }
+        retry += 1;
+      }
+      if (!codeToStore) {
+        return {
+          ok: false,
+          error: "Could not assign a tracking code. Try again.",
+          status: 500,
+        };
+      }
     }
-
-    const taken = await prisma.orderItem.findFirst({
-      where: {
-        trackingCode: code,
-        NOT: { id: orderItemId },
-      },
-      select: { id: true },
-    });
-    if (taken) {
-      return {
-        ok: false,
-        error: "That barcode is already assigned to another package.",
-        status: 409,
-      };
-    }
-
-    codeToStore = code;
   }
 
   try {
@@ -239,7 +255,7 @@ export async function setSellerOrderItemStatus(
     if (message.includes("Unique constraint") || message.includes("trackingCode")) {
       return {
         ok: false,
-        error: "That barcode is already assigned to another package.",
+        error: "That tracking code is already assigned to another package.",
         status: 409,
       };
     }

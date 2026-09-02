@@ -6,12 +6,14 @@ import {
   DELIVERY_AVAILABLE,
   DELIVERY_HOME,
   DELIVERY_MINE,
+  DELIVERY_SCAN,
 } from "@/lib/delivery-routes";
 
 const links = [
   { href: DELIVERY_HOME, label: "Overview" },
   { href: DELIVERY_AVAILABLE, label: "Available" },
   { href: DELIVERY_MINE, label: "My deliveries" },
+  { href: DELIVERY_SCAN, label: "Scan" },
 ] as const;
 
 export function DeliveryNav() {

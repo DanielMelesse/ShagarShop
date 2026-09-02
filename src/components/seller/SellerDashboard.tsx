@@ -39,11 +39,10 @@ export function SellerDashboard() {
   async function handleStatusChange(
     orderItemId: string,
     status: FulfillmentStatus,
-    trackingCode?: string,
   ) {
     setUpdatingId(orderItemId);
     setMessage("");
-    const result = await updateSellerOrderStatus(orderItemId, status, trackingCode);
+    const result = await updateSellerOrderStatus(orderItemId, status);
     setUpdatingId(null);
 
     if (!result.ok) {
@@ -198,8 +197,8 @@ export function SellerDashboard() {
                       order={order}
                       compact
                       updatingId={updatingId}
-                      onStatusChange={(id, status, code) =>
-                        void handleStatusChange(id, status, code)
+                      onStatusChange={(id, status) =>
+                        void handleStatusChange(id, status)
                       }
                     />
                   </li>

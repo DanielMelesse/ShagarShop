@@ -8,12 +8,14 @@ import {
   SELLER_HOME,
   SELLER_LISTINGS,
   SELLER_ORDERS,
+  SELLER_SCAN,
 } from "@/lib/seller-routes";
 
 const tabs = [
   { href: SELLER_HOME, label: "Overview" },
   { href: SELLER_LISTINGS, label: "Listings" },
   { href: SELLER_ORDERS, label: "Orders" },
+  { href: SELLER_SCAN, label: "Scan" },
   { href: SELLER_EARNINGS, label: "Earnings" },
 ] as const;
 

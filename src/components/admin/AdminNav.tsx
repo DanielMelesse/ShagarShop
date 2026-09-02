@@ -8,6 +8,7 @@ import {
   ADMIN_HOME,
   ADMIN_ORDERS,
   ADMIN_PRODUCTS,
+  ADMIN_SCAN,
   ADMIN_SELLERS,
 } from "@/lib/admin-routes";
 
@@ -15,6 +16,7 @@ import {
 const links = [
   { href: ADMIN_HOME, label: "Home" },
   { href: ADMIN_ORDERS, label: "Orders" },
+  { href: ADMIN_SCAN, label: "Scan" },
   { href: ADMIN_PRODUCTS, label: "Products" },
   { href: ADMIN_CUSTOMERS, label: "Customers" },
   { href: ADMIN_SELLERS, label: "Sellers" },

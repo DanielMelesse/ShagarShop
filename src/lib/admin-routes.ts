@@ -1,3 +1,4 @@
+export const ADMIN_SCAN = "/admin/scan";
 export const ADMIN_HOME = "/admin";
 export const ADMIN_ORDERS = "/admin/orders";
 export const ADMIN_PRODUCTS = "/admin/products";

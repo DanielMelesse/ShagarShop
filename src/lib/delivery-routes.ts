@@ -1,3 +1,4 @@
+export const DELIVERY_SCAN = "/delivery/scan";
 export const DELIVERY_HOME = "/delivery";
 export const DELIVERY_AVAILABLE = "/delivery/available";
 export const DELIVERY_MINE = "/delivery/mine";

@@ -1,6 +1,6 @@
 "use client";
 
-import { BarcodeLabel } from "@/components/BarcodeLabel";
+import { TrackingCodeLabel } from "@/components/TrackingCodeLabel";
 import { ProductImage } from "@/components/ProductImage";
 import type { CourierDeliveryJob } from "@/lib/delivery";
 import { formatPrice } from "@/lib/products";
@@ -76,9 +76,9 @@ export function DeliveryJobCard({
 
           <div className="mt-3">
             {job.trackingCode ? (
-              <BarcodeLabel value={job.trackingCode} label="Tracking" />
+              <TrackingCodeLabel value={job.trackingCode} label="Tracking code" />
             ) : (
-              <p className="text-xs text-zinc-500">No package barcode yet.</p>
+              <p className="text-xs text-zinc-500">No tracking code yet.</p>
             )}
           </div>
 
