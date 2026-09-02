@@ -7,7 +7,7 @@ import { useTranslations } from "@/context/LocaleContext";
 import { ALL_DEPARTMENTS_HREF } from "@/lib/departments";
 import { isAdminAppPath } from "@/lib/admin-routes";
 import { isDeliveryAppPath } from "@/lib/delivery-routes";
-import { isSellerAppPath } from "@/lib/seller-routes";
+import { isSellSurfacePath } from "@/lib/seller-routes";
 import { isTodaysDealsPath, TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 import { useMounted } from "@/hooks/useMounted";
 
@@ -23,8 +23,7 @@ function HeaderNavInner() {
   const mounted = useMounted();
   const { t } = useTranslations();
 
-  const onSellerSurface =
-    pathname.startsWith("/sell") || isSellerAppPath(pathname);
+  const onSellerSurface = isSellSurfacePath(pathname);
   const onDeliverySurface =
     pathname.startsWith("/deliver") || isDeliveryAppPath(pathname);
   const onAdminSurface = isAdminAppPath(pathname);
@@ -61,13 +60,6 @@ function HeaderNavInner() {
           </Link>
 
           <Link
-            href="/sell"
-            className={pathname.startsWith("/sell") ? navLinkActiveClass : navLinkClass}
-          >
-            {t("nav.seller")}
-          </Link>
-
-          <Link
             href="/customer-service"
             className={
               pathname === "/customer-service" ? navLinkActiveClass : navLinkClass
@@ -92,7 +84,6 @@ function HeaderNavFallback() {
       <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-2 sm:px-6">
         <span className={navLinkClass}>{t("nav.allDepartments")}</span>
         <span className={navLinkClass}>{t("nav.todaysDeals")}</span>
-        <span className={navLinkClass}>{t("nav.seller")}</span>
         <span className={navLinkClass}>{t("nav.customerService")}</span>
       </div>
     </nav>

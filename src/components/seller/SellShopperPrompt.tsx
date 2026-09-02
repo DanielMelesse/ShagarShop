@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { SELL_LANDING, SELLER_REGISTER } from "@/lib/seller-routes";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 export function SellShopperPrompt({ userName }: { userName: string }) {
@@ -11,7 +14,7 @@ export function SellShopperPrompt({ userName }: { userName: string }) {
       </p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Link
-          href="/sell/register"
+          href={SELLER_REGISTER}
           className="rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-700"
         >
           Register as seller
@@ -25,7 +28,10 @@ export function SellShopperPrompt({ userName }: { userName: string }) {
       </div>
       <p className="mt-6 text-xs text-zinc-500">
         Already have a seller account?{" "}
-        <Link href="/login?callbackUrl=/sell" className="font-medium text-brand-600 hover:underline">
+        <Link
+          href={`/login?callbackUrl=${encodeURIComponent(SELL_LANDING)}`}
+          className="font-medium text-brand-600 hover:underline"
+        >
           Log in here
         </Link>
       </p>

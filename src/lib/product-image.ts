@@ -153,6 +153,18 @@ export function resolveProductImageSrc(
   return trimmed;
 }
 
+/** Serve uploads through the API route (reliable for runtime uploads). */
+export function productImageServeUrl(
+  src: string,
+  variant: ProductImageVariant = "gallery",
+): string {
+  const path = resolveProductImageSrc(src, variant);
+  if (path.startsWith(UPLOAD_PATH_PREFIX)) {
+    return `/api/uploads/products/${path.slice(UPLOAD_PATH_PREFIX.length)}`;
+  }
+  return path;
+}
+
 /**
  * Local uploads are pre-compressed WebP (serve as static).
  * Remotes use URL params / Next optimizer when possible.

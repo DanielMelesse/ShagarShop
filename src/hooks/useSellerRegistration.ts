@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useIsSeller } from "@/hooks/useIsSeller";
+import { SELLER_REGISTER } from "@/lib/seller-routes";
 
 export function useSellerRegistrationComplete() {
   const { user, isReady, isSeller, checkingSeller } = useIsSeller();
@@ -52,7 +53,7 @@ export function useRequireSellerRegistration() {
   useEffect(() => {
     if (!isReady || checkingSeller || checking) return;
     if (isSeller && complete === false) {
-      router.replace("/sell/register");
+      router.replace(SELLER_REGISTER);
     }
   }, [isReady, checkingSeller, checking, isSeller, complete, router]);
 

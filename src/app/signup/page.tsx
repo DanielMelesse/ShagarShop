@@ -6,6 +6,7 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsSeller } from "@/hooks/useIsSeller";
 import { resolveAfterAuth, DEFAULT_AFTER_AUTH } from "@/lib/auth-redirect";
+import { SELLER_HOME, SELLER_REGISTER } from "@/lib/seller-routes";
 import { parseSignupRole } from "@/lib/user-role";
 
 function SignupForm() {
@@ -23,7 +24,7 @@ function SignupForm() {
 
   useEffect(() => {
     if (signupRole === "SELLER") {
-      router.replace("/sell/register");
+      router.replace(SELLER_REGISTER);
     }
   }, [signupRole, router]);
 
@@ -31,7 +32,7 @@ function SignupForm() {
     if (signupRole === "SELLER") return;
     if (isReady && user) {
       router.replace(
-        isSeller ? "/seller" : resolveAfterAuth(searchParams.get("callbackUrl"), user.role),
+        isSeller ? SELLER_HOME : resolveAfterAuth(searchParams.get("callbackUrl"), user.role),
       );
     }
   }, [isReady, user, isSeller, router, searchParams, signupRole]);

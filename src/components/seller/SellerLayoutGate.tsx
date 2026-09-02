@@ -1,10 +1,10 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useIsSeller } from "@/hooks/useIsSeller";
-import { useSellerRegistrationComplete } from "@/hooks/useSellerRegistration";
+import { SELL_LANDING, SELLER_REGISTER } from "@/lib/seller-routes";
+import { isSellerRole } from "@/lib/user-role";
 
 function SellerPageSkeleton() {
   return (
@@ -16,32 +16,105 @@ function SellerPageSkeleton() {
   );
 }
 
+/** Cookie session — avoids hanging SessionProvider.update(). */
+async function fetchSessionRole(timeoutMs = 2500): Promise<string | undefined> {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    const res = await fetch("/api/auth/session", {
+      cache: "no-store",
+      signal: ctrl.signal,
+    });
+    clearTimeout(timer);
+    if (!res.ok) return undefined;
+    const data = (await res.json()) as { user?: { role?: string } };
+    return data?.user?.role;
+  } catch {
+    return undefined;
+  }
+}
+
 export function SellerLayoutGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isReady } = useAuth();
-  const { isSeller, checkingSeller } = useIsSeller();
-  const { complete, checking } = useSellerRegistrationComplete();
+  const { user, isReady, isAuthenticated, refreshSession } = useAuth();
+  const [checking, setChecking] = useState(true);
+  const [allowed, setAllowed] = useState(false);
+  const retried = useRef(false);
 
   useEffect(() => {
-    if (!isReady || checkingSeller || checking) return;
+    let cancelled = false;
 
-    if (!user) {
-      router.replace(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
-      return;
+    async function gate() {
+      if (!isReady) return;
+
+      if (!isAuthenticated || !user) {
+        if (!cancelled) {
+          setChecking(false);
+          setAllowed(false);
+          router.replace(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+        }
+        return;
+      }
+
+      let sellerRole = isSellerRole(user.role);
+
+      if (!sellerRole && !retried.current) {
+        retried.current = true;
+        const cookieRole = await fetchSessionRole();
+        if (cancelled) return;
+        if (isSellerRole(cookieRole)) {
+          void refreshSession().catch(() => undefined);
+          sellerRole = true;
+        }
+      }
+
+      if (!sellerRole) {
+        if (!cancelled) {
+          setChecking(false);
+          setAllowed(false);
+          router.replace(SELL_LANDING);
+        }
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/seller/me", { credentials: "same-origin" });
+        if (cancelled) return;
+
+        if (!res.ok) {
+          setChecking(false);
+          setAllowed(false);
+          router.replace(SELL_LANDING);
+          return;
+        }
+
+        const data = (await res.json()) as { registrationComplete?: boolean };
+        if (!data.registrationComplete) {
+          setChecking(false);
+          setAllowed(false);
+          router.replace(SELLER_REGISTER);
+          return;
+        }
+
+        setAllowed(true);
+        setChecking(false);
+      } catch {
+        if (!cancelled) {
+          setChecking(false);
+          setAllowed(false);
+          router.replace(SELL_LANDING);
+        }
+      }
     }
 
-    if (!isSeller) {
-      router.replace("/sell");
-      return;
-    }
+    void gate();
+    return () => {
+      cancelled = true;
+    };
+  }, [isReady, isAuthenticated, user, user?.role, router, pathname, refreshSession]);
 
-    if (complete === false) {
-      router.replace("/sell/register");
-    }
-  }, [isReady, checkingSeller, checking, user, isSeller, complete, router, pathname]);
-
-  if (!isReady || checkingSeller || checking || !user || !isSeller || complete !== true) {
+  if (!isReady || checking || !allowed) {
     return <SellerPageSkeleton />;
   }
 

@@ -59,17 +59,20 @@ export async function PATCH(request: Request, context: RouteContext) {
     });
   }
 
-  // Optional override — otherwise server creates a shop+item unique barcode.
   let trackingCode: string | null = null;
-  if (nextStatus === "shipped" && typeof body.trackingCode === "string") {
-    const normalized = normalizePackageBarcode(body.trackingCode);
-    if (normalized && !isValidPackageBarcode(normalized)) {
+  if (nextStatus === "shipped") {
+    const raw = typeof body.trackingCode === "string" ? body.trackingCode : "";
+    const normalized = normalizePackageBarcode(raw);
+    if (!isValidPackageBarcode(normalized)) {
       return NextResponse.json(
-        { error: "Invalid package barcode format." },
+        {
+          error:
+            "A valid package barcode is required (scan or type) before marking ready for delivery.",
+        },
         { status: 400 },
       );
     }
-    trackingCode = normalized || null;
+    trackingCode = normalized;
   }
 
   const result = await setSellerOrderItemStatus(

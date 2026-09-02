@@ -1,5 +1,17 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { SellShopperPrompt } from "@/components/seller/SellShopperPrompt";
+import { useAuth } from "@/hooks/useAuth";
 import { formatPrice } from "@/lib/products";
+import {
+  SELL_LANDING,
+  SELLER_HOME,
+  SELLER_REGISTER,
+} from "@/lib/seller-routes";
+import { isSellerRole } from "@/lib/user-role";
 
 const steps = [
   {
@@ -30,6 +42,29 @@ const perks = [
 ];
 
 export function SellLanding() {
+  const router = useRouter();
+  const { user, isReady } = useAuth();
+  const isSeller = Boolean(user && isSellerRole(user.role));
+
+  useEffect(() => {
+    if (!isReady) return;
+    if (isSeller) {
+      router.replace(SELLER_HOME);
+    }
+  }, [isReady, isSeller, router]);
+
+  if (!isReady || isSeller) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+        <div className="h-40 animate-pulse rounded-2xl bg-zinc-100" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return <SellShopperPrompt userName={user.name} />;
+  }
+
   return (
     <>
       <section className="relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600 text-white">
@@ -37,25 +72,25 @@ export function SellLanding() {
           <p className="text-sm font-medium uppercase tracking-wider text-brand-100">
             Seller program
           </p>
-          <h2 className="mt-3 max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">
+          <h1 className="mt-3 max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">
             Sell on ShegerShop
-          </h2>
+          </h1>
           <p className="mt-4 max-w-xl text-lg text-brand-50/90">
             Open your shop and reach customers across Ethiopia&apos;s marketplace.
             List products, manage inventory, and grow your business online.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
-              href="/sell/register"
+              href={SELLER_REGISTER}
               className="rounded-xl bg-white px-8 py-4 text-base font-semibold text-brand-700 shadow-lg transition hover:bg-brand-50"
             >
               Start selling
             </Link>
             <Link
-              href="/login?callbackUrl=/sell"
+              href={`/login?callbackUrl=${encodeURIComponent(SELLER_HOME)}`}
               className="rounded-xl border-2 border-white/40 px-8 py-4 text-base font-semibold transition hover:bg-white/10"
             >
-              Log in to dashboard
+              Seller login
             </Link>
           </div>
         </div>
@@ -116,11 +151,20 @@ export function SellLanding() {
           Create a free account and open your seller dashboard instantly.
         </p>
         <Link
-          href="/sell/register"
+          href={SELLER_REGISTER}
           className="mt-8 inline-block rounded-xl bg-brand-600 px-8 py-4 text-base font-semibold text-white transition hover:bg-brand-700"
         >
           Register as seller
         </Link>
+        <p className="mt-6 text-sm text-zinc-500">
+          Already selling?{" "}
+          <Link
+            href={`/login?callbackUrl=${encodeURIComponent(SELL_LANDING)}`}
+            className="font-medium text-brand-600 hover:underline"
+          >
+            Log in to your dashboard
+          </Link>
+        </p>
       </section>
     </>
   );

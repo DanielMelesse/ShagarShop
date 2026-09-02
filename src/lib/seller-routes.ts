@@ -1,3 +1,5 @@
+export const SELL_LANDING = "/sell";
+export const SELLER_REGISTER = "/sell/register";
 export const SELLER_HOME = "/seller";
 export const SELLER_LISTINGS = "/seller/listings";
 export const SELLER_ORDERS = "/seller/orders";
@@ -16,4 +18,13 @@ export function sellerViewPath(productId: string): string {
 
 export function isSellerAppPath(pathname: string): boolean {
   return pathname === SELLER_HOME || pathname.startsWith(`${SELLER_HOME}/`);
+}
+
+export function isSellLandingPath(pathname: string): boolean {
+  return pathname === SELL_LANDING || pathname.startsWith(`${SELL_LANDING}/`);
+}
+
+/** Seller landing (/sell) or seller app (/seller/*). */
+export function isSellSurfacePath(pathname: string): boolean {
+  return isSellLandingPath(pathname) || isSellerAppPath(pathname);
 }

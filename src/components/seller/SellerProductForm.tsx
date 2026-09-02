@@ -14,7 +14,7 @@ import {
   SHIPPING_TIERS,
 } from "@/lib/shipping";
 import { PRODUCT_CONDITION_OPTIONS } from "@/lib/product-condition";
-import { MAX_PRODUCT_IMAGES } from "@/lib/product-image";
+import { MAX_PRODUCT_IMAGES, productImageServeUrl } from "@/lib/product-image";
 import type { Product } from "@/lib/types";
 
 const sellerDepartments = getSellerDepartmentOptions();
@@ -139,7 +139,7 @@ function ProductImagesField({
                 {/* Plain img: next/image can cache a 404 if public/ uploads lag in production. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={image}
+                  src={productImageServeUrl(image, "thumb")}
                   alt={`Product image ${index + 1}`}
                   className="h-full w-full object-cover"
                 />

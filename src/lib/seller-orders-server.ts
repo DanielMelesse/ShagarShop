@@ -5,7 +5,6 @@ import {
   SELLER_COMMISSION_RATE,
 } from "@/lib/commission";
 import {
-  createShopPackageBarcode,
   isValidPackageBarcode,
   normalizePackageBarcode,
 } from "@/lib/barcode";
@@ -186,53 +185,33 @@ export async function setSellerOrderItemStatus(
 
   let codeToStore: string | null = null;
   if (status === "shipped") {
-    const provided = trackingCode?.trim()
+    const code = trackingCode?.trim()
       ? normalizePackageBarcode(trackingCode)
       : "";
-    if (provided && !isValidPackageBarcode(provided)) {
+    if (!code || !isValidPackageBarcode(code)) {
       return {
         ok: false,
-        error: "Invalid package barcode format.",
+        error: "Scan or enter a package barcode before marking ready for delivery.",
         status: 400,
       };
     }
 
-    codeToStore =
-      provided ||
-      createShopPackageBarcode({
-        sellerId,
-        productId: item.productId,
-        orderItemId: item.id,
-        shopName,
-      });
-
-    // Extremely unlikely collision — bump with a short suffix and retry once.
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const candidate =
-        attempt === 0
-          ? codeToStore
-          : normalizePackageBarcode(
-              `${codeToStore.slice(0, 40)}-${(attempt + 1).toString(36).toUpperCase()}`,
-            );
-      const taken = await prisma.orderItem.findFirst({
-        where: {
-          trackingCode: candidate,
-          NOT: { id: orderItemId },
-        },
-        select: { id: true },
-      });
-      if (!taken) {
-        codeToStore = candidate;
-        break;
-      }
-      if (attempt === 2) {
-        return {
-          ok: false,
-          error: "Could not allocate a unique package barcode. Try again.",
-          status: 409,
-        };
-      }
+    const taken = await prisma.orderItem.findFirst({
+      where: {
+        trackingCode: code,
+        NOT: { id: orderItemId },
+      },
+      select: { id: true },
+    });
+    if (taken) {
+      return {
+        ok: false,
+        error: "That barcode is already assigned to another package.",
+        status: 409,
+      };
     }
+
+    codeToStore = code;
   }
 
   try {

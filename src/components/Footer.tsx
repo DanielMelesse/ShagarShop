@@ -90,11 +90,6 @@ export function Footer() {
             <p className="text-sm font-semibold text-zinc-900">{t("footer.help")}</p>
             <ul className="mt-3 space-y-2 text-sm text-zinc-500">
               <li>
-                <Link href="/sell" className="hover:text-brand-600">
-                  {t("footer.sell")}
-                </Link>
-              </li>
-              <li>
                 <Link href="/service" className="hover:text-brand-600">
                   {t("footer.service")}
                 </Link>

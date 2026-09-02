@@ -1,6 +1,4 @@
-import { SellPageContent } from "@/components/seller/SellPageContent";
-
-export const dynamic = "force-dynamic";
+import { SellLanding } from "@/components/seller/SellLanding";
 
 export const metadata = {
   title: "Sell on ShegerShop",
@@ -8,5 +6,5 @@ export const metadata = {
 };
 
 export default function SellPage() {
-  return <SellPageContent />;
+  return <SellLanding />;
 }

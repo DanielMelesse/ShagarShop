@@ -12,7 +12,7 @@ import { useMounted } from "@/hooks/useMounted";
 import { headerSellButtonClass } from "@/lib/header-ui";
 import { isAdminAppPath, ADMIN_HOME } from "@/lib/admin-routes";
 import { isDeliveryAppPath, DELIVER_LANDING, DELIVERY_HOME } from "@/lib/delivery-routes";
-import { isSellerAppPath, SELLER_HOME } from "@/lib/seller-routes";
+import { isSellSurfacePath, SELLER_HOME, SELL_LANDING } from "@/lib/seller-routes";
 import { ACCOUNT_HOME } from "@/lib/account-routes";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 import { isAdminRole, isDeliveryRole, isSellerRole } from "@/lib/user-role";
@@ -106,8 +106,7 @@ export function Header() {
   const { itemCount, isReady: cartReady } = useCart();
 
   const showUser = authReady && user != null;
-  const onSellerSurface =
-    pathname.startsWith("/sell") || isSellerAppPath(pathname);
+  const onSellerSurface = isSellSurfacePath(pathname);
   const onDeliverySurface =
     pathname.startsWith("/deliver") || isDeliveryAppPath(pathname);
   const onAdminSurface = isAdminAppPath(pathname);
@@ -241,7 +240,7 @@ export function Header() {
             <Link href={SELLER_HOME} className={headerSellButtonClass}>
               {t("nav.sell")}
             </Link>
-            {(pathname.startsWith("/sell") || isSellerAppPath(pathname)) && (
+            {(isSellSurfacePath(pathname) && pathname !== SELL_LANDING) && (
               <Link href="/shop/departments" className={`${navLinkClass} whitespace-nowrap`}>
                 {t("nav.backToShop")}
               </Link>
@@ -264,7 +263,7 @@ export function Header() {
               </>
             ) : !checkingSeller ? (
               <Link
-                href="/login?callbackUrl=/seller"
+                href={`/login?callbackUrl=${encodeURIComponent(SELLER_HOME)}`}
                 className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
               >
                 {t("nav.login")}

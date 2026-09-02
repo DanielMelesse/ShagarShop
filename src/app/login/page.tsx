@@ -6,6 +6,11 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useTranslations } from "@/context/LocaleContext";
 import { useAuth } from "@/hooks/useAuth";
 import { resolveAfterAuth } from "@/lib/auth-redirect";
+import {
+  isSellLandingPath,
+  isSellerAppPath,
+  SELLER_HOME,
+} from "@/lib/seller-routes";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -45,10 +50,9 @@ function LoginForm() {
         ? resolveAfterAuth(callbackUrl, result.role)
         : callbackUrl?.startsWith("/delivery")
           ? "/delivery"
-          : callbackUrl?.startsWith("/seller") ||
-              callbackUrl === "/sell" ||
-              callbackUrl?.startsWith("/sell/")
-            ? "/seller"
+          : isSellerAppPath(callbackUrl ?? "") ||
+              isSellLandingPath(callbackUrl ?? "")
+            ? SELLER_HOME
             : resolveAfterAuth(callbackUrl, "BUYER");
     // Hard navigation so role dashboards mount with a fresh session cookie.
     window.location.assign(dest);

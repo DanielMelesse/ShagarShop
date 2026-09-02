@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { InfoPage } from "@/components/InfoPage";
+import { SELL_LANDING } from "@/lib/seller-routes";
 
 export const metadata = {
   title: "Services — ShegerShop",
@@ -61,7 +62,7 @@ export default function ServicePage() {
 
       <p className="text-sm text-zinc-500">
         Want your business listed?{" "}
-        <Link href="/sell" className="font-medium text-brand-600 hover:text-brand-700">
+        <Link href={SELL_LANDING} className="font-medium text-brand-600 hover:text-brand-700">
           Sell on ShegerShop
         </Link>{" "}
         or email{" "}

@@ -5,7 +5,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { AccountShell } from "@/components/account/AccountShell";
 import { getSellerDepartmentOptions, legacyCategoryToDepartmentSlug } from "@/lib/departments";
 import { fetchAccount, updateAccountShop } from "@/lib/account-client";
-import { SELLER_HOME } from "@/lib/seller-routes";
+import { SELL_LANDING, SELLER_HOME } from "@/lib/seller-routes";
 
 export function AccountShopSettings() {
   const [shopName, setShopName] = useState("");
@@ -82,7 +82,7 @@ export function AccountShopSettings() {
         <div className="rounded-2xl border border-dashed border-zinc-300 bg-white p-8 text-center">
           <p className="text-zinc-600">Shop settings are only available for seller accounts.</p>
           <Link
-            href="/sell"
+            href={SELL_LANDING}
             className="mt-4 inline-block text-sm font-semibold text-brand-600 hover:text-brand-700"
           >
             Learn about selling on ShegerShop →
