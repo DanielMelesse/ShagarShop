@@ -18,7 +18,7 @@ async function main() {
     refreshToken?: string;
     user?: { id: string };
   } | null;
-  if (!loginRes.ok) {
+  if (!loginRes.ok || !login) {
     throw new Error(`Login failed: ${login?.error ?? loginRes.status}`);
   }
 
