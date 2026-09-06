@@ -2,20 +2,18 @@
 
 ## Live production (Railway)
 
-- **App URL:** https://web-production-29dfe.up.railway.app
+- **App URL:** https://shegershop.com (also https://web-production-29dfe.up.railway.app)
 - **Project:** `shegershop` (Railway)
-- **Custom domain (pending DNS):** `shegershop.com` → CNAME `3syisljp.up.railway.app`
-- **TXT verify:** `_railway-verify` = `railway-verify=46c458a9598691725c13005d2cf1291e2dee2cba4240cc193b4785b787dd140e`
+- **Custom domain:** `shegershop.com` — verified, TLS valid
 - **Uploads:** Railway S3 bucket + `/api/uploads/object/...` proxy
 - **Seeded:** admin `0911000001` / `admin123`, courier `0911000002` / `delivery123`
 
-Buy the domain (Porkbun/Cloudflare), add the DNS records above, then:
+Env is set to:
 
-```bash
-railway variables set \
-  NEXTAUTH_URL=https://shegershop.com \
-  NEXT_PUBLIC_APP_URL=https://shegershop.com \
-  CAPACITOR_SERVER_URL=https://shegershop.com
+```
+NEXTAUTH_URL=https://shegershop.com
+NEXT_PUBLIC_APP_URL=https://shegershop.com
+CAPACITOR_SERVER_URL=https://shegershop.com
 ```
 
 ## Architecture
