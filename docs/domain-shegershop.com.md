@@ -2,26 +2,34 @@
 
 ## Buy the domain
 
-1. Open [Cloudflare Registrar](https://dash.cloudflare.com/?to=/:account/domains/register) (or [Porkbun](https://porkbun.com))
-2. Search **shegershop.com** and complete checkout (payment required — you must do this step)
-3. Ensure the domain uses **Cloudflare nameservers** (default when buying via Cloudflare)
+1. Open [Cloudflare Registrar](https://dash.cloudflare.com/?to=/:account/domains/register) or [Porkbun](https://porkbun.com/checkout/domains?search=shegershop.com)
+2. Search **shegershop.com** and complete checkout (payment required)
+3. Prefer Cloudflare nameservers if buying via Cloudflare
 
-## Point DNS at Railway
+## DNS records (Railway already awaiting this)
 
-After Railway shows custom domain instructions (Settings → Networking → Custom Domain):
+Railway custom domain is registered for apex `shegershop.com`. Add:
 
-| Type | Name | Target |
-|------|------|--------|
-| CNAME | `www` | `<service>.up.railway.app` (Railway value) |
-| CNAME | `@` (apex) | same host — Cloudflare flattens apex CNAMEs |
+| Type | Name / Host | Value |
+|------|-------------|--------|
+| CNAME | `@` / `shegershop.com` | `3syisljp.up.railway.app` |
+| TXT | `_railway-verify` | `railway-verify=46c458a9598691725c13005d2cf1291e2dee2cba4240cc193b4785b787dd140e` |
 
-Also add `cdn` CNAME later for R2 public bucket hostname if using `cdn.shegershop.com`.
+Notes:
 
-## Railway
+- Cloudflare apex CNAME uses **CNAME flattening** (allowed).
+- Free Railway plans may allow only **one** custom domain — `www` needs a plan upgrade or redirect at the DNS/CDN layer.
+- After DNS propagates, Railway issues TLS automatically.
 
-1. Web service → **Custom Domain** → add `shegershop.com` and `www.shegershop.com`
-2. Wait until certificate status is **Active**
-3. Update variables and redeploy:
+Check status:
+
+```bash
+railway domain status shegershop.com
+dig +short shegershop.com CNAME
+dig +short _railway-verify.shegershop.com TXT
+```
+
+## After TLS is active
 
 ```bash
 railway variables set \
@@ -30,7 +38,7 @@ railway variables set \
   CAPACITOR_SERVER_URL=https://shegershop.com
 ```
 
-4. Payment webhooks (when going live):
+Payment webhooks (when going live):
 
 - `https://shegershop.com/api/payments/telebirr/webhook`
 - `https://shegershop.com/api/payments/chapa/webhook`
@@ -38,7 +46,5 @@ railway variables set \
 ## Verify
 
 ```bash
-dig +short shegershop.com
-dig +short www.shegershop.com
 BASE_URL=https://shegershop.com bash scripts/smoke-production.sh
 ```

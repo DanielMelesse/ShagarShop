@@ -1,36 +1,39 @@
-# Cloudflare R2 for ShegerShop uploads
+# Object storage for ShegerShop uploads
 
-Railway has no persistent disk. Configure R2 before sellers upload products in production.
+Railway has no persistent disk. Configure S3-compatible storage before sellers upload products in production.
 
-## Create bucket
+## Option A — Railway Bucket (recommended for first launch)
+
+Already available in the `shegershop` Railway project:
+
+```bash
+railway bucket create shegershop-uploads --region sjc --json
+railway bucket credentials --bucket shegershop-uploads --json
+```
+
+Wire into the **web** service:
+
+```bash
+railway variables set \
+  S3_BUCKET=<bucketName from credentials> \
+  S3_ACCESS_KEY_ID=<accessKeyId> \
+  S3_SECRET_ACCESS_KEY=<secretAccessKey> \
+  S3_ENDPOINT=<endpoint> \
+  S3_PUBLIC_URL=https://<bucketName>.t3.storageapi.dev \
+  S3_REGION=auto \
+  S3_FORCE_PATH_STYLE=false
+```
+
+## Option B — Cloudflare R2 (optional CDN later)
 
 1. [Cloudflare Dashboard → R2](https://dash.cloudflare.com/?to=/:account/r2)
 2. Create bucket: `shegershop-uploads`
 3. Settings → **Public access** → allow, **or** Custom Domains → `cdn.shegershop.com`
-
-## API token
-
-1. R2 → **Manage R2 API Tokens** → Create API token
-2. Permission: Object Read & Write on `shegershop-uploads`
-3. Copy **Access Key ID**, **Secret Access Key**, and **Account ID**
-
-## Railway variables
-
-```bash
-railway variables set \
-  S3_BUCKET=shegershop-uploads \
-  S3_ACCESS_KEY_ID=<access_key> \
-  S3_SECRET_ACCESS_KEY=<secret> \
-  S3_ENDPOINT=https://<ACCOUNT_ID>.r2.cloudflarestorage.com \
-  S3_PUBLIC_URL=https://cdn.shegershop.com \
-  S3_REGION=auto \
-  S3_FORCE_PATH_STYLE=true
-```
-
-Redeploy the web service after setting vars.
+4. **Manage R2 API Tokens** → Create API token (Object Read & Write)
+5. Set Railway `S3_*` vars with R2 endpoint `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` and `S3_PUBLIC_URL=https://cdn.shegershop.com`
 
 ## Verify
 
 1. Log in as a seller on production
 2. Upload a product image
-3. Confirm the stored URL starts with `https://` (R2/CDN), not `/uploads/`
+3. Confirm the stored URL starts with `https://` (bucket/CDN), not `/uploads/`

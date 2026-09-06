@@ -40,6 +40,14 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "**.t3.storageapi.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "t3.storageapi.dev",
+      },
+      {
+        protocol: "https",
         hostname: "**.r2.dev",
       },
       {
