@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "shagar-shop",
+      "name": "sheger-shop",
       "dependencies": {
         "@aws-sdk/client-s3": "^3.1124.0",
         "@melakudemeke/telebirr-js": "^3.1.0",

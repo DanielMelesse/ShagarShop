@@ -66,7 +66,7 @@ echo "$compose_out"
 
 echo "Waiting for Postgres to be ready..."
 for _ in $(seq 1 30); do
-  if docker compose exec -T postgres pg_isready -U shagar -d shagarshop >/dev/null 2>&1; then
+  if docker compose exec -T postgres pg_isready -U sheger -d shegershop >/dev/null 2>&1; then
     echo "PostgreSQL is ready on localhost:5432"
     echo "Next: bun run db:setup"
     exit 0

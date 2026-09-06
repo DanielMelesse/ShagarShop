@@ -2,7 +2,7 @@
 
 Standalone marketplace web application built with **Next.js 15**, **Prisma**, **PostgreSQL**, **NextAuth**, and **Tailwind CSS 4**.
 
-**Repository:** https://github.com/DanielMelesse/ShagarShop
+**Repository:** https://github.com/DanielMelesse/ShegerShop
 
 ## Features
 
@@ -29,7 +29,7 @@ cp .env.example .env   # optional — predev creates .env on first run
 bun run db:up
 ```
 
-This starts Postgres on `localhost:5432` with user/password/db: `shagar` / `shagar` / `shagarshop` (see `docker-compose.yml`).
+This starts Postgres on `localhost:5432` with user/password/db: `sheger` / `sheger` / `shegershop` (see `docker-compose.yml`).
 
 Docker Desktop must be installed and running. The script will try to auto-start Docker on Mac.
 
@@ -79,7 +79,7 @@ bun run setup && bun run db:up && bun run dev
 Example local URL (Docker):
 
 ```
-postgresql://shagar:shagar@localhost:5432/shagarshop?schema=public
+postgresql://sheger:sheger@localhost:5432/shegershop?schema=public
 ```
 
 ## Scripts

@@ -5,13 +5,13 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: shagar
-      POSTGRES_PASSWORD: shagar
-      POSTGRES_DB: shagarshop
+      POSTGRES_USER: sheger
+      POSTGRES_PASSWORD: sheger
+      POSTGRES_DB: shegershop
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U shagar -d shagarshop"]
+      test: ["CMD-SHELL", "pg_isready -U sheger -d shegershop"]
       interval: 5s
       timeout: 5s
       retries: 5
