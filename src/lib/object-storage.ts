@@ -37,16 +37,20 @@ function s3Client(): S3Client {
 }
 
 function publicObjectUrl(key: string): string {
+  // Always proxy through the app so private Railway buckets remain readable.
+  // Set S3_PUBLIC_URL only when the bucket is truly public (e.g. Cloudflare R2 CDN).
   const publicBase = process.env.S3_PUBLIC_URL?.trim();
-  if (publicBase) {
+  const useDirectPublic =
+    process.env.S3_PUBLIC_DIRECT === "true" && Boolean(publicBase);
+  if (useDirectPublic && publicBase) {
     return `${publicBase.replace(/\/$/, "")}/${key}`;
   }
-  const endpoint = process.env.S3_ENDPOINT?.trim();
-  const bucket = process.env.S3_BUCKET!.trim();
-  if (endpoint) {
-    return `${endpoint.replace(/\/$/, "")}/${bucket}/${key}`;
-  }
-  return `${appBaseUrl()}/uploads/${key}`;
+
+  const proxyBase = appBaseUrl();
+  return `${proxyBase}/api/uploads/object/${key
+    .split("/")
+    .map(encodeURIComponent)
+    .join("/")}`;
 }
 
 /** Upload bytes to S3/R2 when configured, otherwise local public/uploads. */
@@ -77,6 +81,10 @@ export async function storeObject(params: {
     key: params.key,
     url: `/uploads/${subdir}/${filename}`,
   };
+}
+
+export function getS3Client(): S3Client {
+  return s3Client();
 }
 
 export { objectStorageEnabled };
