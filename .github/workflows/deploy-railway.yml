@@ -1,0 +1,32 @@
+name: Deploy Railway
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "android/**"
+      - "ios/**"
+      - "mobile/**"
+      - "**/*.md"
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Railway deploy tip
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "Add GitHub secret RAILWAY_TOKEN and connect the Railway GitHub integration"
+            echo "for automatic deploys. Until then, deploy with: railway up"
+            echo "See docs/production.md"
+            exit 0
+          fi
+          curl -fsSL https://railway.com/install.sh | sh
+          railway up --ci

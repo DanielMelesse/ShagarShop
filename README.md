@@ -103,6 +103,12 @@ postgresql://sheger:sheger@localhost:5432/shegershop?schema=public
 
 See **[docs/production.md](docs/production.md)** for the full Railway + Cloudflare R2 + `shegershop.com` runbook.
 
+Also:
+- [docs/r2-uploads.md](docs/r2-uploads.md) — Cloudflare R2 for seller images
+- [docs/domain-shegershop.com.md](docs/domain-shegershop.com.md) — buy + DNS for shegershop.com
+- `bash scripts/setup-production.sh` — CLI checklist after `railway login`
+- `BASE_URL=https://… bash scripts/smoke-production.sh` — post-deploy smoke test
+
 Short path:
 
 1. Deploy to Railway from GitHub `main` (uses `railway.toml` / `nixpacks.toml`)
