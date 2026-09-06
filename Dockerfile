@@ -3,12 +3,14 @@
 
 FROM oven/bun:1.2.21-alpine AS deps
 WORKDIR /app
+RUN apk add --no-cache bash openssl libc6-compat
 COPY package.json bun.lock ./
 COPY prisma ./prisma
 RUN bun install --frozen-lockfile
 
 FROM oven/bun:1.2.21-alpine AS builder
 WORKDIR /app
+RUN apk add --no-cache bash openssl libc6-compat
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -22,7 +24,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-RUN apk add --no-cache openssl libc6-compat
+RUN apk add --no-cache bash openssl libc6-compat
 
 COPY --from=builder /app/package.json /app/bun.lock ./
 COPY --from=builder /app/node_modules ./node_modules
