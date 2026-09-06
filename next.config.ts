@@ -38,6 +38,22 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "**.r2.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.shegershop.com",
+      },
+      {
+        protocol: "https",
+        hostname: "shegershop.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.up.railway.app",
+      },
     ],
   },
 };

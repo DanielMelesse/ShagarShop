@@ -67,6 +67,17 @@ echo "$compose_out"
 echo "Waiting for Postgres to be ready..."
 for _ in $(seq 1 30); do
   if docker compose exec -T postgres pg_isready -U sheger -d shegershop >/dev/null 2>&1; then
+    # Volume may predate sheger credentials (old shagar/shagarshop init).
+    if ! docker compose exec -T postgres \
+      psql -U sheger -d shegershop -c 'SELECT 1' >/dev/null 2>&1; then
+      echo "error: Postgres is running but role/db 'sheger'/'shegershop' are missing." >&2
+      echo "Your Docker volume was likely created with older credentials." >&2
+      echo "" >&2
+      echo "Reset local DB (wipes data) then re-run setup:" >&2
+      echo "  docker compose down -v" >&2
+      echo "  bun run db:up && bun run db:setup" >&2
+      exit 1
+    fi
     echo "PostgreSQL is ready on localhost:5432"
     echo "Next: bun run db:setup"
     exit 0

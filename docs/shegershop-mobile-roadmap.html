@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>ShegerShop Mobile Application Roadmap</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: #18181b;
+      font-size: 10.5pt;
+      line-height: 1.45;
+      margin: 0;
+    }
+    h1 {
+      font-size: 22pt;
+      margin: 0 0 4pt;
+      color: #14532d;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      font-size: 11pt;
+      color: #52525b;
+      margin: 0 0 16pt;
+    }
+    .meta {
+      display: flex;
+      gap: 16pt;
+      flex-wrap: wrap;
+      font-size: 9pt;
+      color: #71717a;
+      border-top: 2px solid #16a34a;
+      border-bottom: 1px solid #e4e4e7;
+      padding: 8pt 0;
+      margin-bottom: 16pt;
+    }
+    h2 {
+      font-size: 13pt;
+      color: #14532d;
+      margin: 18pt 0 8pt;
+      padding-bottom: 3pt;
+      border-bottom: 1px solid #d4d4d8;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 11pt;
+      color: #166534;
+      margin: 12pt 0 4pt;
+      page-break-after: avoid;
+    }
+    p { margin: 0 0 8pt; }
+    ul, ol { margin: 0 0 10pt; padding-left: 16pt; }
+    li { margin-bottom: 3pt; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8pt 0 12pt;
+      font-size: 9.5pt;
+    }
+    th, td {
+      border: 1px solid #d4d4d8;
+      padding: 6pt 8pt;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f0fdf4;
+      color: #14532d;
+      font-weight: 600;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 8pt;
+      font-weight: 600;
+      padding: 1pt 6pt;
+      border-radius: 999px;
+      background: #dcfce7;
+      color: #166534;
+    }
+    .badge.pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .callout {
+      background: #f0fdf4;
+      border-left: 3px solid #16a34a;
+      padding: 8pt 10pt;
+      margin: 10pt 0;
+    }
+    .phase {
+      page-break-inside: avoid;
+      margin-bottom: 6pt;
+    }
+    .footer {
+      margin-top: 20pt;
+      padding-top: 8pt;
+      border-top: 1px solid #e4e4e7;
+      font-size: 8.5pt;
+      color: #71717a;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10pt;
+    }
+    .card {
+      border: 1px solid #e4e4e7;
+      border-radius: 6pt;
+      padding: 8pt 10pt;
+      page-break-inside: avoid;
+    }
+    .card h3 { margin-top: 0; }
+  </style>
+</head>
+<body>
+  <h1>ShegerShop Mobile Application Roadmap</h1>
+  <p class="subtitle">Full marketplace app for Ethiopia — buyers, sellers, and couriers</p>
+  <div class="meta">
+    <span><strong>Approach:</strong> Capacitor + Next.js hybrid</span>
+    <span><strong>Horizon:</strong> 2–4 months to market</span>
+    <span><strong>Status:</strong> Foundation complete (Sep 2026)</span>
+    <span><strong>Doc date:</strong> September 6, 2026</span>
+  </div>
+
+  <div class="callout">
+    <strong>Recommendation:</strong> Wrap the existing Next.js app with Capacitor (Android first, then iOS).
+    Reuse ~80% of the codebase. Do <em>not</em> rewrite in React Native for v1.
+  </div>
+
+  <h2>1. Strategy comparison</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Approach</th>
+        <th>Time to market</th>
+        <th>Code reuse</th>
+        <th>Fit for Ethiopia</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Capacitor + mobile-ready API</strong> (recommended)</td>
+        <td>2–4 months</td>
+        <td>High (~80%)</td>
+        <td>Strong — Telebirr deep links, phone auth, seller/courier scan</td>
+      </tr>
+      <tr>
+        <td>PWA only</td>
+        <td>4–6 weeks</td>
+        <td>Highest</td>
+        <td>Good for validation; weak store presence</td>
+      </tr>
+      <tr>
+        <td>Full React Native rewrite</td>
+        <td>6–12+ months</td>
+        <td>Low</td>
+        <td>Only with a dedicated native team</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>2. Foundation deliverables (Phase 1) — completed</h2>
+  <table>
+    <thead>
+      <tr><th>Item</th><th>Status</th><th>What shipped</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Mobile JWT auth + Bearer tokens</td>
+        <td><span class="badge">Done</span></td>
+        <td><code>POST /api/auth/mobile/login</code> &amp; refresh; cookie or Bearer on protected routes</td>
+      </tr>
+      <tr>
+        <td>Buyer catalog API</td>
+        <td><span class="badge">Done</span></td>
+        <td><code>GET /api/products</code>, <code>GET /api/products/[id]</code> (paginated, absolute image URLs)</td>
+      </tr>
+      <tr>
+        <td>Server-side cart</td>
+        <td><span class="badge">Done</span></td>
+        <td>Prisma Cart/CartItem; <code>/api/cart</code>; guest merge on login</td>
+      </tr>
+      <tr>
+        <td>Cloud uploads (S3/R2)</td>
+        <td><span class="badge">Done</span></td>
+        <td>Object storage with local-disk fallback; HTTPS URLs when configured</td>
+      </tr>
+      <tr>
+        <td>Payment deep links</td>
+        <td><span class="badge">Done</span></td>
+        <td><code>shegershop://payment/result</code>; Telebirr/Chapa InAppBrowser; COD unchanged</td>
+      </tr>
+      <tr>
+        <td>Capacitor Android/iOS shell</td>
+        <td><span class="badge">Done</span></td>
+        <td>Remote server URL mode; Preferences token storage; deep-link intent filters</td>
+      </tr>
+      <tr>
+        <td>Ethiopia polish baseline</td>
+        <td><span class="badge">Done</span></td>
+        <td>Amharic UI path, FCM stub, 20-item pagination, Play Store beta guide</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. Three-phase roadmap</h2>
+
+  <div class="phase">
+    <h3>Phase 1 — Mobile backend foundation (4–6 weeks)</h3>
+    <p>Make the REST layer work for a native HTTP client, not only browser cookies.</p>
+    <ul>
+      <li>Token auth (access + refresh JWT)</li>
+      <li>JSON product catalog for buyers</li>
+      <li>Server cart with cross-device sync</li>
+      <li>S3-compatible product/license uploads</li>
+      <li>Telebirr/Chapa return via app URL scheme</li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <h3>Phase 2 — Capacitor app shell (3–4 weeks)</h3>
+    <ul>
+      <li>PWA manifest, icons, safe-area CSS</li>
+      <li>Capacitor Android + iOS loading production HTTPS URL (fast updates without store wait)</li>
+      <li>Role-based home after login:
+        <strong>BUYER</strong> → shop/cart/orders ·
+        <strong>SELLER</strong> → /seller + scan ·
+        <strong>DELIVERY</strong> → /delivery + scan ·
+        <strong>ADMIN</strong> → scan only in app
+      </li>
+      <li><strong>Google Play first</strong> (Android dominates Ethiopia); iOS second</li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <h3>Phase 3 — Ethiopia market optimizations (ongoing)</h3>
+    <div class="grid-2">
+      <div class="card">
+        <h3>3G performance</h3>
+        <ul>
+          <li>WebP thumbnails in API responses</li>
+          <li>Default page size 20</li>
+          <li>Optional offline last-viewed catalog cache</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Localization &amp; trust</h3>
+        <ul>
+          <li>Amharic (Afaan Oromo optional)</li>
+          <li>09xx / +251 phone UX</li>
+          <li>Prominent COD; Telebirr default online; Chapa backup</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Notifications</h3>
+        <ul>
+          <li>SMS already wired for order updates</li>
+          <li>FCM push for in-app alerts</li>
+          <li>SMS fallback when data is off</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Tracking (future)</h3>
+        <ul>
+          <li>QR on print labels</li>
+          <li>Public <code>/track/[code]</code> page</li>
+          <li>Scan flow already built for sellers/couriers</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h2>4. Suggested timeline</h2>
+  <table>
+    <thead>
+      <tr><th>Month</th><th>Deliverable</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Mobile token auth + product APIs + server cart</td></tr>
+      <tr><td>2</td><td>Cloud uploads + payment deep links + Capacitor Android beta</td></tr>
+      <tr><td>3</td><td>Play Store beta (Addis); seller/courier scan QA on real devices</td></tr>
+      <tr><td>4</td><td>Amharic polish, push notifications, iOS, public launch</td></tr>
+    </tbody>
+  </table>
+
+  <h2>5. Immediate next steps (ops)</h2>
+  <ol>
+    <li>Deploy Next.js to HTTPS with Telebirr/Chapa credentials and run <code>db:migrate:deploy</code></li>
+    <li>Set <code>CAPACITOR_SERVER_URL</code> to production; run <code>bun run cap:sync</code></li>
+    <li>Open Android Studio (<code>bun run cap:open:android</code>), build signed AAB</li>
+    <li>Upload to Google Play Internal/Closed testing (Addis cohort)</li>
+    <li>Device QA: login (buyer/seller/courier), catalog on 3G, Telebirr round-trip, COD, package scan</li>
+  </ol>
+
+  <h2>6. Success metrics (Ethiopia)</h2>
+  <ul>
+    <li>Checkout completion on mobile (Telebirr + COD)</li>
+    <li>Seller time from order → labeled package (<code>mark_ready</code> scan)</li>
+    <li>Courier claim-to-deliver time via scan</li>
+    <li>First catalog load: &lt; 3s on 4G, &lt; 8s on 3G (target)</li>
+  </ul>
+
+  <h2>7. What not to do first</h2>
+  <ul>
+    <li>Full React Native rewrite — duplicates seller/courier/scan work already shipped</li>
+    <li>Full admin portal in v1 mobile — keep admin on web; scan tool in app is enough</li>
+    <li>Offline-first everything — start online-first + light cache</li>
+  </ul>
+
+  <div class="footer">
+    ShegerShop · Mobile Application Roadmap · Capacitor hybrid for Ethiopia ·
+    Reference: Ethiopia Mobile Path plan · See also <code>mobile/README.md</code> in the repository
+  </div>
+</body>
+</html>

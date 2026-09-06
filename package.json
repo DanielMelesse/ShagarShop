@@ -7,6 +7,7 @@
     "dev": "bash scripts/next.sh dev",
     "build": "bash scripts/prisma.sh generate && bash scripts/next.sh build",
     "start": "bash scripts/next.sh start",
+    "start:railway": "bash scripts/railway-start.sh",
     "lint": "bash scripts/next.sh lint",
     "clean": "rm -rf .next out",
     "db:up": "bash scripts/db-up.sh",

@@ -1,0 +1,14 @@
+# ShegerShop — Railway production config
+# https://docs.railway.com/guides/config-as-code
+
+[build]
+builder = "NIXPACKS"
+buildCommand = "bun install --frozen-lockfile && bun run build"
+
+[deploy]
+preDeployCommand = ["bunx prisma migrate deploy"]
+startCommand = "bun run start:railway"
+healthcheckPath = "/"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

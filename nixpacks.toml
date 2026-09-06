@@ -1,0 +1,12 @@
+# Pin Bun for Railway Nixpacks so installs match local packageManager.
+[phases.setup]
+nixPkgs = ["bun", "openssl"]
+
+[phases.install]
+cmds = ["bun install --frozen-lockfile"]
+
+[phases.build]
+cmds = ["bun run build"]
+
+[start]
+cmd = "bun run start:railway"

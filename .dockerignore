@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.cursor
+android
+ios
+out
+docs
+*.md
+.env
+.env*.local
+agent-transcripts

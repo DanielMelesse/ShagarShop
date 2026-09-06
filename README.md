@@ -101,13 +101,15 @@ postgresql://sheger:sheger@localhost:5432/shegershop?schema=public
 
 ## Production
 
-1. Provision PostgreSQL (Neon, Supabase, RDS, etc.)
-2. Set `DATABASE_URL` to your Postgres URL
-3. Run migrations: `bun run db:migrate:deploy`
-4. Seed once if needed: `bun run db:seed`
-5. Deploy the Next.js app (e.g. Vercel) with `NEXTAUTH_SECRET` and `NEXTAUTH_URL`
+See **[docs/production.md](docs/production.md)** for the full Railway + Cloudflare R2 + `shegershop.com` runbook.
 
-Cart remains in localStorage until you add a server-side cart later.
+Short path:
+
+1. Deploy to Railway from GitHub `main` (uses `railway.toml` / `nixpacks.toml`)
+2. Add Railway PostgreSQL and set `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `NEXT_PUBLIC_APP_URL`
+3. Configure Cloudflare R2 (`S3_*`) so seller uploads survive redeploys
+4. Attach custom domain `shegershop.com` in Railway + Cloudflare DNS
+5. Seed once: `railway run bun prisma/seed.ts`
 
 ### Troubleshooting
 
