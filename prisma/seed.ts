@@ -215,6 +215,79 @@ async function main() {
     },
   });
   console.log(`Seeded admin user ${adminPhone} / admin123`);
+
+  const sellerPhone = "0911000003";
+  const sellerPasswordHash = await bcrypt.hash("seller123", 10);
+  const seller = await prisma.user.upsert({
+    where: { phone: sellerPhone },
+    update: {
+      name: "Demo Seller",
+      role: "SELLER",
+      passwordHash: sellerPasswordHash,
+      sellerProfile: {
+        upsert: {
+          create: {
+            shopName: "Sheger Demo Shop",
+            category: "electronics",
+            location: "Bole, Addis Ababa",
+            licenseUrl: "",
+            completedAt: new Date(),
+          },
+          update: {
+            shopName: "Sheger Demo Shop",
+            category: "electronics",
+            location: "Bole, Addis Ababa",
+            completedAt: new Date(),
+          },
+        },
+      },
+    },
+    create: {
+      name: "Demo Seller",
+      phone: sellerPhone,
+      role: "SELLER",
+      passwordHash: sellerPasswordHash,
+      sellerProfile: {
+        create: {
+          shopName: "Sheger Demo Shop",
+          category: "electronics",
+          location: "Bole, Addis Ababa",
+          licenseUrl: "",
+          completedAt: new Date(),
+        },
+      },
+    },
+  });
+  console.log(`Seeded seller user ${sellerPhone} / seller123`);
+
+  const sellerProduct = {
+    id: "demo-seller-earbuds",
+    name: "Sheger Demo Wireless Earbuds",
+    description:
+      "Demo listing from Sheger Demo Shop — compact earbuds with USB-C charging case for marketplace dry runs.",
+    price: 899.0,
+    category: "electronics",
+    image:
+      "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80",
+    ],
+    rating: 4.6,
+    reviewCount: 12,
+    stock: 25,
+    featured: true,
+    shippingTier: "standard",
+    extraShippingBirr: 0,
+    condition: "new",
+    sellerId: seller.id,
+  };
+
+  await prisma.product.upsert({
+    where: { id: sellerProduct.id },
+    update: sellerProduct,
+    create: sellerProduct,
+  });
+  console.log(`Seeded seller product ${sellerProduct.id}`);
 }
 
 main()

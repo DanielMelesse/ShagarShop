@@ -55,7 +55,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ product: toProduct(product) }, { status: 201 });
   } catch (error) {
-    console.error("[seller/products POST]", error);
+    console.error("[myshop/products POST]", error);
     return NextResponse.json({ error: "Could not create product." }, { status: 500 });
   }
 }

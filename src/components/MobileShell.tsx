@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { parseMobilePaymentDeepLink } from "@/lib/payment-return";
 import { closePaymentBrowser } from "@/lib/mobile-payment";
 import { hydrateMobileTokens, isNativeApp } from "@/lib/mobile-auth-client";
+import { SELLER_SCAN } from "@/lib/seller-routes";
 
 /** Listen for Capacitor deep links (payment return, tracking). */
 export function MobileShell() {
@@ -31,7 +32,7 @@ export function MobileShell() {
 
           if (event.url.includes("/track/")) {
             const code = event.url.split("/track/")[1]?.split("?")[0];
-            if (code) router.push(`/seller/scan?code=${encodeURIComponent(code)}`);
+            if (code) router.push(`${SELLER_SCAN}?code=${encodeURIComponent(code)}`);
           }
         });
         removeListener = () => {

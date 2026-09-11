@@ -7,6 +7,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
+  async redirects() {
+    return [
+      { source: "/seller", destination: "/myshop", permanent: true },
+      { source: "/seller/:path*", destination: "/myshop/:path*", permanent: true },
+      { source: "/sell", destination: "/myshop", permanent: true },
+      { source: "/sell/register", destination: "/myshop/register", permanent: true },
+      { source: "/sell/:path*", destination: "/myshop/:path*", permanent: true },
+    ];
+  },
   async rewrites() {
     // Serve runtime uploads from disk. `next start` does not reliably pick up
     // files written to public/ after the process starts.
@@ -15,6 +24,15 @@ const nextConfig: NextConfig = {
         {
           source: "/uploads/products/:filename",
           destination: "/api/uploads/products/:filename",
+        },
+        // Legacy seller API paths (UI is /myshop; DB role remains SELLER).
+        {
+          source: "/api/seller",
+          destination: "/api/myshop",
+        },
+        {
+          source: "/api/seller/:path*",
+          destination: "/api/myshop/:path*",
         },
       ],
     };

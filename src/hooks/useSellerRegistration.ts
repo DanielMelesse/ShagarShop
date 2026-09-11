@@ -20,7 +20,7 @@ export function useSellerRegistrationComplete() {
     let cancelled = false;
     setComplete(null);
 
-    fetch("/api/seller/register/status", { credentials: "same-origin" })
+    fetch("/api/myshop/register/status", { credentials: "same-origin" })
       .then(async (res) => {
         if (cancelled) return;
         if (!res.ok) {

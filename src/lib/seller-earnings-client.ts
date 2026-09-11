@@ -4,7 +4,7 @@ export async function fetchSellerEarnings(): Promise<
   | { ok: true; earnings: SellerEarningsSummary }
   | { ok: false; error: string }
 > {
-  const res = await fetch("/api/seller/earnings", {
+  const res = await fetch("/api/myshop/earnings", {
     credentials: "same-origin",
   });
   const data = await res.json().catch(() => ({}));

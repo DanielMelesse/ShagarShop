@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: saved.url });
   } catch (error) {
-    console.error("[seller/register/license POST]", error);
+    console.error("[myshop/register/license POST]", error);
     return NextResponse.json({ error: "Could not upload license." }, { status: 500 });
   }
 }

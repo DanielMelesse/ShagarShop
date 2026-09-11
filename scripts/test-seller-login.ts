@@ -1,5 +1,5 @@
 /**
- * Seller login should land on /seller (dashboard), not the shop.
+ * Seller login should land on /myshop (dashboard), not the catalog shop.
  * Requires: bun run db:up && bun run dev
  *
  *   bun scripts/test-seller-login.ts
@@ -7,6 +7,7 @@
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 import { resolveAfterAuth } from "../src/lib/auth-redirect";
+import { SELLER_HOME, SELLER_ORDERS } from "../src/lib/seller-routes";
 
 const BASE =
   process.env.NEXTAUTH_URL?.replace(/\/$/, "") || "http://127.0.0.1:3000";
@@ -93,24 +94,24 @@ async function main() {
   console.log(`Seller login redirect test → ${BASE}`);
 
   assert(
-    resolveAfterAuth(null, "SELLER") === "/seller",
-    "resolveAfterAuth(null, SELLER) → /seller",
+    resolveAfterAuth(null, "SELLER") === SELLER_HOME,
+    `resolveAfterAuth(null, SELLER) → ${SELLER_HOME}`,
   );
   assert(
-    resolveAfterAuth("/", "SELLER") === "/seller",
-    "resolveAfterAuth(/, SELLER) → /seller",
+    resolveAfterAuth("/", "SELLER") === SELLER_HOME,
+    `resolveAfterAuth(/, SELLER) → ${SELLER_HOME}`,
   );
   assert(
-    resolveAfterAuth("/cart", "SELLER") === "/seller",
-    "resolveAfterAuth(/cart, SELLER) → /seller",
+    resolveAfterAuth("/cart", "SELLER") === SELLER_HOME,
+    `resolveAfterAuth(/cart, SELLER) → ${SELLER_HOME}`,
   );
   assert(
-    resolveAfterAuth("/sell", "SELLER") === "/seller",
-    "resolveAfterAuth(/sell, SELLER) → /seller",
+    resolveAfterAuth("/myshop", "SELLER") === SELLER_HOME,
+    `resolveAfterAuth(/myshop, SELLER) → ${SELLER_HOME}`,
   );
   assert(
-    resolveAfterAuth("/seller/orders", "SELLER") === "/seller/orders",
-    "resolveAfterAuth(/seller/orders, SELLER) keeps deep link",
+    resolveAfterAuth(SELLER_ORDERS, "SELLER") === SELLER_ORDERS,
+    `resolveAfterAuth(${SELLER_ORDERS}, SELLER) keeps deep link`,
   );
 
   const user = await ensureSeller();
@@ -162,26 +163,29 @@ async function main() {
   );
 
   const dest = resolveAfterAuth("/", session.user?.role);
-  assert(dest === "/seller", `post-login dest is /seller (got ${dest})`);
+  assert(
+    dest === SELLER_HOME,
+    `post-login dest is ${SELLER_HOME} (got ${dest})`,
+  );
 
-  const meRes = await fetch(`${BASE}/api/seller/me`, {
+  const meRes = await fetch(`${BASE}/api/myshop/me`, {
     headers: { Cookie: cookieHeader(jar) },
   });
-  assert(meRes.ok, `/api/seller/me ok (got ${meRes.status})`);
+  assert(meRes.ok, `/api/myshop/me ok (got ${meRes.status})`);
 
-  const pageRes = await fetch(`${BASE}/seller`, {
+  const pageRes = await fetch(`${BASE}${SELLER_HOME}`, {
     headers: { Cookie: cookieHeader(jar) },
     redirect: "manual",
   });
   const loc = pageRes.headers.get("location") ?? "";
-  console.log("  GET /seller", pageRes.status, loc || "(no location)");
+  console.log(`  GET ${SELLER_HOME}`, pageRes.status, loc || "(no location)");
   assert(
     !loc.includes("/signup") && !loc.includes("/login"),
-    "GET /seller does not bounce to login/signup",
+    `GET ${SELLER_HOME} does not bounce to login/signup`,
   );
   assert(
     pageRes.status === 200 || pageRes.status === 307 || pageRes.status === 308,
-    `GET /seller responds (${pageRes.status})`,
+    `GET ${SELLER_HOME} responds (${pageRes.status})`,
   );
 
   console.log("\n────────────────────────────");

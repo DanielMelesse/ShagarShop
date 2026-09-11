@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("[seller/register/profile POST]", error);
+    console.error("[myshop/register/profile POST]", error);
     return NextResponse.json(
       { error: "Could not save shop details." },
       { status: 500 },

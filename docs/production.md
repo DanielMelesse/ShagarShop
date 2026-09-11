@@ -6,7 +6,7 @@
 - **Project:** `shegershop` (Railway)
 - **Custom domain:** `shegershop.com` — verified, TLS valid
 - **Uploads:** Railway S3 bucket + `/api/uploads/object/...` proxy
-- **Seeded:** admin `0911000001` / `admin123`, courier `0911000002` / `delivery123`
+- **Seeded:** admin `0911000001` / `admin123`, courier `0911000002` / `delivery123`, seller `0911000003` / `seller123` (Sheger Demo Shop + featured earbuds listing)
 
 Env is set to:
 

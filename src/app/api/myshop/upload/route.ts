@@ -118,7 +118,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url, cardUrl });
   } catch (error) {
-    console.error("[seller/upload]", error);
+    console.error("[myshop/upload]", error);
     return NextResponse.json({ error: "Could not upload image." }, { status: 500 });
   }
 }

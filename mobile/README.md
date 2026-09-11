@@ -74,7 +74,7 @@ bun run test:mobile-auth
 2. Set `CAPACITOR_SERVER_URL` to production URL
 3. `bun run cap:open:android` → Build → Generate signed AAB
 4. Upload to Google Play Internal/Closed testing
-5. Test: login, catalog, cart, Telebirr checkout round-trip, seller scan at `/seller/scan`
+  5. Test: login, catalog, cart, Telebirr checkout round-trip, seller scan at `/myshop/scan`
 
 ## Amharic
 

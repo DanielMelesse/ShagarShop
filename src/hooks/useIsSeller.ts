@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { isAdminRole, isDeliveryRole, isSellerRole } from "@/lib/user-role";
 
 interface UseIsSellerOptions {
-  /** When false, skip /api/seller/me (shop pages for buyers/couriers). */
+  /** When false, skip /api/myshop/me (shop pages for buyers/couriers). */
   enabled?: boolean;
 }
 
@@ -41,7 +41,7 @@ export function useIsSeller(options: UseIsSellerOptions = {}) {
     let cancelled = false;
     setVerifiedSeller(null);
 
-    fetch("/api/seller/me", { credentials: "same-origin" })
+    fetch("/api/myshop/me", { credentials: "same-origin" })
       .then((res) => {
         if (!cancelled) setVerifiedSeller(res.ok);
       })

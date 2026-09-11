@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsSeller } from "@/hooks/useIsSeller";
 import { getSellerDepartmentOptions } from "@/lib/departments";
-import { SELLER_HOME } from "@/lib/seller-routes";
+import { SELLER_HOME, SELLER_REGISTER } from "@/lib/seller-routes";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 import { SellerRegisterStepIndicator } from "@/components/seller/register/SellerRegisterStepIndicator";
 
@@ -56,7 +56,7 @@ export function SellerRegistrationWizard() {
     }
 
     let cancelled = false;
-    fetch("/api/seller/register/status", { credentials: "same-origin" })
+    fetch("/api/myshop/register/status", { credentials: "same-origin" })
       .then(async (res) => {
         if (cancelled) return;
         if (res.ok) {
@@ -133,7 +133,7 @@ export function SellerRegistrationWizard() {
       if (file) {
         const body = new FormData();
         body.append("file", file);
-        const uploadRes = await fetch("/api/seller/register/license", {
+        const uploadRes = await fetch("/api/myshop/register/license", {
           method: "POST",
           credentials: "same-origin",
           body,
@@ -147,7 +147,7 @@ export function SellerRegistrationWizard() {
         licenseUrl = uploadData.url;
       }
 
-      const res = await fetch("/api/seller/register/profile", {
+      const res = await fetch("/api/myshop/register/profile", {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
@@ -289,7 +289,10 @@ export function SellerRegistrationWizard() {
 
           <p className="text-center text-sm text-zinc-500">
             Already registered?{" "}
-            <Link href="/login?callbackUrl=/sell/register" className="font-medium text-brand-600 hover:underline">
+            <Link
+              href={`/login?callbackUrl=${encodeURIComponent(SELLER_REGISTER)}`}
+              className="font-medium text-brand-600 hover:underline"
+            >
               Log in
             </Link>
           </p>
