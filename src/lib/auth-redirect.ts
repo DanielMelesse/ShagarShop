@@ -5,10 +5,11 @@ import {
   isSellerRole,
   type UserRole,
 } from "@/lib/user-role";
-import { isDeliveryAppPath } from "@/lib/delivery-routes";
+import { DELIVERY_HOME, isDeliveryAppPath } from "@/lib/delivery-routes";
 import {
   isSellerAppPath,
   isSellerRegisterPath,
+  SELLER_HOME,
 } from "@/lib/seller-routes";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
@@ -22,24 +23,35 @@ export function safeCallbackUrl(raw: string | null | undefined): string {
   return raw;
 }
 
+/**
+ * Where to send the user after login/signup.
+ * Sellers → /myshop (dashboard), couriers → /delivery, admins → /admin.
+ */
 export function resolveAfterAuth(
   raw: string | null | undefined,
   role: UserRole | string | null | undefined,
 ): string {
-  // Role dashboards win over generic shop callbacks.
   if (isAdminRole(role)) {
     return defaultHomeForRole(role);
   }
+
   if (isDeliveryRole(role)) {
-    return defaultHomeForRole(role);
+    const callbackUrl = safeCallbackUrl(raw);
+    // Keep courier deep links; otherwise always the delivery dashboard.
+    if (isDeliveryAppPath(callbackUrl)) {
+      return callbackUrl;
+    }
+    return DELIVERY_HOME;
   }
+
   if (isSellerRole(role)) {
     const callbackUrl = safeCallbackUrl(raw);
-    // Keep deep links (e.g. /myshop/orders) or continue registration.
+    // Keep seller tool deep links or unfinished registration.
     if (isSellerAppPath(callbackUrl) || isSellerRegisterPath(callbackUrl)) {
       return callbackUrl;
     }
-    return defaultHomeForRole(role);
+    // Marketing /myshop and any shop callback → seller dashboard home.
+    return SELLER_HOME;
   }
 
   const callbackUrl = safeCallbackUrl(raw);

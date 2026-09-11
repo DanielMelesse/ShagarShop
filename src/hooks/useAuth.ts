@@ -56,9 +56,13 @@ export function useAuth() {
       });
       if (!result?.ok) return { ok: false };
 
-      // Cookie session is authoritative. Do not await SessionProvider update() —
-      // it can hang after credentials sign-in and block the hard redirect.
-      const role = await fetchSessionRole();
+      // Cookie session is authoritative. Retry briefly — first poll can race the JWT cookie.
+      // Do not await SessionProvider update() — it can hang after credentials sign-in.
+      let role = await fetchSessionRole(2000);
+      if (!role) {
+        await new Promise((r) => setTimeout(r, 150));
+        role = await fetchSessionRole(2500);
+      }
       void update().catch(() => undefined);
 
       return { ok: true, role };

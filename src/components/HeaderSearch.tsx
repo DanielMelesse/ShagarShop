@@ -526,7 +526,7 @@ export function HeaderSearch() {
       <form
         ref={formRef}
         onSubmit={handleSubmit}
-        className="flex min-w-0 flex-nowrap overflow-visible rounded-lg border border-zinc-300 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20"
+        className="flex min-w-0 flex-nowrap overflow-hidden rounded-lg border border-zinc-300 bg-white shadow-sm focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20"
         role="search"
       >
         <label htmlFor="search-department" className="sr-only">
@@ -567,7 +567,7 @@ export function HeaderSearch() {
           className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 sm:px-3"
         />
         <button type="submit" className={headerSearchButtonClass} aria-label={t("nav.search")}>
-          <SearchIcon className="sm:hidden" />
+          <SearchIcon className="h-4 w-4 sm:hidden" />
           <span className="hidden sm:inline">{t("nav.search")}</span>
         </button>
       </form>

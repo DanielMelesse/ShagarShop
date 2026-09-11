@@ -277,30 +277,34 @@ export function Header() {
 
   return (
     <header className="border-b border-zinc-200/80 bg-white/90">
-      <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
-        <Link
-          href={TODAYS_DEALS_HREF}
-          aria-label="ShegerShop home"
-          className="flex shrink-0 items-center gap-2 font-bold tracking-tight transition hover:opacity-80"
-        >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">
-            S
-          </span>
-          <span className="hidden text-base text-zinc-900 sm:inline sm:text-lg">
-            Sheger<span className="text-brand-600">Shop</span>
-          </span>
-        </Link>
+      <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-6">
+        <div className="flex items-center gap-2 sm:contents">
+          <Link
+            href={TODAYS_DEALS_HREF}
+            aria-label="ShegerShop home"
+            className="flex shrink-0 items-center gap-2 font-bold tracking-tight transition hover:opacity-80"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">
+              S
+            </span>
+            <span className="hidden text-base text-zinc-900 sm:inline sm:text-lg">
+              Sheger<span className="text-brand-600">Shop</span>
+            </span>
+          </Link>
 
-        <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-2 sm:gap-3">
-          <HeaderSearch />
+          <div className="ml-auto shrink-0 sm:order-last sm:ml-0">
+            <HeaderActions
+              showUser={!!showUser}
+              showCartBadge={showCartBadge}
+              itemCount={itemCount}
+              onLogout={() => logout()}
+            />
+          </div>
         </div>
 
-        <HeaderActions
-          showUser={!!showUser}
-          showCartBadge={showCartBadge}
-          itemCount={itemCount}
-          onLogout={() => logout()}
-        />
+        <div className="min-w-0 w-full flex-1">
+          <HeaderSearch />
+        </div>
       </div>
     </header>
   );
