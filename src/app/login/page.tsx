@@ -6,11 +6,9 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useTranslations } from "@/context/LocaleContext";
 import { useAuth } from "@/hooks/useAuth";
 import { resolveAfterAuth } from "@/lib/auth-redirect";
-import {
-  isSellLandingPath,
-  isSellerAppPath,
-  SELLER_HOME,
-} from "@/lib/seller-routes";
+import { DELIVERY_HOME } from "@/lib/delivery-routes";
+import { SELLER_HOME } from "@/lib/seller-routes";
+import type { UserRole } from "@/lib/user-role";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -21,7 +19,6 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
 
   // Already signed in → leave /login (full navigation avoids client race).
-  // Do not wait for submit `loading` — session can land while update() is slow.
   useEffect(() => {
     if (!isReady || !user) return;
     const dest = resolveAfterAuth(callbackUrl, user.role);
@@ -44,16 +41,25 @@ function LoginForm() {
       return;
     }
 
-    // If session role timed out, still honor known role destinations from callback.
-    const dest =
-      result.role != null
-        ? resolveAfterAuth(callbackUrl, result.role)
-        : callbackUrl?.startsWith("/delivery")
-          ? "/delivery"
-          : isSellerAppPath(callbackUrl ?? "") ||
-              isSellLandingPath(callbackUrl ?? "")
-            ? SELLER_HOME
-            : resolveAfterAuth(callbackUrl, "BUYER");
+    const role = result.role as UserRole | undefined;
+    let dest = resolveAfterAuth(callbackUrl, role);
+
+    // If session role was slow, still honor role-hinted callbacks.
+    if (!role) {
+      if (
+        callbackUrl?.startsWith("/delivery") ||
+        callbackUrl === DELIVERY_HOME
+      ) {
+        dest = DELIVERY_HOME;
+      } else if (
+        callbackUrl?.startsWith("/myshop") ||
+        callbackUrl?.startsWith("/seller") ||
+        callbackUrl?.startsWith("/sell")
+      ) {
+        dest = SELLER_HOME;
+      }
+    }
+
     // Hard navigation so role dashboards mount with a fresh session cookie.
     window.location.assign(dest);
   }

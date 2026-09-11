@@ -37,21 +37,41 @@ export function MyshopHome() {
         return;
       }
 
-      try {
-        const res = await fetch("/api/myshop/me", { credentials: "same-origin" });
-        if (cancelled) return;
-        if (!res.ok) {
-          setPhase("landing");
-          return;
+      // Sellers should never fall through to marketing on a transient /me failure.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const res = await fetch("/api/myshop/me", {
+            credentials: "same-origin",
+            cache: "no-store",
+          });
+          if (cancelled) return;
+
+          if (res.ok) {
+            const data = (await res.json()) as {
+              registrationComplete?: boolean;
+            };
+            if (!data.registrationComplete) {
+              router.replace(SELLER_REGISTER);
+              return;
+            }
+            setPhase("dashboard");
+            return;
+          }
+
+          if (res.status === 403) {
+            // Authenticated but not treated as seller yet — show landing once.
+            setPhase("landing");
+            return;
+          }
+        } catch {
+          /* retry */
         }
-        const data = (await res.json()) as { registrationComplete?: boolean };
-        if (!data.registrationComplete) {
-          router.replace(SELLER_REGISTER);
-          return;
-        }
+        await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+      }
+
+      if (!cancelled) {
+        // Still a seller session — keep dashboard shell rather than marketing.
         setPhase("dashboard");
-      } catch {
-        if (!cancelled) setPhase("landing");
       }
     }
 

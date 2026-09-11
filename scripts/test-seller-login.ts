@@ -113,6 +113,19 @@ async function main() {
     resolveAfterAuth(SELLER_ORDERS, "SELLER") === SELLER_ORDERS,
     `resolveAfterAuth(${SELLER_ORDERS}, SELLER) keeps deep link`,
   );
+  assert(
+    resolveAfterAuth(null, "DELIVERY") === "/delivery",
+    "resolveAfterAuth(null, DELIVERY) → /delivery",
+  );
+  assert(
+    resolveAfterAuth("/", "DELIVERY") === "/delivery",
+    "resolveAfterAuth(/, DELIVERY) → /delivery",
+  );
+  assert(
+    resolveAfterAuth("/delivery/available", "DELIVERY") ===
+      "/delivery/available",
+    "resolveAfterAuth(/delivery/available, DELIVERY) keeps deep link",
+  );
 
   const user = await ensureSeller();
   assert(user.role === "SELLER", `DB role is SELLER (got ${user.role})`);
