@@ -66,7 +66,7 @@ const inputClass =
 async function uploadProductImage(file: File): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   const body = new FormData();
   body.append("file", file);
-  const res = await fetch("/api/seller/upload", { method: "POST", credentials: "same-origin", body });
+  const res = await fetch("/api/myshop/upload", { method: "POST", credentials: "same-origin", body });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     return { ok: false, error: data.error ?? "Could not upload image." };

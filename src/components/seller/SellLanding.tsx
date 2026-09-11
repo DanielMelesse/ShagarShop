@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { SellShopperPrompt } from "@/components/seller/SellShopperPrompt";
 import { useAuth } from "@/hooks/useAuth";
 import { formatPrice } from "@/lib/products";
@@ -11,7 +9,6 @@ import {
   SELLER_HOME,
   SELLER_REGISTER,
 } from "@/lib/seller-routes";
-import { isSellerRole } from "@/lib/user-role";
 
 const steps = [
   {
@@ -41,19 +38,11 @@ const perks = [
   "Seller support via email",
 ];
 
+/** Marketing for guests/buyers. Sellers are routed by MyshopHome. */
 export function SellLanding() {
-  const router = useRouter();
   const { user, isReady } = useAuth();
-  const isSeller = Boolean(user && isSellerRole(user.role));
 
-  useEffect(() => {
-    if (!isReady) return;
-    if (isSeller) {
-      router.replace(SELLER_HOME);
-    }
-  }, [isReady, isSeller, router]);
-
-  if (!isReady || isSeller) {
+  if (!isReady) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <div className="h-40 animate-pulse rounded-2xl bg-zinc-100" />

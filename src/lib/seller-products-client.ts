@@ -20,7 +20,7 @@ export async function fetchSellerProducts(): Promise<{
   ok: true;
   products: Product[];
 } | { ok: false; error: string }> {
-  const res = await fetch("/api/seller/products", { credentials: "same-origin" });
+  const res = await fetch("/api/myshop/products", { credentials: "same-origin" });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     return {
@@ -37,7 +37,7 @@ export async function fetchSellerProducts(): Promise<{
 export async function fetchSellerProduct(
   id: string,
 ): Promise<{ ok: true; product: Product } | { ok: false; error: string }> {
-  const res = await fetch(`/api/seller/products/${id}`, { credentials: "same-origin" });
+  const res = await fetch(`/api/myshop/products/${id}`, { credentials: "same-origin" });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     return {
@@ -51,7 +51,7 @@ export async function fetchSellerProduct(
 export async function createSellerProduct(
   form: ProductFormState,
 ): Promise<{ ok: true; product: Product } | { ok: false; error: string }> {
-  const res = await fetch("/api/seller/products", {
+  const res = await fetch("/api/myshop/products", {
     method: "POST",
     credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
@@ -68,7 +68,7 @@ export async function updateSellerProduct(
   id: string,
   form: ProductFormState,
 ): Promise<{ ok: true; product: Product } | { ok: false; error: string }> {
-  const res = await fetch(`/api/seller/products/${id}`, {
+  const res = await fetch(`/api/myshop/products/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(formPayload(form)),
@@ -83,7 +83,7 @@ export async function updateSellerProduct(
 export async function deleteSellerProduct(
   id: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const res = await fetch(`/api/seller/products/${id}`, { method: "DELETE" });
+  const res = await fetch(`/api/myshop/products/${id}`, { method: "DELETE" });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     return { ok: false, error: data.error ?? "Could not delete product." };
@@ -92,7 +92,7 @@ export async function deleteSellerProduct(
 }
 
 export async function fetchSellerShopName(): Promise<string | null> {
-  const res = await fetch("/api/seller/register/status", { credentials: "same-origin" });
+  const res = await fetch("/api/myshop/register/status", { credentials: "same-origin" });
   if (!res.ok) return null;
   const data = await res.json().catch(() => ({}));
   return data.profile?.shopName ?? null;

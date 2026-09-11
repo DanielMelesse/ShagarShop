@@ -179,7 +179,7 @@ async function main() {
   jar = mergeCookies(jar, parseSetCookies(signInRes));
   assert(signInRes.ok || signInRes.status === 302, "seller signed in");
 
-  const patchRes = await fetch(`${BASE}/api/seller/orders/${orderItemId}`, {
+  const patchRes = await fetch(`${BASE}/api/myshop/orders/${orderItemId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",

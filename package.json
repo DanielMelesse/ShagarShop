@@ -27,6 +27,7 @@
     "test:courier-login": "bun scripts/test-courier-login.ts",
     "test:seller-login": "bun scripts/test-seller-login.ts",
     "test:package-tracking": "bun scripts/test-package-tracking-code.ts",
+    "test:cod-dry-run": "bun scripts/test-cod-marketplace-dry-run.ts",
     "test:mobile-auth": "bun scripts/test-mobile-auth.ts",
     "icons:pwa": "bun scripts/generate-pwa-icons.ts",
     "cap:sync": "bun ./node_modules/@capacitor/cli/bin/capacitor sync",

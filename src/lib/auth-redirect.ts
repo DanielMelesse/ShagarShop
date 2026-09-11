@@ -6,7 +6,10 @@ import {
   type UserRole,
 } from "@/lib/user-role";
 import { isDeliveryAppPath } from "@/lib/delivery-routes";
-import { isSellerAppPath } from "@/lib/seller-routes";
+import {
+  isSellerAppPath,
+  isSellerRegisterPath,
+} from "@/lib/seller-routes";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
 const DEFAULT_AFTER_AUTH = TODAYS_DEALS_HREF;
@@ -32,8 +35,8 @@ export function resolveAfterAuth(
   }
   if (isSellerRole(role)) {
     const callbackUrl = safeCallbackUrl(raw);
-    // Keep deep links inside the seller app (e.g. /seller/orders).
-    if (isSellerAppPath(callbackUrl)) {
+    // Keep deep links (e.g. /myshop/orders) or continue registration.
+    if (isSellerAppPath(callbackUrl) || isSellerRegisterPath(callbackUrl)) {
       return callbackUrl;
     }
     return defaultHomeForRole(role);
@@ -46,7 +49,8 @@ export function resolveAfterAuth(
     return DEFAULT_AFTER_AUTH;
   }
 
-  // Gated seller app — buyers should not land on /seller.
+  // Gated seller tools — buyers should not land on /myshop/listings etc.
+  // Marketing `/myshop` and `/myshop/register` are allowed.
   if (isSellerAppPath(callbackUrl)) {
     return DEFAULT_AFTER_AUTH;
   }

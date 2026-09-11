@@ -7,6 +7,6 @@ export const metadata = {
   description: "Register as a seller on ShegerShop in three simple steps.",
 };
 
-export default function SellerRegisterPage() {
+export default function MyshopRegisterPage() {
   return <SellerRegistrationWizard />;
 }

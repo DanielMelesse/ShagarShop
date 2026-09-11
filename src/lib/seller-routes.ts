@@ -1,13 +1,13 @@
-export const SELL_LANDING = "/sell";
-export const SELLER_REGISTER = "/sell/register";
-export const SELLER_SCAN = "/seller/scan";
-export const SELLER_HOME = "/seller";
-export const SELLER_LISTINGS = "/seller/listings";
-export const SELLER_ORDERS = "/seller/orders";
-export const SELLER_EARNINGS = "/seller/earnings";
-export const SELLER_ADD = "/seller/add";
-export const SELLER_EDIT = "/seller/edit";
-export const SELLER_VIEW = "/seller/view";
+export const SELL_LANDING = "/myshop";
+export const SELLER_REGISTER = "/myshop/register";
+export const SELLER_SCAN = "/myshop/scan";
+export const SELLER_HOME = "/myshop";
+export const SELLER_LISTINGS = "/myshop/listings";
+export const SELLER_ORDERS = "/myshop/orders";
+export const SELLER_EARNINGS = "/myshop/earnings";
+export const SELLER_ADD = "/myshop/add";
+export const SELLER_EDIT = "/myshop/edit";
+export const SELLER_VIEW = "/myshop/view";
 
 export function sellerEditPath(productId: string): string {
   return `${SELLER_EDIT}/${productId}`;
@@ -17,15 +17,25 @@ export function sellerViewPath(productId: string): string {
   return `${SELLER_VIEW}/${productId}`;
 }
 
-export function isSellerAppPath(pathname: string): boolean {
-  return pathname === SELLER_HOME || pathname.startsWith(`${SELLER_HOME}/`);
-}
-
+/** Public marketing home (exact `/myshop`). */
 export function isSellLandingPath(pathname: string): boolean {
-  return pathname === SELL_LANDING || pathname.startsWith(`${SELL_LANDING}/`);
+  return pathname === SELL_LANDING;
 }
 
-/** Seller landing (/sell) or seller app (/seller/*). */
+export function isSellerRegisterPath(pathname: string): boolean {
+  return (
+    pathname === SELLER_REGISTER || pathname.startsWith(`${SELLER_REGISTER}/`)
+  );
+}
+
+/** Gated seller app under `/myshop/*` (not marketing home or register). */
+export function isSellerAppPath(pathname: string): boolean {
+  if (isSellerRegisterPath(pathname)) return false;
+  if (pathname === SELLER_HOME) return false;
+  return pathname.startsWith(`${SELLER_HOME}/`);
+}
+
+/** Marketing, register, or seller app under `/myshop`. */
 export function isSellSurfacePath(pathname: string): boolean {
-  return isSellLandingPath(pathname) || isSellerAppPath(pathname);
+  return pathname === "/myshop" || pathname.startsWith("/myshop/");
 }

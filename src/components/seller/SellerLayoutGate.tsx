@@ -3,7 +3,12 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { SELL_LANDING, SELLER_REGISTER } from "@/lib/seller-routes";
+import {
+  isSellLandingPath,
+  isSellerRegisterPath,
+  SELL_LANDING,
+  SELLER_REGISTER,
+} from "@/lib/seller-routes";
 import { isSellerRole } from "@/lib/user-role";
 
 function SellerPageSkeleton() {
@@ -42,7 +47,16 @@ export function SellerLayoutGate({ children }: { children: React.ReactNode }) {
   const [allowed, setAllowed] = useState(false);
   const retried = useRef(false);
 
+  const isPublicMyshop =
+    isSellLandingPath(pathname) || isSellerRegisterPath(pathname);
+
   useEffect(() => {
+    if (isPublicMyshop) {
+      setChecking(false);
+      setAllowed(true);
+      return;
+    }
+
     let cancelled = false;
 
     async function gate() {
@@ -79,7 +93,7 @@ export function SellerLayoutGate({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const res = await fetch("/api/seller/me", { credentials: "same-origin" });
+        const res = await fetch("/api/myshop/me", { credentials: "same-origin" });
         if (cancelled) return;
 
         if (!res.ok) {
@@ -112,7 +126,20 @@ export function SellerLayoutGate({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [isReady, isAuthenticated, user, user?.role, router, pathname, refreshSession]);
+  }, [
+    isPublicMyshop,
+    isReady,
+    isAuthenticated,
+    user,
+    user?.role,
+    router,
+    pathname,
+    refreshSession,
+  ]);
+
+  if (isPublicMyshop) {
+    return <>{children}</>;
+  }
 
   if (!isReady || checking || !allowed) {
     return <SellerPageSkeleton />;
