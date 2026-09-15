@@ -16,6 +16,7 @@ export const am: Messages = {
     customerService: "የደንበኛ አገልግሎት",
     account: "መለያ",
     login: "ግባ",
+    signUp: "ተመዝገብ",
     logout: "ውጣ",
     cart: "ጋሪ",
     cartAria: "ጋሪ፣ {count} እቃዎች",
@@ -53,6 +54,8 @@ export const am: Messages = {
     signInSubtitle: "በስልክ ቁጥርዎ እና የይለፍ ቃልዎ ይግቡ።",
     signingIn: "በመግባት ላይ...",
     invalidCredentials: "ስልክ ቁጥር ወይም የይለፍ ቃል ትክክል አይደለም።",
+    invalidPhone:
+      "ትክክለኛ የኢትዮጵያ ሞባይል ቁጥር ያስገቡ (09XXXXXXXX ወይም 07XXXXXXXX)።",
   },
   cart: {
     title: "ጋሪ ({count} እቃዎች)",
@@ -190,5 +193,30 @@ export const am: Messages = {
     total: "ጠቅላላ",
     items: "{count} እቃዎች",
     item: "1 እቃ",
+  },
+  onboarding: {
+    skip: "ዝለል",
+    back: "ተመለስ",
+    next: "ቀጣይ",
+    startShopping: "ግዢ ጀምር",
+    stepOf: "ደረጃ {current} ከ {total}",
+    steps: {
+      welcome: {
+        title: "እንኳን ወደ ShegerShop በደህና መጡ",
+        body: "የዛሬ ቅናሾችን እና ከታመኑ ሻጮች በኢትዮጵያ ጥራት ያላቸውን ምርቶች ያግኙ።",
+      },
+      search: {
+        title: "የሚፈልጉትን ይፈልጉ",
+        body: "በላይ ያለውን የፍለጋ አሞሌ በመጠቀም በስም ይፈልጉ ወይም በክፍል ያስሱ።",
+      },
+      cart: {
+        title: "ጋሪ እና ክፍያ",
+        body: "እቃዎችን ወደ ጋሪዎ ያክሉ ከዚያ ክፍያ ያጠናቁ። በቴሌብር፣ ቻፓ ወይም በማድረሻ ጊዜ በጥሬ ገንዘብ (COD) መክፈል ይችላሉ።",
+      },
+      account: {
+        title: "መለያዎ",
+        body: "ትዕዛዞችን ለመከታተል፣ መገለጫዎን ለማዘመን እና ዝርዝሮችዎን ለማስተዳደር መለያን ይክፈቱ።",
+      },
+    },
   },
 };

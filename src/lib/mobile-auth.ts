@@ -114,7 +114,7 @@ export async function loginWithPhonePassword(
 ): Promise<MobileTokenPair | { error: string }> {
   const phone = normalizePhone(phoneRaw);
   if (!isValidPhone(phone)) {
-    return { error: "Enter a valid Ethiopian phone number." };
+    return { error: "Enter a valid Ethiopian mobile number (09XXXXXXXX or 07XXXXXXXX)." };
   }
 
   const user = await prisma.user.findUnique({ where: { phone } });

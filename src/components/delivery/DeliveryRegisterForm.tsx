@@ -9,6 +9,7 @@ import {
   DELIVERY_VEHICLE_TYPES,
 } from "@/lib/delivery";
 import { DELIVERY_HOME } from "@/lib/delivery-routes";
+import { isValidPhone } from "@/lib/phone";
 import { isDeliveryRole } from "@/lib/user-role";
 
 export function DeliveryRegisterForm() {
@@ -36,6 +37,13 @@ export function DeliveryRegisterForm() {
       vehicleType: String(form.get("vehicleType") ?? ""),
       serviceArea: String(form.get("serviceArea") ?? ""),
     };
+
+    if (!isValidPhone(payload.phone)) {
+      setError(
+        "Enter a valid Ethiopian mobile number (09XXXXXXXX or 07XXXXXXXX).",
+      );
+      return;
+    }
 
     try {
       const res = await fetch("/api/delivery/register", {
@@ -92,8 +100,10 @@ export function DeliveryRegisterForm() {
             id="phone"
             name="phone"
             type="tel"
+            inputMode="tel"
             required
             placeholder="09XX XXX XXXX"
+            title="Ethiopian mobile: 09XXXXXXXX or 07XXXXXXXX"
             className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
           />
         </div>

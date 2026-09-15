@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsSeller } from "@/hooks/useIsSeller";
 import { getSellerDepartmentOptions } from "@/lib/departments";
+import { isValidPhone } from "@/lib/phone";
 import { SELLER_HOME, SELLER_REGISTER } from "@/lib/seller-routes";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 import { SellerRegisterStepIndicator } from "@/components/seller/register/SellerRegisterStepIndicator";
@@ -92,6 +93,14 @@ export function SellerRegistrationWizard() {
       password: String(form.get("password") ?? ""),
       email: String(form.get("email") ?? "").trim(),
     };
+
+    if (!isValidPhone(draft.phone)) {
+      setError(
+        "Enter a valid Ethiopian mobile number (09XXXXXXXX or 07XXXXXXXX).",
+      );
+      setLoading(false);
+      return;
+    }
 
     const result = await signup(
       draft.name,
@@ -242,9 +251,11 @@ export function SellerRegistrationWizard() {
               id="phone"
               name="phone"
               type="tel"
+              inputMode="tel"
               required
               autoComplete="tel"
               placeholder="09XX XXX XXXX"
+              title="Ethiopian mobile: 09XXXXXXXX or 07XXXXXXXX"
               className={inputClass}
             />
           </div>
