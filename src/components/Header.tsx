@@ -41,13 +41,16 @@ function HeaderActions({
   showCartBadge,
   itemCount,
   onLogout,
+  authCtaDisabled,
 }: {
   showUser: boolean;
   showCartBadge: boolean;
   itemCount: number;
   onLogout: () => void;
+  authCtaDisabled: boolean;
 }) {
   const { t } = useTranslations();
+  const authCtaLabel = `${t("nav.login")}/${t("nav.signUp")}`;
 
   return (
     <div className="flex shrink-0 flex-nowrap items-center gap-1 sm:gap-2">
@@ -69,12 +72,9 @@ function HeaderActions({
             {t("nav.logout")}
           </button>
         </>
-      ) : (
-        <Link
-          href="/login"
-          className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
-        >
-          {t("nav.login")}
+      ) : authCtaDisabled ? null : (
+        <Link href="/login" className={headerSellButtonClass}>
+          {authCtaLabel}
         </Link>
       )}
 
@@ -298,6 +298,7 @@ export function Header() {
               showCartBadge={showCartBadge}
               itemCount={itemCount}
               onLogout={() => logout()}
+              authCtaDisabled={pathname === "/login" || pathname === "/signup"}
             />
           </div>
         </div>

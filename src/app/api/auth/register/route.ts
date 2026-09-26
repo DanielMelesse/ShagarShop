@@ -19,7 +19,10 @@ export async function POST(request: Request) {
     }
     if (!isValidPhone(phone)) {
       return NextResponse.json(
-        { error: "A valid phone number is required." },
+        {
+          error:
+            "Enter a valid Ethiopian mobile number (09XXXXXXXX or 07XXXXXXXX).",
+        },
         { status: 400 },
       );
     }

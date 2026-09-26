@@ -14,6 +14,7 @@ export const en = {
     customerService: "Customer Service",
     account: "Account",
     login: "Login",
+    signUp: "Signup",
     logout: "Log out",
     cart: "Cart",
     cartAria: "Cart, {count} items",
@@ -50,6 +51,8 @@ export const en = {
     signInSubtitle: "Sign in with your phone number and password.",
     signingIn: "Signing in...",
     invalidCredentials: "Invalid phone number or password.",
+    invalidPhone:
+      "Enter a valid Ethiopian mobile number (09XXXXXXXX or 07XXXXXXXX).",
   },
   cart: {
     title: "Cart ({count} items)",
@@ -184,6 +187,35 @@ export const en = {
     total: "Total",
     items: "{count} items",
     item: "1 item",
+  },
+  onboarding: {
+    skip: "Skip",
+    back: "Back",
+    next: "Next",
+    startShopping: "Start shopping",
+    stepOf: "Step {current} of {total}",
+    steps: {
+      welcome: {
+        title: "Welcome to ShegerShop",
+        body: "Discover Today's Deals and quality products from trusted sellers across Ethiopia.",
+      },
+      search: {
+        title: "Search for what you need",
+        body: "Use the search bar at the top to find products by name or browse by department.",
+      },
+      addToCart: {
+        title: "Add to cart",
+        body: "Open a product and tap Add to cart. Your items are saved until you are ready to checkout.",
+      },
+      checkout: {
+        title: "Checkout and delivery",
+        body: "Open your cart, proceed to checkout, then add your region, area, and street directions so the courier can find you.",
+      },
+      payment: {
+        title: "Pay and track",
+        body: "Pay with Telebirr, Chapa, or cash on delivery (COD). After you place the order, track it anytime from Account.",
+      },
+    },
   },
 } as const;
 

@@ -3,6 +3,15 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { isValidPhone, normalizePhone } from "@/lib/phone";
+import { isBuyerRole } from "@/lib/user-role";
+
+function buyerOnboardingDoneFromUser(user: {
+  role: string;
+  buyerOnboardingCompletedAt?: Date | null;
+}): boolean {
+  if (!isBuyerRole(user.role)) return true;
+  return Boolean(user.buyerOnboardingCompletedAt);
+}
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -35,6 +44,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          buyerOnboardingDone: buyerOnboardingDoneFromUser(user),
         };
       },
     }),
@@ -47,6 +57,7 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
         token.name = user.name;
         token.role = user.role;
+        token.buyerOnboardingDone = Boolean(user.buyerOnboardingDone);
         return token;
       }
 
@@ -55,13 +66,20 @@ export const authOptions: NextAuthOptions = {
       if (trigger === "update" && token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { role: true, name: true, phone: true, email: true },
+          select: {
+            role: true,
+            name: true,
+            phone: true,
+            email: true,
+            buyerOnboardingCompletedAt: true,
+          },
         });
         if (dbUser) {
           token.role = dbUser.role;
           token.name = dbUser.name;
           token.phone = dbUser.phone;
           token.email = dbUser.email;
+          token.buyerOnboardingDone = buyerOnboardingDoneFromUser(dbUser);
         }
       }
 
@@ -80,6 +98,9 @@ export const authOptions: NextAuthOptions = {
           token.role === "ADMIN"
             ? token.role
             : "BUYER";
+        session.user.buyerOnboardingDone =
+          token.buyerOnboardingDone === true ||
+          !isBuyerRole(session.user.role);
       }
       return session;
     },

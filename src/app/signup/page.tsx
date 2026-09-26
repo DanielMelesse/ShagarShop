@@ -6,6 +6,7 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsSeller } from "@/hooks/useIsSeller";
 import { resolveAfterAuth, DEFAULT_AFTER_AUTH } from "@/lib/auth-redirect";
+import { isValidPhone } from "@/lib/phone";
 import { SELLER_HOME, SELLER_REGISTER } from "@/lib/seller-routes";
 import { parseSignupRole } from "@/lib/user-role";
 
@@ -30,12 +31,15 @@ function SignupForm() {
 
   useEffect(() => {
     if (signupRole === "SELLER") return;
-    if (isReady && user) {
-      router.replace(
-        isSeller ? SELLER_HOME : resolveAfterAuth(searchParams.get("callbackUrl"), user.role),
-      );
+    if (!isReady || !user) return;
+    const dest = isSeller
+      ? SELLER_HOME
+      : resolveAfterAuth(searchParams.get("callbackUrl"), user.role);
+    // Hard navigation so shop home mounts with a fresh session (onboarding tour).
+    if (window.location.pathname === "/signup") {
+      window.location.replace(dest);
     }
-  }, [isReady, user, isSeller, router, searchParams, signupRole]);
+  }, [isReady, user, isSeller, searchParams, signupRole]);
 
   if (signupRole === "SELLER") {
     return (
@@ -48,22 +52,29 @@ function SignupForm() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
-    setLoading(true);
     const form = new FormData(e.currentTarget);
     const name = String(form.get("name") ?? "");
     const phone = String(form.get("phone") ?? "");
     const password = String(form.get("password") ?? "");
     const email = String(form.get("email") ?? "");
-    const result = await signup(name, phone, password, email, signupRole);
-    setLoading(false);
-    if (result.ok) {
-      router.replace(
-        resolveAfterAuth(searchParams.get("callbackUrl"), result.role ?? signupRole),
+    if (!isValidPhone(phone)) {
+      setError(
+        "Enter a valid Ethiopian mobile number (09XXXXXXXX or 07XXXXXXXX).",
       );
-      router.refresh();
-    } else {
-      setError(result.error ?? "Could not create account.");
+      return;
     }
+    setLoading(true);
+    const result = await signup(name, phone, password, email, signupRole);
+    if (!result.ok) {
+      setLoading(false);
+      setError(result.error ?? "Could not create account.");
+      return;
+    }
+    // Hard navigation (same as login) so SessionProvider picks up the cookie
+    // and BuyerOnboardingTour can read buyerOnboardingDone.
+    window.location.assign(
+      resolveAfterAuth(searchParams.get("callbackUrl"), result.role ?? signupRole),
+    );
   }
 
   return (
@@ -95,9 +106,11 @@ function SignupForm() {
             id="phone"
             name="phone"
             type="tel"
+            inputMode="tel"
             required
             autoComplete="tel"
             placeholder="09XX XXX XXXX"
+            title="Ethiopian mobile: 09XXXXXXXX or 07XXXXXXXX"
             className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
           />
         </div>

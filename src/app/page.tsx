@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BuyerOnboardingTour } from "@/components/onboarding/BuyerOnboardingTour";
 import { DealsPageHero } from "@/components/deals/DealsPageHero";
 import { ProductCard } from "@/components/ProductCard";
 import { shuffleDeals } from "@/lib/deals";
@@ -12,6 +13,8 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+      <BuyerOnboardingTour />
+
       <DealsPageHero deals={deals} />
 
       {deals.length === 0 ? (

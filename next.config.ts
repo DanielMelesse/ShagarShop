@@ -50,6 +50,9 @@ const nextConfig: NextConfig = {
       {
         pathname: "/api/uploads/products/**",
       },
+      {
+        pathname: "/onboarding/**",
+      },
     ],
     remotePatterns: [
       {

@@ -7,6 +7,7 @@ import { useTranslations } from "@/context/LocaleContext";
 import { useAuth } from "@/hooks/useAuth";
 import { resolveAfterAuth } from "@/lib/auth-redirect";
 import { DELIVERY_HOME } from "@/lib/delivery-routes";
+import { isValidPhone } from "@/lib/phone";
 import { SELLER_HOME } from "@/lib/seller-routes";
 import type { UserRole } from "@/lib/user-role";
 
@@ -30,10 +31,14 @@ function LoginForm() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
-    setLoading(true);
     const form = new FormData(e.currentTarget);
     const phone = String(form.get("phone") ?? "");
     const password = String(form.get("password") ?? "");
+    if (!isValidPhone(phone)) {
+      setError(t("auth.invalidPhone"));
+      return;
+    }
+    setLoading(true);
     const result = await login(phone, password);
     if (!result.ok) {
       setLoading(false);
@@ -86,9 +91,11 @@ function LoginForm() {
             id="phone"
             name="phone"
             type="tel"
+            inputMode="tel"
             required
             autoComplete="tel"
             placeholder="09XX XXX XXXX"
+            title={t("auth.invalidPhone")}
             className="mt-1 w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
           />
         </div>

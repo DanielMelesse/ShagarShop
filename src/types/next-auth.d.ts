@@ -9,6 +9,8 @@ declare module "next-auth" {
       email: string | null;
       name: string;
       role: UserRole;
+      /** True when buyer finished/skipped shop-home onboarding (non-buyers always true). */
+      buyerOnboardingDone: boolean;
     };
   }
   interface User {
@@ -17,6 +19,7 @@ declare module "next-auth" {
     email: string | null;
     name: string;
     role: UserRole;
+    buyerOnboardingDone?: boolean;
   }
 }
 
@@ -27,5 +30,6 @@ declare module "next-auth/jwt" {
     email: string | null;
     name: string;
     role: UserRole;
+    buyerOnboardingDone?: boolean;
   }
 }

@@ -21,6 +21,8 @@ model User {
   passwordHash    String
   name            String
   role            UserRole         @default(BUYER)
+  /** Set when a buyer finishes or skips the shop-home onboarding tour. */
+  buyerOnboardingCompletedAt DateTime?
   createdAt       DateTime         @default(now())
   orders          Order[]
   products        Product[]
