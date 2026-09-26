@@ -208,20 +208,12 @@ export const en = {
         body: "Open a product and tap Add to cart. Your items are saved until you are ready to checkout.",
       },
       checkout: {
-        title: "Checkout",
-        body: "Open your cart and proceed to checkout to enter delivery details and place your order.",
-      },
-      deliveryAddress: {
-        title: "Add delivery address",
-        body: "Choose your region and area, then add street directions so the courier can find you.",
+        title: "Checkout and delivery",
+        body: "Open your cart, proceed to checkout, then add your region, area, and street directions so the courier can find you.",
       },
       payment: {
-        title: "Choose payment",
-        body: "Pay with Telebirr, Chapa, or cash on delivery (COD) when your order arrives.",
-      },
-      confirmation: {
-        title: "Order confirmation",
-        body: "After you place the order, you will see a confirmation page and can track it anytime from Account.",
+        title: "Pay and track",
+        body: "Pay with Telebirr, Chapa, or cash on delivery (COD). After you place the order, track it anytime from Account.",
       },
     },
   },

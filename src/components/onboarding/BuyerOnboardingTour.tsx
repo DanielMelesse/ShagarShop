@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "@/context/LocaleContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,9 +12,7 @@ const STEP_KEYS = [
   "search",
   "addToCart",
   "checkout",
-  "deliveryAddress",
   "payment",
-  "confirmation",
 ] as const;
 
 const STEP_IMAGES: Record<(typeof STEP_KEYS)[number], string> = {
@@ -22,9 +20,7 @@ const STEP_IMAGES: Record<(typeof STEP_KEYS)[number], string> = {
   search: "/onboarding/search.png",
   addToCart: "/onboarding/add-to-cart.png",
   checkout: "/onboarding/checkout.png",
-  deliveryAddress: "/onboarding/delivery-address.png",
   payment: "/onboarding/payment.png",
-  confirmation: "/onboarding/confirmation.png",
 };
 
 export function BuyerOnboardingTour() {
@@ -33,14 +29,33 @@ export function BuyerOnboardingTour() {
   const { update } = useSession();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
   const [saving, setSaving] = useState(false);
+  /** Skip/finish must win over in-flight status checks that would reopen the tour. */
+  const dismissedRef = useRef(false);
+  const checkedUserIdRef = useRef<string | null>(null);
+
+  const userId = user?.id;
+  const userRole = user?.role;
+  const onboardingDone = user?.buyerOnboardingDone === true;
 
   useEffect(() => {
     if (!isReady) return;
-    if (!user || !isBuyerRole(user.role)) {
+    if (!userId || !userRole || !isBuyerRole(userRole)) {
+      setOpen(false);
+      checkedUserIdRef.current = null;
+      dismissedRef.current = false;
+      return;
+    }
+
+    if (dismissedRef.current || onboardingDone) {
       setOpen(false);
       return;
     }
+
+    // Avoid re-fetching (and resetting steps) on every session object refresh.
+    if (checkedUserIdRef.current === userId) return;
+    checkedUserIdRef.current = userId;
 
     let cancelled = false;
     void (async () => {
@@ -50,26 +65,28 @@ export function BuyerOnboardingTour() {
           credentials: "same-origin",
           cache: "no-store",
         });
+        if (cancelled || dismissedRef.current) return;
         if (!res.ok) {
-          if (!cancelled && !user.buyerOnboardingDone) {
-            setOpen(true);
-            setStep(0);
-          }
+          setOpen(true);
+          setStep(0);
+          setDirection(1);
           return;
         }
         const data = (await res.json()) as { buyerOnboardingDone?: boolean };
-        if (cancelled) return;
+        if (cancelled || dismissedRef.current) return;
         if (data.buyerOnboardingDone) {
           setOpen(false);
-          if (!user.buyerOnboardingDone) void update().catch(() => undefined);
+          void update().catch(() => undefined);
           return;
         }
         setOpen(true);
         setStep(0);
+        setDirection(1);
       } catch {
-        if (!cancelled && !user.buyerOnboardingDone) {
+        if (!cancelled && !dismissedRef.current) {
           setOpen(true);
           setStep(0);
+          setDirection(1);
         }
       }
     })();
@@ -77,10 +94,11 @@ export function BuyerOnboardingTour() {
     return () => {
       cancelled = true;
     };
-  }, [isReady, user, user?.role, user?.buyerOnboardingDone, update]);
+  }, [isReady, userId, userRole, onboardingDone, update]);
 
   const complete = useCallback(async () => {
-    if (saving) return;
+    if (saving || dismissedRef.current) return;
+    dismissedRef.current = true;
     setSaving(true);
     setOpen(false);
     try {
@@ -96,33 +114,42 @@ export function BuyerOnboardingTour() {
     }
   }, [saving, update]);
 
+  const goTo = useCallback((next: number) => {
+    setDirection(next > step ? 1 : -1);
+    setStep(next);
+  }, [step]);
+
   if (!open) return null;
 
   const total = STEP_KEYS.length;
   const key = STEP_KEYS[step];
   const isLast = step === total - 1;
+  const panelAnim =
+    direction === 1 ? "onboarding-panel-next" : "onboarding-panel-prev";
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-end justify-center bg-zinc-900/50 p-3 sm:items-center sm:p-4"
+      className="onboarding-backdrop fixed inset-0 z-[80] flex items-end justify-center bg-zinc-900/50 p-3 sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="buyer-onboarding-title"
     >
-      <div className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:max-w-3xl sm:flex-row">
-        <div className="relative h-40 w-full shrink-0 bg-zinc-100 sm:h-auto sm:w-[48%] sm:min-h-[280px]">
-          <Image
-            src={STEP_IMAGES[key]}
-            alt=""
-            fill
-            priority
-            className="object-cover object-top"
-            sizes="(max-width: 640px) 100vw, 420px"
-          />
+      <div className="onboarding-dialog flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:max-w-3xl sm:flex-row">
+        <div className="relative h-40 w-full shrink-0 overflow-hidden bg-zinc-100 sm:h-auto sm:w-[48%] sm:min-h-[280px]">
+          <div key={`img-${step}`} className={`absolute inset-0 ${panelAnim}`}>
+            <Image
+              src={STEP_IMAGES[key]}
+              alt=""
+              fill
+              priority
+              className="object-cover object-top"
+              sizes="(max-width: 640px) 100vw, 420px"
+            />
+          </div>
         </div>
 
         <div className="flex flex-1 flex-col justify-between gap-4 p-5 sm:gap-5 sm:p-7">
-          <div>
+          <div key={`copy-${step}`} className={panelAnim}>
             <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
               {t("onboarding.stepOf", { current: step + 1, total })}
             </p>
@@ -142,7 +169,7 @@ export function BuyerOnboardingTour() {
               {STEP_KEYS.map((_, i) => (
                 <span
                   key={STEP_KEYS[i]}
-                  className={`h-1.5 flex-1 rounded-full ${
+                  className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ease-out ${
                     i <= step ? "bg-brand-600" : "bg-zinc-200"
                   }`}
                 />
@@ -155,7 +182,7 @@ export function BuyerOnboardingTour() {
                 disabled={saving}
                 onClick={() => {
                   if (isLast) void complete();
-                  else setStep((s) => s + 1);
+                  else goTo(step + 1);
                 }}
                 className="w-full rounded-xl bg-brand-600 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60 sm:flex-1"
               >
@@ -165,7 +192,7 @@ export function BuyerOnboardingTour() {
                 <button
                   type="button"
                   disabled={saving}
-                  onClick={() => setStep((s) => s - 1)}
+                  onClick={() => goTo(step - 1)}
                   className="w-full rounded-xl border border-zinc-300 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-60 sm:w-auto sm:px-6"
                 >
                   {t("onboarding.back")}
