@@ -12,13 +12,13 @@ on:
       - "**/*.md"
 
 jobs:
-  notify:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Railway deploy tip
+      - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
@@ -29,4 +29,6 @@ jobs:
             exit 0
           fi
           curl -fsSL https://railway.com/install.sh | sh
+          # install.sh puts the binary in ~/.railway/bin but does not update PATH in this shell
+          export PATH="$HOME/.railway/bin:$PATH"
           railway up --ci
