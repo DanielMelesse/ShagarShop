@@ -8,6 +8,7 @@ export const BUYER_FULFILLMENT_STATUS_LABELS: Record<FulfillmentStatus, string> 
   pending: "Working on it",
   shipped: "On delivery",
   delivered: "Delivered",
+  returned: "Returned",
   cancelled: "Cancelled",
 };
 
@@ -15,6 +16,7 @@ export const BUYER_FULFILLMENT_STATUS_HINTS: Record<FulfillmentStatus, string> =
   pending: "The seller is preparing your items.",
   shipped: "Your order is on the way.",
   delivered: "This order has been delivered.",
+  returned: "The courier returned this package to the seller.",
   cancelled: "This item was cancelled.",
 };
 
@@ -43,6 +45,12 @@ export function deriveOrderFulfillmentStatus(
   const statuses = items.map((item) => normalizeFulfillmentStatus(item.fulfillmentStatus));
 
   if (statuses.every((s) => s === "cancelled")) return "cancelled";
+  if (statuses.every((s) => s === "returned")) return "returned";
+  if (statuses.every((s) => s === "delivered" || s === "returned" || s === "cancelled")) {
+    if (statuses.some((s) => s === "delivered")) return "delivered";
+    if (statuses.some((s) => s === "returned")) return "returned";
+    return "cancelled";
+  }
   if (statuses.every((s) => s === "delivered")) return "delivered";
   if (statuses.some((s) => s === "shipped")) return "shipped";
   return "pending";

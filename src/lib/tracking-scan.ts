@@ -5,7 +5,12 @@ import {
   isFulfillmentStatus,
 } from "@/lib/seller-orders";
 
-export type TrackingScanAction = "mark_ready" | "claim" | "deliver" | "cancel";
+export type TrackingScanAction =
+  | "mark_ready"
+  | "claim"
+  | "deliver"
+  | "return"
+  | "cancel";
 
 export interface TrackingScanActionOption {
   action: TrackingScanAction;
@@ -39,6 +44,7 @@ export const TRACKING_SCAN_ACTION_LABELS: Record<TrackingScanAction, string> = {
   mark_ready: "Mark ready for delivery",
   claim: "Claim for delivery",
   deliver: "Mark delivered",
+  return: "Return to seller",
   cancel: "Cancel order",
 };
 
@@ -47,6 +53,7 @@ export function isTrackingScanAction(value: string): value is TrackingScanAction
     value === "mark_ready" ||
     value === "claim" ||
     value === "deliver" ||
+    value === "return" ||
     value === "cancel"
   );
 }

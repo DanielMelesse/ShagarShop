@@ -9,6 +9,7 @@ import {
   getFulfillmentStatusStyle,
 } from "@/lib/order-status";
 import { useOrderStatusLabels } from "@/hooks/useOrderStatusLabels";
+import { accountOrderPath } from "@/lib/account-routes";
 import { formatPrice } from "@/lib/products";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 
@@ -85,75 +86,67 @@ export function AccountOrders() {
           </Link>
         </div>
       ) : (
-        <ul className="space-y-6">
+        <ul className="space-y-4">
           {orders.map((order) => {
             const orderStatus = deriveOrderFulfillmentStatus(order.items);
+            const itemCount = order.items.reduce(
+              (sum, item) => sum + item.quantity,
+              0,
+            );
+            const previewNames = order.items
+              .slice(0, 2)
+              .map((item) => item.productName)
+              .join(", ");
+            const moreCount = Math.max(0, order.items.length - 2);
 
             return (
-              <li
-                key={order.id}
-                className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm text-zinc-500">
-                      {new Date(order.createdAt).toLocaleDateString(undefined, {
-                        dateStyle: "medium",
-                      })}
-                    </p>
-                    <p className="mt-1 font-semibold text-zinc-900">
-                      {t("account.orderNumber", {
-                        id: order.id.slice(-8).toUpperCase(),
-                      })}
-                    </p>
-                    <div className="mt-2">
-                      <OrderStatusBadge
-                        status={orderStatus}
-                        label={statusLabel(orderStatus)}
-                      />
-                    </div>
-                    <p className="mt-2 text-sm text-zinc-500">
-                      {statusHint(orderStatus)}
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold text-zinc-900">
-                    {formatPrice(order.total)}
-                  </p>
-                </div>
-
-                <ul className="mt-4 space-y-3 border-t border-zinc-100 pt-4 text-sm">
-                  {order.items.map((item) => (
-                    <li key={item.id} className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-zinc-700">
-                          {item.productName} × {item.quantity}
-                        </p>
-                        <div className="mt-1.5">
-                          <OrderStatusBadge
-                            status={item.fulfillmentStatus}
-                            label={statusLabel(item.fulfillmentStatus)}
-                          />
-                        </div>
+              <li key={order.id}>
+                <Link
+                  href={accountOrderPath(order.id)}
+                  className="block rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition hover:border-brand-300 hover:shadow-md"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm text-zinc-500">
+                        {new Date(order.createdAt).toLocaleDateString(
+                          undefined,
+                          {
+                            dateStyle: "medium",
+                          },
+                        )}
+                      </p>
+                      <p className="mt-1 font-semibold text-zinc-900">
+                        {t("account.orderNumber", {
+                          id: order.id.slice(-8).toUpperCase(),
+                        })}
+                      </p>
+                      <div className="mt-2">
+                        <OrderStatusBadge
+                          status={orderStatus}
+                          label={statusLabel(orderStatus)}
+                        />
                       </div>
-                      <span className="shrink-0 font-medium text-zinc-900">
-                        {formatPrice(item.priceAtPurchase * item.quantity)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                <dl className="mt-4 border-t border-zinc-100 pt-4 text-sm">
-                  <div className="flex justify-between font-semibold text-zinc-900">
-                    <dt>{t("account.total")}</dt>
-                    <dd>{formatPrice(order.total)}</dd>
+                      <p className="mt-2 text-sm text-zinc-500">
+                        {statusHint(orderStatus)}
+                      </p>
+                      <p className="mt-2 text-sm text-zinc-600">
+                        {previewNames}
+                        {moreCount > 0 ? ` +${moreCount}` : ""} ·{" "}
+                        {itemCount === 1
+                          ? t("common.item")
+                          : t("common.items", { count: itemCount })}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-zinc-900">
+                        {formatPrice(order.total)}
+                      </p>
+                      <p className="mt-2 text-sm font-medium text-brand-600">
+                        {t("account.viewDetails")} →
+                      </p>
+                    </div>
                   </div>
-                </dl>
-
-                <p className="mt-3 text-xs text-zinc-500">
-                  {t("account.shipTo", {
-                    address: `${order.shippingName}, ${order.address}, ${order.city} ${order.zip}`,
-                  })}
-                </p>
+                </Link>
               </li>
             );
           })}

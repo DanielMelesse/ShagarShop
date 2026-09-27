@@ -34,7 +34,7 @@ export function DeliveryMyJobs() {
     void load();
   }, [load]);
 
-  async function deliver(jobId: string) {
+  async function updateStop(jobId: string, action: "deliver" | "return") {
     setBusyId(jobId);
     setError("");
     try {
@@ -42,23 +42,35 @@ export function DeliveryMyJobs() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ action: "deliver" }),
+        body: JSON.stringify({ action }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Could not complete delivery.");
+        setError(
+          data.error ??
+            (action === "return"
+              ? "Could not mark this stop as returned."
+              : "Could not complete delivery."),
+        );
         return;
       }
       await load();
     } catch {
-      setError("Could not complete delivery.");
+      setError(
+        action === "return"
+          ? "Could not mark this stop as returned."
+          : "Could not complete delivery.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   const active = jobs.filter((j) => j.fulfillmentStatus === "shipped");
-  const done = jobs.filter((j) => j.fulfillmentStatus === "delivered");
+  const done = jobs.filter(
+    (j) =>
+      j.fulfillmentStatus === "delivered" || j.fulfillmentStatus === "returned",
+  );
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
@@ -94,9 +106,11 @@ export function DeliveryMyJobs() {
                   <li key={job.id}>
                     <DeliveryJobCard
                       job={job}
-                      actionLabel="Mark stop delivered"
+                      actionLabel="Delivered"
+                      secondaryActionLabel="Return"
                       busy={busyId === job.id}
-                      onAction={() => deliver(job.id)}
+                      onAction={() => updateStop(job.id, "deliver")}
+                      onSecondaryAction={() => updateStop(job.id, "return")}
                     />
                   </li>
                 ))}
@@ -107,7 +121,9 @@ export function DeliveryMyJobs() {
           <section className="mt-10">
             <h2 className="text-lg font-bold text-zinc-900">Completed</h2>
             {done.length === 0 ? (
-              <p className="mt-4 text-sm text-zinc-500">No completed deliveries yet.</p>
+              <p className="mt-4 text-sm text-zinc-500">
+                No completed deliveries yet.
+              </p>
             ) : (
               <ul className="mt-4 space-y-4">
                 {done.map((job) => (

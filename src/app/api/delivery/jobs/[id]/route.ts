@@ -1,11 +1,27 @@
 import { NextResponse } from "next/server";
 import { requireDeliverySession } from "@/lib/require-delivery";
 import { toCourierDeliveryJob } from "@/lib/delivery";
-import { claimDeliveryJob, completeDeliveryJob } from "@/lib/delivery-server";
+import {
+  claimDeliveryJob,
+  completeDeliveryJob,
+  returnDeliveryJob,
+} from "@/lib/delivery-server";
 import { notifyOrderItemStatus } from "@/lib/sms/order-notify";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
+}
+
+function notifyStopItems(
+  job: { id: string; itemIds: string[] },
+  status: "delivered" | "returned",
+) {
+  notifyOrderItemStatus({ orderItemId: job.id, status });
+  for (const itemId of job.itemIds) {
+    if (itemId !== job.id) {
+      notifyOrderItemStatus({ orderItemId: itemId, status });
+    }
+  }
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
@@ -37,17 +53,24 @@ export async function PATCH(request: Request, context: RouteContext) {
         { status: 409 },
       );
     }
-    notifyOrderItemStatus({ orderItemId: job.id, status: "delivered" });
-    for (const itemId of job.itemIds) {
-      if (itemId !== job.id) {
-        notifyOrderItemStatus({ orderItemId: itemId, status: "delivered" });
-      }
+    notifyStopItems(job, "delivered");
+    return NextResponse.json({ job: toCourierDeliveryJob(job) });
+  }
+
+  if (action === "return") {
+    const job = await returnDeliveryJob(auth.session.user.id, id);
+    if (!job) {
+      return NextResponse.json(
+        { error: "Could not mark this delivery as returned." },
+        { status: 409 },
+      );
     }
+    notifyStopItems(job, "returned");
     return NextResponse.json({ job: toCourierDeliveryJob(job) });
   }
 
   return NextResponse.json(
-    { error: "Action must be claim or deliver." },
+    { error: "Action must be claim, deliver, or return." },
     { status: 400 },
   );
 }

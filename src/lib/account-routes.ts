@@ -3,6 +3,10 @@ export const ACCOUNT_PROFILE = "/account/profile";
 export const ACCOUNT_ORDERS = "/account/orders";
 export const ACCOUNT_SHOP = "/account/shop";
 
+export function accountOrderPath(orderId: string): string {
+  return `${ACCOUNT_ORDERS}/${orderId}`;
+}
+
 export function isAccountPath(pathname: string): boolean {
   return pathname === ACCOUNT_HOME || pathname.startsWith(`${ACCOUNT_HOME}/`);
 }

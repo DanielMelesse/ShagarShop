@@ -7,17 +7,46 @@ import { formatPrice } from "@/lib/products";
 
 interface DeliveryJobCardProps {
   job: CourierDeliveryJob;
+  /** Primary action (e.g. Claim / Delivered). */
   actionLabel?: string;
   onAction?: () => void;
+  /** Secondary action (e.g. Return). */
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
   busy?: boolean;
+}
+
+function statusBadge(status: CourierDeliveryJob["fulfillmentStatus"]) {
+  if (status === "delivered") {
+    return {
+      className: "bg-brand-100 text-brand-800",
+      label: "Delivered",
+    };
+  }
+  if (status === "returned") {
+    return {
+      className: "bg-orange-100 text-orange-800",
+      label: "Returned",
+    };
+  }
+  return {
+    className: "bg-blue-100 text-blue-800",
+    label: "On delivery",
+  };
 }
 
 export function DeliveryJobCard({
   job,
   actionLabel,
   onAction,
+  secondaryActionLabel,
+  onSecondaryAction,
   busy,
 }: DeliveryJobCardProps) {
+  const badge = statusBadge(job.fulfillmentStatus);
+  const showActions =
+    (actionLabel && onAction) || (secondaryActionLabel && onSecondaryAction);
+
   return (
     <article className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
       <div className="flex gap-4">
@@ -48,13 +77,9 @@ export function DeliveryJobCard({
               </p>
             </div>
             <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                job.fulfillmentStatus === "delivered"
-                  ? "bg-brand-100 text-brand-800"
-                  : "bg-blue-100 text-blue-800"
-              }`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${badge.className}`}
             >
-              {job.fulfillmentStatus === "delivered" ? "Delivered" : "On delivery"}
+              {badge.label}
             </span>
           </div>
 
@@ -91,15 +116,29 @@ export function DeliveryJobCard({
             </p>
           </div>
 
-          {actionLabel && onAction && (
-            <button
-              type="button"
-              disabled={busy}
-              onClick={onAction}
-              className="mt-4 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
-            >
-              {busy ? "Updating…" : actionLabel}
-            </button>
+          {showActions && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {actionLabel && onAction ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={onAction}
+                  className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
+                >
+                  {busy ? "Updating…" : actionLabel}
+                </button>
+              ) : null}
+              {secondaryActionLabel && onSecondaryAction ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={onSecondaryAction}
+                  className="rounded-xl border border-orange-300 bg-orange-50 px-4 py-2.5 text-sm font-semibold text-orange-800 transition hover:bg-orange-100 disabled:opacity-60"
+                >
+                  {busy ? "Updating…" : secondaryActionLabel}
+                </button>
+              ) : null}
+            </div>
           )}
         </div>
       </div>

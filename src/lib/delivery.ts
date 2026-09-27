@@ -60,7 +60,7 @@ export interface DeliveryJob {
   courierPayout: CourierPayoutBreakdown;
   /** ShegerShop margin: deliveryFee − courierEarning. */
   platformFee: number;
-  fulfillmentStatus: "shipped" | "delivered";
+  fulfillmentStatus: "shipped" | "delivered" | "returned";
   orderDate: string;
   shippingName: string;
   address: string;

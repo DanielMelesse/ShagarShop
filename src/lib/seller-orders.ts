@@ -2,6 +2,7 @@ export const FULFILLMENT_STATUSES = [
   "pending",
   "shipped",
   "delivered",
+  "returned",
   "cancelled",
 ] as const;
 
@@ -15,6 +16,7 @@ export const FULFILLMENT_STATUS_LABELS: Record<FulfillmentStatus, string> = {
   pending: "Preparing",
   shipped: "Ready for delivery",
   delivered: "Delivered",
+  returned: "Returned",
   cancelled: "Cancelled",
 };
 
@@ -22,13 +24,15 @@ export const FULFILLMENT_STATUS_STYLES: Record<FulfillmentStatus, string> = {
   pending: "bg-amber-100 text-amber-800",
   shipped: "bg-blue-100 text-blue-800",
   delivered: "bg-brand-100 text-brand-800",
+  returned: "bg-orange-100 text-orange-800",
   cancelled: "bg-zinc-100 text-zinc-600",
 };
 
 const ALLOWED_TRANSITIONS: Record<FulfillmentStatus, FulfillmentStatus[]> = {
   pending: ["shipped", "cancelled"],
-  shipped: ["delivered", "cancelled"],
+  shipped: ["delivered", "returned", "cancelled"],
   delivered: [],
+  returned: [],
   cancelled: [],
 };
 

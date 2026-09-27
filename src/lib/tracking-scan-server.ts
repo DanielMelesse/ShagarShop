@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import {
   claimDeliveryJob,
   completeDeliveryJob,
+  returnDeliveryJob,
 } from "@/lib/delivery-server";
 import {
   canTransitionFulfillment,
@@ -148,8 +149,13 @@ function resolveScanActions(
     if (status === "shipped" && deliveryAssignedToSelf) {
       actions.push({
         action: "deliver",
-        label: "Mark delivered",
+        label: "Delivered",
         description: "Confirm delivery to the buyer.",
+      });
+      actions.push({
+        action: "return",
+        label: "Return",
+        description: "Could not deliver — return package to seller.",
       });
     }
   }
@@ -351,6 +357,30 @@ export async function applyTrackingScanAction(
         data: { fulfillmentStatus: "delivered", deliveredAt },
       });
       notifyOrderItemStatus({ orderItemId: pkg.orderItemId, status: "delivered" });
+    }
+  }
+
+  if (action === "return") {
+    if (role !== "DELIVERY") {
+      return {
+        ok: false,
+        error: "Only couriers can return a delivery stop.",
+        status: 403,
+      };
+    }
+    const job = await returnDeliveryJob(userId, pkg.orderItemId);
+    if (!job) {
+      return {
+        ok: false,
+        error: "Could not mark this delivery as returned.",
+        status: 409,
+      };
+    }
+    notifyOrderItemStatus({ orderItemId: pkg.orderItemId, status: "returned" });
+    for (const itemId of job.itemIds) {
+      if (itemId !== pkg.orderItemId) {
+        notifyOrderItemStatus({ orderItemId: itemId, status: "returned" });
+      }
     }
   }
 

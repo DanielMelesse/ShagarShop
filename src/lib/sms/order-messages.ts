@@ -33,6 +33,8 @@ export function orderItemStatusSms(input: {
       return `${BRAND}: "${name}" from order #${orderRef} is ready for delivery.`;
     case "delivered":
       return `${BRAND}: "${name}" from order #${orderRef} has been delivered. Thank you!`;
+    case "returned":
+      return `${BRAND}: "${name}" from order #${orderRef} could not be delivered and was returned. Contact support if you have questions.`;
     case "cancelled":
       return `${BRAND}: "${name}" from order #${orderRef} was cancelled. Contact support if you have questions.`;
   }

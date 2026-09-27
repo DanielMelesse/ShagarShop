@@ -123,6 +123,12 @@ export function rowsToStop(rows: JobRow[]): DeliveryJob | null {
   const { courier, platform } = settleDeliveryFee(deliveryFee, payout.total);
 
   const allDelivered = sorted.every((r) => r.fulfillmentStatus === "delivered");
+  const allReturned = sorted.every((r) => r.fulfillmentStatus === "returned");
+  const stopStatus = allDelivered
+    ? "delivered"
+    : allReturned
+      ? "returned"
+      : "shipped";
   const productName =
     items.length === 1
       ? items[0].productName
@@ -143,7 +149,7 @@ export function rowsToStop(rows: JobRow[]): DeliveryJob | null {
     courierEarning: courier,
     courierPayout: payout,
     platformFee: platform,
-    fulfillmentStatus: allDelivered ? "delivered" : "shipped",
+    fulfillmentStatus: stopStatus,
     orderDate: primary.order.createdAt.toISOString(),
     shippingName: primary.order.shippingName,
     address: primary.order.address,
@@ -191,7 +197,7 @@ export async function getMyDeliveryJobs(
     where: {
       deliveryId,
       fulfillmentStatus: options?.includeDelivered
-        ? { in: ["shipped", "delivered"] }
+        ? { in: ["shipped", "delivered", "returned"] }
         : "shipped",
     },
     include: jobInclude,
@@ -310,6 +316,45 @@ export async function completeDeliveryJob(
       orderId: seed.orderId,
       deliveryId,
       fulfillmentStatus: "delivered",
+    },
+    include: jobInclude,
+  });
+  return rowsToStop(rows);
+}
+
+/** Mark every active line on this stop returned to seller. */
+export async function returnDeliveryJob(
+  deliveryId: string,
+  orderItemId: string,
+) {
+  const seed = await prisma.orderItem.findFirst({
+    where: {
+      id: orderItemId,
+      deliveryId,
+      fulfillmentStatus: "shipped",
+    },
+    select: { orderId: true },
+  });
+  if (!seed) return null;
+
+  const result = await prisma.orderItem.updateMany({
+    where: {
+      orderId: seed.orderId,
+      deliveryId,
+      fulfillmentStatus: "shipped",
+    },
+    data: {
+      fulfillmentStatus: "returned",
+      deliveredAt: null,
+    },
+  });
+  if (result.count === 0) return null;
+
+  const rows = await prisma.orderItem.findMany({
+    where: {
+      orderId: seed.orderId,
+      deliveryId,
+      fulfillmentStatus: "returned",
     },
     include: jobInclude,
   });
