@@ -185,6 +185,13 @@ export const am: Messages = {
     large: "ትልቅ እቃ",
     oversized: "ከባድ / ትልቅ",
     perUnitFee: " (+{fee} ብር በእያንዳንዱ)",
+    sizeType: "የመጠን አይነት",
+    selectSizeType: "የመጠን አይነት ይምረጡ",
+    sizeHint: "ልብስ S–XXL ይጠቀማል። ጫማ የEU 36–46።",
+    sizeChartRequired: "ለፋሽን እና ስፖርት የመጠን አይነት ይምረጡ።",
+    availableSizes: "ያሉ መጠኖች",
+    availableSizesHint: "ገዢዎች ሊገዙ የሚችሉትን ሁሉንም መጠኖች ይምረጡ።",
+    availableSizesRequired: "ቢያንስ አንድ መጠን ይምረጡ።",
   },
   common: {
     loading: "በመጫን ላይ…",

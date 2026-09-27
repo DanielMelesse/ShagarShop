@@ -19,6 +19,8 @@ export interface Product {
   stock: number;
   featured?: boolean;
   size?: string | null;
+  sizeChart?: string | null;
+  availableSizes?: string[];
   shippingTier: string;
   extraShippingBirr: number;
   condition: string;
@@ -37,6 +39,8 @@ export interface ProductListItem {
   stock: number;
   featured?: boolean;
   size?: string | null;
+  sizeChart?: string | null;
+  availableSizes?: string[];
   shippingTier: string;
   extraShippingBirr: number;
   condition: string;
@@ -59,6 +63,8 @@ export type CartProductSnapshot = Pick<
   | "stock"
   | "category"
   | "size"
+  | "sizeChart"
+  | "availableSizes"
   | "shippingTier"
   | "extraShippingBirr"
   | "condition"

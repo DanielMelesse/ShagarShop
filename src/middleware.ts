@@ -1,5 +1,12 @@
+import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import {
+  defaultHomeForRole,
+  isBuyerMarketplacePath,
+  isDeliveryRole,
+  isSellerRole,
+} from "@/lib/user-role";
 
 const COOKIE = "sheger_site_access";
 
@@ -46,30 +53,54 @@ function checkBasicAuth(header: string | null, password: string): boolean {
   }
 }
 
-export function middleware(request: NextRequest) {
-  const password = siteLockPassword();
-  if (!password) return NextResponse.next();
-
+async function redirectSellerCourierAwayFromBuyerAreas(
+  request: NextRequest,
+): Promise<NextResponse | null> {
   const { pathname } = request.nextUrl;
-  if (isPublicPath(pathname)) return NextResponse.next();
-
-  if (request.cookies.get(COOKIE)?.value === password) {
-    return NextResponse.next();
+  // Sellers may use /account (profile & shop details). Couriers stay on delivery.
+  if (!isBuyerMarketplacePath(pathname)) {
+    return null;
   }
 
-  if (checkBasicAuth(request.headers.get("authorization"), password)) {
-    const res = NextResponse.next();
-    res.cookies.set(COOKIE, password, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30,
-    });
-    return res;
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+  const role = token?.role as string | undefined;
+  if (!isSellerRole(role) && !isDeliveryRole(role)) return null;
+
+  const dest = defaultHomeForRole(role);
+  if (pathname === dest || pathname.startsWith(`${dest}/`)) return null;
+  return NextResponse.redirect(new URL(dest, request.url));
+}
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  const password = siteLockPassword();
+  if (password && !isPublicPath(pathname)) {
+    if (request.cookies.get(COOKIE)?.value !== password) {
+      if (!checkBasicAuth(request.headers.get("authorization"), password)) {
+        return unauthorized();
+      }
+      const res =
+        (await redirectSellerCourierAwayFromBuyerAreas(request)) ??
+        NextResponse.next();
+      res.cookies.set(COOKIE, password, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+      });
+      return res;
+    }
   }
 
-  return unauthorized();
+  const roleRedirect = await redirectSellerCourierAwayFromBuyerAreas(request);
+  if (roleRedirect) return roleRedirect;
+
+  return NextResponse.next();
 }
 
 export const config = {

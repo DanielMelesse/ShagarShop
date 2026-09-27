@@ -1,10 +1,9 @@
 import type { ShippingLineInput } from "@/lib/shipping";
 import { calculateCartShipping, ORDER_BASE_SHIPPING_BIRR } from "@/lib/shipping";
-import type { Category, Product, ProductListItem } from "./types";
+import type { Category } from "./types";
 import {
   departments,
   getDepartmentBySlug,
-  getDepartmentProductCategory,
   getDepartmentSearchOptions,
   type DepartmentSlug,
 } from "./departments";
@@ -22,58 +21,24 @@ export type SearchDepartment = "all" | DepartmentSlug;
 
 export const searchDepartments = getDepartmentSearchOptions();
 
-export const CLOTHING_SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
-export const SHOE_SIZES = [
-  "36",
-  "37",
-  "38",
-  "39",
-  "40",
-  "41",
-  "42",
-  "43",
-  "44",
-  "45",
-  "46",
-] as const;
-export const SPORTS_SIZES = [...SHOE_SIZES, "One Size"] as const;
-export const SIZE_ALL = "All";
-
-export function categoryNeedsSize(category: Category): boolean {
-  return category === "fashion" || category === "sports";
-}
-
-export function getSizeOptions(category: Category): readonly string[] {
-  if (category === "sports") return [SIZE_ALL, ...SPORTS_SIZES];
-  if (category === "fashion") return [SIZE_ALL, ...CLOTHING_SIZES];
-  return [];
-}
-
-function resolveSizeCategory(categoryValue: string): Category | null {
-  const legacy = categories.find((c) => c.id === categoryValue);
-  if (legacy) return legacy.id;
-  return getDepartmentProductCategory(categoryValue) ?? null;
-}
-
-/** Sizes a shopper can pick on the product page. */
-export function getCustomerSizeOptions(
-  product: Pick<Product, "category" | "size"> | Pick<ProductListItem, "category" | "size">,
-): readonly string[] {
-  const category = resolveSizeCategory(product.category);
-  if (!category || !categoryNeedsSize(category)) return [];
-
-  const options = getSizeOptions(category).filter((s) => s !== SIZE_ALL);
-  if (product.size && product.size !== SIZE_ALL) {
-    return [product.size];
-  }
-  return options;
-}
-
-export function productNeedsSizeSelection(
-  product: Pick<Product, "category" | "size"> | Pick<ProductListItem, "category" | "size">,
-): boolean {
-  return getCustomerSizeOptions(product).length > 0;
-}
+export {
+  CLOTHING_SIZES,
+  SHOE_SIZES,
+  ONE_SIZE,
+  SPORTS_SIZES,
+  SIZE_ALL,
+  SIZE_CHARTS,
+  SIZE_CHART_LABELS,
+  isSizeChart,
+  getSizesForChart,
+  inferSizeChartFromSize,
+  categoryNeedsSize,
+  getSizeOptions,
+  getCustomerSizeOptions,
+  productNeedsSizeSelection,
+  sizeChartLabelForBuyer,
+  type SizeChart,
+} from "./size-charts";
 
 export function buildShopSearchUrl(options: {
   q?: string;

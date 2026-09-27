@@ -1,11 +1,13 @@
 import {
   defaultHomeForRole,
   isAdminRole,
+  isBuyerMarketplacePath,
   isDeliveryRole,
   isSellerRole,
   type UserRole,
 } from "@/lib/user-role";
 import { DELIVERY_HOME, isDeliveryAppPath } from "@/lib/delivery-routes";
+import { isAccountPath } from "@/lib/account-routes";
 import {
   isSellerAppPath,
   isSellerRegisterPath,
@@ -26,6 +28,7 @@ export function safeCallbackUrl(raw: string | null | undefined): string {
 /**
  * Where to send the user after login/signup.
  * Sellers → /myshop (dashboard), couriers → /delivery, admins → /admin.
+ * Seller/courier accounts never land on the buyer marketplace.
  */
 export function resolveAfterAuth(
   raw: string | null | undefined,
@@ -37,8 +40,8 @@ export function resolveAfterAuth(
 
   if (isDeliveryRole(role)) {
     const callbackUrl = safeCallbackUrl(raw);
-    // Keep courier deep links; otherwise always the delivery dashboard.
-    if (isDeliveryAppPath(callbackUrl)) {
+    // Keep courier deep links; never buyer shop (/, /shop, /cart, …).
+    if (isDeliveryAppPath(callbackUrl) && !isBuyerMarketplacePath(callbackUrl)) {
       return callbackUrl;
     }
     return DELIVERY_HOME;
@@ -46,8 +49,13 @@ export function resolveAfterAuth(
 
   if (isSellerRole(role)) {
     const callbackUrl = safeCallbackUrl(raw);
-    // Keep seller tool deep links or unfinished registration.
-    if (isSellerAppPath(callbackUrl) || isSellerRegisterPath(callbackUrl)) {
+    // Keep seller tools, registration, or account details — not the shop.
+    if (
+      (isSellerAppPath(callbackUrl) ||
+        isSellerRegisterPath(callbackUrl) ||
+        isAccountPath(callbackUrl)) &&
+      !isBuyerMarketplacePath(callbackUrl)
+    ) {
       return callbackUrl;
     }
     // Marketing /myshop and any shop callback → seller dashboard home.

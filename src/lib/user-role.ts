@@ -35,9 +35,25 @@ const SHOP_ONLY_PREFIXES = [
   "/account",
 ] as const;
 
+/** Buyer marketplace (browse / cart / checkout) — not account or portals. */
+const BUYER_MARKETPLACE_PREFIXES = [
+  "/shop",
+  "/cart",
+  "/checkout",
+  "/product",
+] as const;
+
 export function isShopOnlyPath(pathname: string): boolean {
   if (pathname === "/") return true;
   return SHOP_ONLY_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
+/** True for shopper storefront paths sellers/couriers must not use. */
+export function isBuyerMarketplacePath(pathname: string): boolean {
+  if (pathname === "/") return true;
+  return BUYER_MARKETPLACE_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 }

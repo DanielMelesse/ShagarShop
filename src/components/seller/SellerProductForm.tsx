@@ -3,11 +3,19 @@
 import { FormEvent, useRef, useState } from "react";
 import {
   departmentNeedsSize,
-  getDepartmentProductCategory,
   getSellerDepartmentOptions,
   legacyCategoryToDepartmentSlug,
 } from "@/lib/departments";
-import { getSizeOptions, sellerPriceFromListed } from "@/lib/products";
+import { sellerPriceFromListed } from "@/lib/products";
+import {
+  getSizesForChart,
+  inferSizeChartFromSize,
+  isSizeChart,
+  ONE_SIZE,
+  SIZE_CHART_LABELS,
+  SIZE_CHARTS,
+  type SizeChart,
+} from "@/lib/size-charts";
 import {
   SHIPPING_TIER_FEES,
   SHIPPING_TIER_LABELS,
@@ -16,6 +24,7 @@ import {
 import { PRODUCT_CONDITION_OPTIONS } from "@/lib/product-condition";
 import { MAX_PRODUCT_IMAGES, productImageServeUrl } from "@/lib/product-image";
 import type { Product } from "@/lib/types";
+import { useTranslations } from "@/context/LocaleContext";
 
 const sellerDepartments = getSellerDepartmentOptions();
 
@@ -27,6 +36,8 @@ export interface ProductFormState {
   stock: string;
   images: string[];
   size: string;
+  sizeChart: SizeChart | "";
+  availableSizes: string[];
   featured: boolean;
   shippingTier: string;
   condition: string;
@@ -40,20 +51,42 @@ export const emptyProductForm = (): ProductFormState => ({
   stock: "",
   images: [],
   size: "",
+  sizeChart: "",
+  availableSizes: [],
   featured: false,
   shippingTier: "standard",
   condition: "new",
 });
 
 export function productToFormState(product: Product): ProductFormState {
+  const chart =
+    (isSizeChart(product.sizeChart) && product.sizeChart) ||
+    inferSizeChartFromSize(product.size) ||
+    "";
+  const available =
+    product.availableSizes && product.availableSizes.length > 0
+      ? product.availableSizes
+      : product.size && product.size !== "All"
+        ? [product.size]
+        : chart === "onesize"
+          ? [ONE_SIZE]
+          : [];
+
   return {
     name: product.name,
     description: product.description,
     price: String(sellerPriceFromListed(product.price)),
     category: legacyCategoryToDepartmentSlug(product.category),
     stock: String(product.stock),
-    images: product.images.length > 0 ? product.images : product.image ? [product.image] : [],
-    size: product.size ?? "",
+    images:
+      product.images && product.images.length > 0
+        ? product.images
+        : product.image
+          ? [product.image]
+          : [],
+    size: available[0] ?? product.size ?? "",
+    sizeChart: chart,
+    availableSizes: available,
     featured: product.featured ?? false,
     shippingTier: product.shippingTier ?? "standard",
     condition: product.condition ?? "new",
@@ -250,9 +283,15 @@ export function SellerProductForm({
   formId?: string;
   resetOnSuccess?: boolean;
 }) {
+  const { t } = useTranslations();
   const [form, setForm] = useState(initial);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const needsSize = departmentNeedsSize(form.category);
+  const chartSizes =
+    form.sizeChart && isSizeChart(form.sizeChart)
+      ? getSizesForChart(form.sizeChart)
+      : [];
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -265,12 +304,33 @@ export function SellerProductForm({
       setError(`You can add up to ${MAX_PRODUCT_IMAGES} images per product.`);
       return;
     }
-    if (departmentNeedsSize(form.category) && !form.size.trim()) {
-      setError("Size is required for fashion and sports.");
-      return;
+    let submitForm = form;
+    if (needsSize) {
+      if (!form.sizeChart) {
+        setError(t("seller.sizeChartRequired"));
+        return;
+      }
+      const sizes =
+        form.sizeChart === "onesize" ? [ONE_SIZE] : form.availableSizes;
+      if (sizes.length === 0) {
+        setError(t("seller.availableSizesRequired"));
+        return;
+      }
+      submitForm = {
+        ...form,
+        availableSizes: sizes,
+        size: sizes[0] ?? "",
+      };
+    } else {
+      submitForm = {
+        ...form,
+        sizeChart: "",
+        availableSizes: [],
+        size: "",
+      };
     }
     setLoading(true);
-    const result = await onSubmit(form);
+    const result = await onSubmit(submitForm);
     setLoading(false);
     if (!result.ok) {
       setError(result.error ?? "Something went wrong.");
@@ -370,6 +430,10 @@ export function SellerProductForm({
                 ...f,
                 category,
                 size: departmentNeedsSize(category) ? f.size : "",
+                sizeChart: departmentNeedsSize(category) ? f.sizeChart : "",
+                availableSizes: departmentNeedsSize(category)
+                  ? f.availableSizes
+                  : [],
               }));
             }}
             className={inputClass}
@@ -405,29 +469,102 @@ export function SellerProductForm({
             also include a bulk surcharge.
           </p>
         </div>
-        {departmentNeedsSize(form.category) && (
-          <div>
-            <label htmlFor={`${formId}-size`} className="text-sm font-medium text-zinc-700">
-              Size
-            </label>
-            <select
-              id={`${formId}-size`}
-              required
-              value={form.size}
-              onChange={(e) => setForm((f) => ({ ...f, size: e.target.value }))}
-              className={inputClass}
-            >
-              <option value="">Select size</option>
-              {(getDepartmentProductCategory(form.category)
-                ? getSizeOptions(getDepartmentProductCategory(form.category)!)
-                : []
-              ).map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </div>
+        {needsSize && (
+          <>
+            <div>
+              <label
+                htmlFor={`${formId}-size-chart`}
+                className="text-sm font-medium text-zinc-700"
+              >
+                {t("seller.sizeType")}
+              </label>
+              <select
+                id={`${formId}-size-chart`}
+                required
+                value={form.sizeChart}
+                onChange={(e) => {
+                  const sizeChart = e.target.value as SizeChart | "";
+                  setForm((f) => ({
+                    ...f,
+                    sizeChart,
+                    availableSizes:
+                      sizeChart === "onesize"
+                        ? [ONE_SIZE]
+                        : f.availableSizes.filter((s) =>
+                            sizeChart
+                              ? getSizesForChart(sizeChart).includes(s)
+                              : false,
+                          ),
+                    size:
+                      sizeChart === "onesize"
+                        ? ONE_SIZE
+                        : f.availableSizes[0] ?? "",
+                  }));
+                }}
+                className={inputClass}
+              >
+                <option value="">{t("seller.selectSizeType")}</option>
+                {SIZE_CHARTS.map((chart) => (
+                  <option key={chart} value={chart}>
+                    {SIZE_CHART_LABELS[chart]}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-zinc-500">{t("seller.sizeHint")}</p>
+            </div>
+            {form.sizeChart && form.sizeChart !== "onesize" && (
+              <div className="sm:col-span-2">
+                <p className="text-sm font-medium text-zinc-700">
+                  {t("seller.availableSizes")}
+                </p>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  {t("seller.availableSizesHint")}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {chartSizes.map((size) => {
+                    const checked = (form.availableSizes ?? []).includes(size);
+                    return (
+                      <label
+                        key={size}
+                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm ${
+                          checked
+                            ? "border-brand-600 bg-brand-50 text-brand-800"
+                            : "border-zinc-300 text-zinc-700 hover:bg-zinc-50"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="h-3.5 w-3.5 rounded border-zinc-300 text-brand-600 focus:ring-brand-500"
+                          checked={checked}
+                          onChange={() => {
+                            setForm((f) => {
+                              const next = checked
+                                ? f.availableSizes.filter((s) => s !== size)
+                                : [...f.availableSizes, size];
+                              return {
+                                ...f,
+                                availableSizes: next,
+                                size: next[0] ?? "",
+                              };
+                            });
+                          }}
+                        />
+                        {size}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {form.sizeChart === "onesize" && (
+              <div>
+                <p className="text-sm font-medium text-zinc-700">
+                  {t("seller.availableSizes")}
+                </p>
+                <p className="mt-1 text-sm text-zinc-600">{ONE_SIZE}</p>
+              </div>
+            )}
+          </>
         )}
         <ProductImagesField
           inputId={formId}

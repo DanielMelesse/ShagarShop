@@ -11,7 +11,7 @@ import {
   ACCOUNT_SHOP,
 } from "@/lib/account-routes";
 import { isSellerRole } from "@/lib/user-role";
-import { SELLER_HOME } from "@/lib/seller-routes";
+import { SELLER_ADD, SELLER_HOME } from "@/lib/seller-routes";
 
 const baseLinkKeys = [
   { href: ACCOUNT_HOME, labelKey: "account.overview" },
@@ -30,6 +30,7 @@ export function AccountNav() {
         ...baseLinkKeys,
         { href: ACCOUNT_SHOP, labelKey: "account.shopSettings" as const },
         { href: SELLER_HOME, labelKey: "account.sellerDashboard" as const },
+        { href: SELLER_ADD, labelKey: "seller.addProduct" as const },
       ]
     : baseLinkKeys;
 

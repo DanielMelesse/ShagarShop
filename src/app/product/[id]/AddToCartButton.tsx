@@ -5,7 +5,8 @@ import { useCart } from "@/context/CartContext";
 import {
   getCustomerSizeOptions,
   productNeedsSizeSelection,
-} from "@/lib/products";
+  sizeChartLabelForBuyer,
+} from "@/lib/size-charts";
 import type { Product } from "@/lib/types";
 
 const selectClass =
@@ -21,6 +22,7 @@ export function AddToCartButton({ product }: { product: Product }) {
     [product],
   );
   const needsSize = productNeedsSizeSelection(product);
+  const sizeLabel = sizeChartLabelForBuyer(product.sizeChart);
   const [selectedSize, setSelectedSize] = useState(
     sizeOptions.length === 1 ? sizeOptions[0] : "",
   );
@@ -53,7 +55,7 @@ export function AddToCartButton({ product }: { product: Product }) {
       {needsSize && (
         <div>
           <label htmlFor="product-size" className="text-sm font-medium text-zinc-700">
-            Size
+            {sizeLabel}
           </label>
           <select
             id="product-size"

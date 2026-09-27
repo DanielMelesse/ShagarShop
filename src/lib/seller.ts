@@ -3,7 +3,14 @@ import {
   getSellerDepartmentOptions,
   isSellerDepartmentSlug,
 } from "@/lib/departments";
-import { calculateListedProductPrice, categoryNeedsSize, getSizeOptions } from "@/lib/products";
+import { calculateListedProductPrice } from "@/lib/products";
+import {
+  categoryNeedsSize,
+  getSizesForChart,
+  isSizeChart,
+  ONE_SIZE,
+  type SizeChart,
+} from "@/lib/size-charts";
 import {
   isValidProductImage,
   MAX_PRODUCT_IMAGES,
@@ -23,6 +30,8 @@ export interface SellerProductInput {
   images: string[];
   featured?: boolean;
   size?: string | null;
+  sizeChart?: string | null;
+  availableSizes?: string[];
   shippingTier: ShippingTier;
   extraShippingBirr: number;
   condition: ProductCondition;
@@ -74,27 +83,70 @@ function parseProductImages(
   return { ok: true, images };
 }
 
-function parseSizeForDepartment(
+function parseSizeFieldsForDepartment(
   departmentSlug: string,
-  raw: unknown,
-): { ok: true; size: string | null } | { ok: false; error: string } {
-  const size = String(raw ?? "").trim();
+  body: Record<string, unknown>,
+):
+  | {
+      ok: true;
+      size: string | null;
+      sizeChart: SizeChart | null;
+      availableSizes: string[];
+    }
+  | { ok: false; error: string } {
   const sizeCategory = getDepartmentProductCategory(departmentSlug);
 
   if (!sizeCategory || !categoryNeedsSize(sizeCategory)) {
-    return { ok: true, size: null };
+    return { ok: true, size: null, sizeChart: null, availableSizes: [] };
   }
 
-  if (!size) {
-    return { ok: false, error: "Size is required for fashion and sports." };
+  const chartRaw = String(body.sizeChart ?? "").trim();
+  if (!isSizeChart(chartRaw)) {
+    return {
+      ok: false,
+      error: "Pick a size type: clothing, shoes, or one size.",
+    };
   }
 
-  const allowed = getSizeOptions(sizeCategory);
-  if (!allowed.includes(size)) {
-    return { ok: false, error: "Pick a valid size for this category." };
+  const chart = chartRaw;
+  const allowed = getSizesForChart(chart);
+
+  let availableSizes: string[] = [];
+  if (Array.isArray(body.availableSizes)) {
+    availableSizes = body.availableSizes
+      .map((v) => String(v).trim())
+      .filter(Boolean);
+  } else if (body.size !== undefined && body.size !== null) {
+    const single = String(body.size).trim();
+    if (single) availableSizes = [single];
   }
 
-  return { ok: true, size };
+  if (chart === "onesize") {
+    availableSizes = [ONE_SIZE];
+  }
+
+  // Dedupe while preserving order
+  availableSizes = [...new Set(availableSizes)];
+
+  if (availableSizes.length === 0) {
+    return { ok: false, error: "Select at least one available size." };
+  }
+
+  for (const size of availableSizes) {
+    if (!allowed.includes(size)) {
+      return {
+        ok: false,
+        error: `Invalid size "${size}" for ${chart === "shoes" ? "shoes" : chart === "clothing" ? "clothing" : "one size"}.`,
+      };
+    }
+  }
+
+  return {
+    ok: true,
+    sizeChart: chart,
+    availableSizes,
+    size: availableSizes[0] ?? null,
+  };
 }
 
 function parseShippingTier(
@@ -146,7 +198,7 @@ export function parseSellerProductInput(
   const imagesResult = parseProductImages(body);
   if (!imagesResult.ok) return imagesResult;
 
-  const sizeResult = parseSizeForDepartment(category, body.size);
+  const sizeResult = parseSizeFieldsForDepartment(category, body);
   if (!sizeResult.ok) return sizeResult;
 
   const shippingResult = parseShippingTier(body);
@@ -169,6 +221,8 @@ export function parseSellerProductInput(
       images,
       featured,
       size: sizeResult.size,
+      sizeChart: sizeResult.sizeChart,
+      availableSizes: sizeResult.availableSizes,
       shippingTier: shippingResult.shippingTier,
       extraShippingBirr: 0,
       condition: conditionResult.condition,
@@ -178,7 +232,12 @@ export function parseSellerProductInput(
 
 export function parseSellerProductUpdate(
   body: Record<string, unknown>,
-  existing?: { category: string; size: string | null },
+  existing?: {
+    category: string;
+    size: string | null;
+    sizeChart?: string | null;
+    availableSizes?: string[];
+  },
 ): { ok: true; data: Partial<SellerProductInput> } | { ok: false; error: string } {
   const data: Partial<SellerProductInput> = {};
 
@@ -234,14 +293,29 @@ export function parseSellerProductUpdate(
     data.condition = conditionResult.condition;
   }
 
-  if (body.size !== undefined || body.category !== undefined) {
+  if (
+    body.size !== undefined ||
+    body.sizeChart !== undefined ||
+    body.availableSizes !== undefined ||
+    body.category !== undefined
+  ) {
     const category = data.category ?? existing?.category;
     if (!category || !isSellerDepartmentSlug(category)) {
       return { ok: false, error: "Pick a valid department." };
     }
-    const sizeResult = parseSizeForDepartment(category, body.size ?? "");
+    const sizeBody: Record<string, unknown> = {
+      sizeChart: body.sizeChart ?? existing?.sizeChart ?? "",
+      availableSizes:
+        body.availableSizes ??
+        existing?.availableSizes ??
+        (existing?.size ? [existing.size] : []),
+      size: body.size,
+    };
+    const sizeResult = parseSizeFieldsForDepartment(category, sizeBody);
     if (!sizeResult.ok) return sizeResult;
     data.size = sizeResult.size;
+    data.sizeChart = sizeResult.sizeChart;
+    data.availableSizes = sizeResult.availableSizes;
   }
 
   if (Object.keys(data).length === 0) {

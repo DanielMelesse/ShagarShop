@@ -179,6 +179,13 @@ export const en = {
     large: "Large item",
     oversized: "Oversized / heavy",
     perUnitFee: " (+{fee} Birr per unit)",
+    sizeType: "Size type",
+    selectSizeType: "Select size type",
+    sizeHint: "Clothes use S–XXL. Shoes use EU 36–46.",
+    sizeChartRequired: "Pick a size type for fashion and sports.",
+    availableSizes: "Available sizes",
+    availableSizesHint: "Select every size shoppers can buy.",
+    availableSizesRequired: "Select at least one available size.",
   },
   common: {
     loading: "Loading…",

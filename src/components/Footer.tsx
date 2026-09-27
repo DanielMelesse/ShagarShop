@@ -14,13 +14,16 @@ export function Footer() {
   const { user } = useAuth();
   const year = new Date().getFullYear();
   const loggedIn = Boolean(user);
+  const seller = isSellerRole(user?.role);
+  const courier = isDeliveryRole(user?.role);
+  const brandHref = seller ? SELLER_HOME : courier ? DELIVERY_HOME : TODAYS_DEALS_HREF;
 
   return (
     <footer className="mt-auto shrink-0 border-t border-zinc-200 bg-white">
       <div className="mx-auto w-full max-w-7xl overflow-x-auto px-4 py-8 sm:px-6 sm:py-12">
         <div className="min-w-[520px]">
           <div className="text-center">
-            <Link href={TODAYS_DEALS_HREF} className="font-bold text-zinc-900 transition hover:text-brand-600">
+            <Link href={brandHref} className="font-bold text-zinc-900 transition hover:text-brand-600">
               Sheger<span className="text-brand-600">Shop</span>
             </Link>
             <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">{t("brand.tagline")}</p>
@@ -30,21 +33,37 @@ export function Footer() {
             <div className="min-w-0">
               <p className="text-sm font-semibold text-zinc-900">{t("footer.shop")}</p>
               <ul className="mt-3 space-y-2 text-sm text-zinc-500">
-                <li>
-                  <Link href={ALL_PRODUCTS_HREF} className="hover:text-brand-600">
-                    {t("footer.allProducts")}
-                  </Link>
-                </li>
-                <li>
-                  <Link href={TODAYS_DEALS_HREF} className="hover:text-brand-600">
-                    {t("nav.todaysDeals")}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/cart" className="hover:text-brand-600">
-                    {t("nav.cart")}
-                  </Link>
-                </li>
+                {seller ? (
+                  <li>
+                    <Link href={SELLER_HOME} className="hover:text-brand-600">
+                      {t("nav.seller")}
+                    </Link>
+                  </li>
+                ) : courier ? (
+                  <li>
+                    <Link href={DELIVERY_HOME} className="hover:text-brand-600">
+                      Delivery
+                    </Link>
+                  </li>
+                ) : (
+                  <>
+                    <li>
+                      <Link href={ALL_PRODUCTS_HREF} className="hover:text-brand-600">
+                        {t("footer.allProducts")}
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href={TODAYS_DEALS_HREF} className="hover:text-brand-600">
+                        {t("nav.todaysDeals")}
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/cart" className="hover:text-brand-600">
+                        {t("nav.cart")}
+                      </Link>
+                    </li>
+                  </>
+                )}
               </ul>
             </div>
             <div className="min-w-0">
@@ -53,7 +72,10 @@ export function Footer() {
                 {loggedIn ? (
                   <>
                     <li>
-                      <Link href={ACCOUNT_HOME} className="hover:text-brand-600">
+                      <Link
+                        href={courier ? DELIVERY_HOME : ACCOUNT_HOME}
+                        className="hover:text-brand-600"
+                      >
                         {t("nav.account")}
                       </Link>
                     </li>

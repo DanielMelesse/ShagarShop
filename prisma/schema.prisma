@@ -76,6 +76,9 @@ model Product {
   stock       Int         @default(0)
   featured    Boolean     @default(false)
   size        String?
+  /** clothing | shoes | onesize */
+  sizeChart       String?
+  availableSizes  String[]  @default([])
   shippingTier      String   @default("standard")
   extraShippingBirr Float    @default(0)
   condition         String   @default("new")

@@ -10,7 +10,7 @@ import {
   ACCOUNT_SHOP,
 } from "@/lib/account-routes";
 import { isSellerRole } from "@/lib/user-role";
-import { SELLER_HOME, SELLER_ORDERS } from "@/lib/seller-routes";
+import { SELLER_ADD, SELLER_HOME, SELLER_ORDERS } from "@/lib/seller-routes";
 
 function roleLabel(role: string) {
   return role === "SELLER" ? "Seller account" : "Shopper account";
@@ -108,6 +108,15 @@ export function AccountOverview() {
             {isSeller && (
               <>
                 <Link
+                  href={SELLER_ADD}
+                  className="rounded-2xl border border-brand-200 bg-brand-50 p-5 shadow-sm transition hover:border-brand-400 hover:shadow-md"
+                >
+                  <p className="text-sm text-brand-700">Catalog</p>
+                  <p className="mt-1 text-lg font-semibold text-zinc-900">Add product</p>
+                  <p className="mt-2 text-sm text-brand-600">List a new item →</p>
+                </Link>
+
+                <Link
                   href={SELLER_HOME}
                   className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-brand-300 hover:shadow-md"
                 >
@@ -131,7 +140,7 @@ export function AccountOverview() {
 
                 <Link
                   href={ACCOUNT_SHOP}
-                  className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-brand-300 hover:shadow-md sm:col-span-2"
+                  className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-brand-300 hover:shadow-md"
                 >
                   <p className="text-sm text-zinc-500">Shop settings</p>
                   <p className="mt-1 text-lg font-semibold text-zinc-900">

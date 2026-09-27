@@ -12,7 +12,7 @@ import { useMounted } from "@/hooks/useMounted";
 import { headerSellButtonClass } from "@/lib/header-ui";
 import { isAdminAppPath, ADMIN_HOME } from "@/lib/admin-routes";
 import { isDeliveryAppPath, DELIVER_LANDING, DELIVERY_HOME } from "@/lib/delivery-routes";
-import { isSellSurfacePath, SELLER_HOME, SELL_LANDING } from "@/lib/seller-routes";
+import { isSellSurfacePath, SELLER_HOME } from "@/lib/seller-routes";
 import { ACCOUNT_HOME } from "@/lib/account-routes";
 import { TODAYS_DEALS_HREF } from "@/lib/shop-routes";
 import { isAdminRole, isDeliveryRole, isSellerRole } from "@/lib/user-role";
@@ -42,12 +42,14 @@ function HeaderActions({
   itemCount,
   onLogout,
   authCtaDisabled,
+  accountHref = ACCOUNT_HOME,
 }: {
   showUser: boolean;
   showCartBadge: boolean;
   itemCount: number;
   onLogout: () => void;
   authCtaDisabled: boolean;
+  accountHref?: string;
 }) {
   const { t } = useTranslations();
   const authCtaLabel = `${t("nav.login")}/${t("nav.signUp")}`;
@@ -59,7 +61,7 @@ function HeaderActions({
       {showUser ? (
         <>
           <Link
-            href={ACCOUNT_HOME}
+            href={accountHref}
             className="whitespace-nowrap rounded-lg px-2 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-brand-600 sm:px-3"
           >
             {t("nav.account")}
@@ -117,12 +119,16 @@ export function Header() {
   const { isSeller, checkingSeller } = useIsSeller({ enabled: needsSellerCheck });
   const sellerAccount =
     showUser && (isSellerRole(user?.role) || isSeller || checkingSeller);
+  // Logged-in sellers/couriers keep portal chrome off the buyer storefront too
+  // (e.g. Account), so the brand never sends them into shopper pages.
   const sellerNav =
-    onSellerSurface &&
-    (sellerAccount || (mounted && authReady && !showUser));
+    (onSellerSurface &&
+      (sellerAccount || (mounted && authReady && !showUser))) ||
+    (showUser && isSellerRole(user?.role));
   const deliveryNav =
-    onDeliverySurface &&
-    (deliveryAccount || (mounted && authReady && !showUser));
+    (onDeliverySurface &&
+      (deliveryAccount || (mounted && authReady && !showUser))) ||
+    deliveryAccount;
   const adminNav = onAdminSurface && (adminAccount || (mounted && authReady && !showUser));
   const showCartBadge =
     mounted &&
@@ -179,7 +185,7 @@ export function Header() {
       <header className="border-b border-zinc-200/80 bg-white/90">
         <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
           <Link
-            href={DELIVER_LANDING}
+            href={deliveryAccount ? DELIVERY_HOME : DELIVER_LANDING}
             aria-label="ShegerShop delivery"
             className="flex shrink-0 items-center gap-2 font-bold tracking-tight transition hover:opacity-80"
           >
@@ -223,8 +229,8 @@ export function Header() {
       <header className="border-b border-zinc-200/80 bg-white/90">
         <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6">
           <Link
-            href={TODAYS_DEALS_HREF}
-            aria-label="ShegerShop home"
+            href={SELLER_HOME}
+            aria-label="ShegerShop seller home"
             className="flex shrink-0 items-center gap-2 font-bold tracking-tight transition hover:opacity-80"
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">
@@ -240,11 +246,6 @@ export function Header() {
             <Link href={SELLER_HOME} className={headerSellButtonClass}>
               {t("nav.sell")}
             </Link>
-            {(isSellSurfacePath(pathname) && pathname !== SELL_LANDING) && (
-              <Link href="/shop/departments" className={`${navLinkClass} whitespace-nowrap`}>
-                {t("nav.backToShop")}
-              </Link>
-            )}
             {sellerAccount && !checkingSeller ? (
               <>
                 <Link
@@ -299,6 +300,9 @@ export function Header() {
               itemCount={itemCount}
               onLogout={() => logout()}
               authCtaDisabled={pathname === "/login" || pathname === "/signup"}
+              accountHref={
+                isDeliveryRole(user?.role) ? DELIVERY_HOME : ACCOUNT_HOME
+              }
             />
           </div>
         </div>

@@ -3,6 +3,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { DELIVERY_HOME } from "@/lib/delivery-routes";
+import { isDeliveryRole } from "@/lib/user-role";
 
 function AccountPageSkeleton() {
   return (
@@ -25,10 +27,19 @@ export function AccountLayoutGate({ children }: { children: React.ReactNode }) {
     if (!isReady) return;
     if (!user) {
       router.replace(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+      return;
+    }
+    // Couriers use the delivery portal — not buyer/seller account.
+    if (isDeliveryRole(user.role)) {
+      router.replace(DELIVERY_HOME);
     }
   }, [isReady, user, router, pathname]);
 
   if (!isReady || !user) {
+    return <AccountPageSkeleton />;
+  }
+
+  if (isDeliveryRole(user.role)) {
     return <AccountPageSkeleton />;
   }
 

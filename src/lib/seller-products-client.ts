@@ -10,6 +10,8 @@ function formPayload(form: ProductFormState) {
     stock: Number(form.stock),
     images: form.images,
     size: form.size,
+    sizeChart: form.sizeChart || null,
+    availableSizes: form.availableSizes,
     featured: form.featured,
     shippingTier: form.shippingTier,
     condition: form.condition,

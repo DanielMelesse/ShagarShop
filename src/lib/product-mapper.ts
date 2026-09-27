@@ -18,6 +18,8 @@ export const PRODUCT_LIST_SELECT = {
   stock: true,
   featured: true,
   size: true,
+  sizeChart: true,
+  availableSizes: true,
   shippingTier: true,
   extraShippingBirr: true,
   condition: true,
@@ -35,6 +37,8 @@ export type ProductListRow = {
   stock: number;
   featured: boolean;
   size: string | null;
+  sizeChart: string | null;
+  availableSizes: string[];
   shippingTier: string;
   extraShippingBirr: number;
   condition: string;
@@ -61,6 +65,8 @@ export function toProduct(row: DbProduct): Product {
     stock: row.stock,
     featured: row.featured,
     size: row.size,
+    sizeChart: row.sizeChart,
+    availableSizes: row.availableSizes ?? [],
     shippingTier: row.shippingTier,
     extraShippingBirr: row.extraShippingBirr,
     condition: normalizeProductCondition(row.condition),
@@ -80,6 +86,8 @@ export function toProductListItem(row: ProductListRow): ProductListItem {
     stock: row.stock,
     featured: row.featured,
     size: row.size,
+    sizeChart: row.sizeChart,
+    availableSizes: row.availableSizes ?? [],
     shippingTier: row.shippingTier,
     extraShippingBirr: row.extraShippingBirr,
     condition: normalizeProductCondition(row.condition),
@@ -102,6 +110,8 @@ export function listItemToCartProduct(item: ProductListItem): Product {
     stock: item.stock,
     featured: item.featured,
     size: item.size,
+    sizeChart: item.sizeChart,
+    availableSizes: item.availableSizes ?? [],
     shippingTier: item.shippingTier,
     extraShippingBirr: item.extraShippingBirr,
     condition: item.condition,
@@ -123,6 +133,8 @@ export function slimProductForCart(product: Product): Product {
     stock: product.stock,
     featured: product.featured,
     size: product.size,
+    sizeChart: product.sizeChart,
+    availableSizes: product.availableSizes ?? [],
     shippingTier: product.shippingTier,
     extraShippingBirr: product.extraShippingBirr,
     condition: product.condition,

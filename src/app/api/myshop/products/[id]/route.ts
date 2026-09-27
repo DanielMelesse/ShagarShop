@@ -52,6 +52,8 @@ export async function PATCH(request: Request, context: RouteContext) {
     const parsed = parseSellerProductUpdate(body, {
       category: existing.category,
       size: existing.size,
+      sizeChart: existing.sizeChart,
+      availableSizes: existing.availableSizes,
     });
     if (!parsed.ok) {
       return NextResponse.json({ error: parsed.error }, { status: 400 });
